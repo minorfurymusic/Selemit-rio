@@ -67,7 +67,7 @@ Atualizar este arquivo a cada entrega, sem apagar o histórico. Marcar `[x]` com
 - [ ] Passo 0 (usuário): liberar `*.supabase.co` na rede do ambiente do Claude Code; criar 2 projetos de teste (`vitalpat-patrimonio-teste`, `vitalpat-cemiterio-teste`); passar URL, chave anon e um usuário de teste de cada.
 - [x] Passo 1: biblioteca supabase-js 2.117.3 (MIT) em `vendor/` de cada sistema e da entrada; `patrimonio/config-servidor.js` e `cemiterio/config-servidor.js` (vazio = demonstração). — 07/10/2026.
 - [x] Passo 2: banco cria o perfil (inativo) de quem é cadastrado no Supabase; admin libera pelo sistema; nunca fica sem admin ativo. Testado 2x em PostgreSQL 16 local nos dois produtos: `perfis_criados_inativos = 5`, `inativo_nao_ve = 0`, `É preciso ter pelo menos um administrador ativo.` — 07/10/2026.
-- [ ] Passo 3: login de verdade (e-mail e senha) na entrada única; demonstração continua sem configuração.
+- [x] Passo 3: login de verdade (e-mail e senha) na entrada única; demonstração continua sem configuração. — 07/10/2026. Testado com Supabase **simulado** no navegador automático (13 verificações: e-mail/senha, escolha entre os 2 sistemas, inativo barrado, papel campo abre o app de campo, esqueci a senha, nova senha). Demonstração: campo 43/0, gestão patrimônio `TODOS PASSARAM`, gestão cemitério `TUDO PASSOU`, fumaça `ERROS: []`. Falta provar no Supabase real.
 - [ ] Passo 4: Gestão (patrimônio e cemitério) grava no servidor; tela Pessoas; botões por papel.
 - [ ] Passo 5: fotos no armazenamento de arquivos.
 - [ ] Passo 6: apps de campo: sem internet + "Enviar para o servidor".
