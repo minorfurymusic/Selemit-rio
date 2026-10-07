@@ -4,6 +4,10 @@ Este aplicativo faz parte do **Produto 2 (Cemitério)**. Ele é independente do 
 
 A equipe usa este aplicativo em campo, no celular ou no tablet. Ele é feito em HTML e pode ser instalado na tela inicial, como qualquer outro aplicativo. Depois de aberto uma vez, funciona sem internet.
 
+## Entrar
+
+O aplicativo só abre depois do login na tela inicial do VitalPat (`index.html`, na raiz do repositório). Usuário de teste: `selemitério`, senha `123456`. Esse login é de demonstração e não é segurança de verdade. O botão **Sair** volta para o login; os registros continuam guardados no aparelho.
+
 ## O que ele faz
 
 - **Vistoria de túmulo:** você lê o QR Code ou digita o código do túmulo e dá uma nota de 0 a 4 para estrutura, limpeza, identificação e tampa. Também registra se há sinais de visita recente e guarda as fotos. O aplicativo só registra o que foi visto e não toma nenhuma medida sobre o túmulo.

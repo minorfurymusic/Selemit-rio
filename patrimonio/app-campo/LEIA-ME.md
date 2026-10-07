@@ -4,6 +4,10 @@ Faz parte do **Produto 1 (Patrimônio e frota)**. É independente do VitalPat Ce
 
 Este é o aplicativo que a equipe usa em campo, no celular ou no tablet. Ele é feito em HTML e pode ser instalado na tela inicial, como qualquer outro aplicativo. Depois de aberto uma vez, funciona sem internet.
 
+## Entrar
+
+O aplicativo só abre depois do login na tela inicial do VitalPat (`index.html`, na raiz do repositório). Usuário de teste: `patrimonio`, senha `123456`. Esse login é de demonstração e não é segurança de verdade. O botão **Sair** volta para o login; os registros continuam guardados no aparelho.
+
 ## O que ele faz
 
 - **Conferir bem:** inventário e vistoria. Você lê o QR Code ou digita o número da plaqueta e informa onde o bem está, o estado de conservação (de 1 a 5) e tira fotos. Se o bem já foi conferido em outro local, o aplicativo pergunta se ele foi levado para lá ou se foi uma leitura repetida, para que nenhum bem seja contado duas vezes.
