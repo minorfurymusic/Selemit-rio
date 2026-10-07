@@ -22,7 +22,8 @@ A referência de público-alvo é a Prefeitura de Rio do Sul/SC.
 - (07/10/2026) Equipes de trabalho e treinamento intensivo; apresentação e projetos-piloto no lugar de atestado.
 - (07/10/2026) Relatórios do sistema são visuais. Exportação em planilha é simples, com escolha das colunas (cada sistema de destino aceita só parte das informações).
 - (07/10/2026) O repositório é público: **nunca** colocar nele planilhas ou dados reais com nomes, CPFs ou outros dados pessoais. Só estrutura (cabeçalhos) e dados fictícios.
-- (07/10/2026) O aplicativo de campo é HTML instalável (aplicativo web progressivo), funcionando sem internet, em celular e tablet. O piloto está em `app-campo/`.
+- (07/10/2026) O aplicativo de campo é HTML instalável (aplicativo web progressivo), funcionando sem internet, em celular e tablet. São dois, um por produto: `patrimonio/app-campo/` (VitalPat Patrimônio) e `cemiterio/app-campo/` (VitalPat Cemitério), cada um com armazenamento e cache próprios.
+- (07/10/2026) Modelo de importação do cemitério (planilha limpa, só quadra/aléia/sepultura): `cemiterio/modelos-importacao/`.
 
 ## Bloqueador legal (ler antes de qualquer coisa comercial)
 
@@ -33,7 +34,8 @@ A Lei 14.133/2021, art. 9º, §1º, impede servidor da prefeitura contratante de
 
 ## Decisões em aberto (são do usuário, perguntar antes)
 
-- Um repositório ou dois (um por produto)? Os produtos têm uma plataforma base em comum (usuários, perfis, importação De/Para, auditoria, backup, mapa).
+- ~~Um repositório ou dois?~~ **Decidido em 07/10/2026: um repositório, duas pastas independentes** — `patrimonio/` (Produto 1) e `cemiterio/` (Produto 2). Nenhuma pasta usa arquivo da outra; o que for parecido é copiado e adaptado em cada uma.
+- O que fazer com a estrutura Django que já existia na raiz (`apps/`, `config/`, `gestao/`, `selemit_projeto/` etc.).
 - Stack/tecnologia: o dossiê só sugere PostgreSQL + PostGIS como exemplo; isso não foi decidido. (O repositório já tem uma estrutura Django de julho/2026, que o usuário disse que será parcialmente substituída.)
 - Em que fase entra a frota de veículos.
 - As duas trilhas andam juntas, ou uma sai primeiro?

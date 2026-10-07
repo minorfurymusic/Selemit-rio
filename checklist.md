@@ -6,11 +6,13 @@ Atualizar este arquivo a cada entrega, sem apagar o histórico. Marcar `[x]` com
 
 - [x] Parecer de advogado sobre o impedimento do art. 9º §1º da Lei 14.133 (sócio servidor em Rio do Sul). Produtos 1 e 2. — 07/10/2026: resolvido, segundo o usuário. Prova: nenhum documento anexado ao repositório.
 - [ ] Receber as 2 planilhas do cemitério, com o cabeçalho completo, para mapear a importação. Produto 2. — 07/10/2026: recebida a "Lista de chãos" (estrutura no DOSSIE.md, seção B5; arquivo fora do repositório por ter nomes e CPFs). Falta a 2ª, se existir.
-- [ ] Repositório público: decidir se o dossiê pode ficar público ou se o repositório vira privado (antes do primeiro envio).
+- [ ] Repositório público: o usuário vai torná-lo privado depois; por ora fica público (decisão de 07/10/2026).
+- [ ] Planilha de chãos limpa: revisar 109 covas sem aléia e 14 com aléia "ok".
+- [ ] Decidir o destino da estrutura Django que já existia na raiz do repositório.
 
 ## Decisões do usuário
 
-- [ ] Um repositório ou dois (um por produto)?
+- [x] Um repositório ou dois (um por produto)? — 07/10/2026: um repositório, duas pastas independentes (`patrimonio/` e `cemiterio/`). Commit: ver histórico do git.
 - [ ] Stack/tecnologia.
 - [x] As duas trilhas andam juntas, ou uma sai primeiro? — 07/10/2026: decisão do usuário: equipes de trabalho e treinamento intensivo.
 - [ ] Em que fase entra a frota de veículos (Módulo 10).
@@ -39,7 +41,7 @@ Atualizar este arquivo a cada entrega, sem apagar o histórico. Marcar `[x]` com
 
 ## Aplicativo de campo piloto
 
-- [ ] Testar em celular e tablet reais (Android e iPhone), aberto por endereço https.
+- [ ] Testar os dois aplicativos (Patrimônio e Cemitério) em celular e tablet reais (Android e iPhone), abertos por endereço https.
 - [ ] Definir onde o piloto será hospedado para a apresentação (endereço https).
 
 ## Histórico
@@ -49,3 +51,4 @@ Atualizar este arquivo a cada entrega, sem apagar o histórico. Marcar `[x]` com
 - 07/10/2026: exportado para o Claude Code (`CLAUDE.md`, `DOSSIE.md`, `checklist.md`).
 - 07/10/2026: dossiê v1.2 (Claude Code): reavaliação em blocos, frota de veículos (referência GAX), decisões do usuário e aplicativo de campo piloto em `app-campo/`.
 - 07/10/2026: dossiê v1.3 (Claude Code): nome VitalPat e logo, relatórios visuais, exportação com escolha de colunas (já no app), estrutura da planilha de chãos.
+- 07/10/2026: separação em 2 sistemas independentes (`patrimonio/`, `cemiterio/`), cada um com seu app de campo; planilha de chãos limpa em `cemiterio/modelos-importacao/`.

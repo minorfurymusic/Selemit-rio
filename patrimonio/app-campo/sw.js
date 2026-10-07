@@ -1,6 +1,7 @@
 // Guarda os arquivos do aplicativo no aparelho para funcionar sem internet.
 // Ao mudar qualquer arquivo abaixo, aumentar a VERSAO para os aparelhos baixarem de novo.
-const VERSAO = 'vitalpat-v2';
+const PREFIXO = 'vitalpat-patrimonio-';
+const VERSAO = PREFIXO + 'v3';
 const ARQUIVOS = [
   './',
   './index.html',
@@ -20,7 +21,8 @@ self.addEventListener('install', (e) => {
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys()
-      .then((nomes) => Promise.all(nomes.filter((n) => n !== VERSAO).map((n) => caches.delete(n))))
+      // Só apaga versões antigas DESTE sistema; o outro sistema pode estar no mesmo endereço
+      .then((nomes) => Promise.all(nomes.filter((n) => n.startsWith(PREFIXO) && n !== VERSAO).map((n) => caches.delete(n))))
       .then(() => self.clients.claim())
   );
 });

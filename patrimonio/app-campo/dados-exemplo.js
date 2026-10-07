@@ -4,8 +4,7 @@ window.DADOS_EXEMPLO = {
     { id: 'U1', nome: 'Escola Municipal Exemplo A' },
     { id: 'U2', nome: 'Escola Municipal Exemplo B' },
     { id: 'U3', nome: 'Posto de Saúde Centro (exemplo)' },
-    { id: 'U4', nome: 'Garagem Municipal (exemplo)' },
-    { id: 'U5', nome: 'Cemitério Municipal (exemplo)' }
+    { id: 'U4', nome: 'Garagem Municipal (exemplo)' }
   ],
   bens: [
     { plaqueta: '1001', descricao: 'Mesa de professor', unidade: 'U1' },
@@ -16,11 +15,6 @@ window.DADOS_EXEMPLO = {
     { plaqueta: '1006', descricao: 'Maca hospitalar', unidade: 'U3' },
     { plaqueta: '1007', descricao: 'Geladeira de vacinas', unidade: 'U3' },
     { plaqueta: '1008', descricao: 'Compressor de ar', unidade: 'U4' }
-  ],
-  tumulos: [
-    { codigo: 'Q01-A01-L001', descricao: 'Quadra 01, Aléia 01, Lote 001' },
-    { codigo: 'Q01-A01-L002', descricao: 'Quadra 01, Aléia 01, Lote 002' },
-    { codigo: 'Q02-A03-L015', descricao: 'Quadra 02, Aléia 03, Lote 015' }
   ],
   veiculos: [
     { placa: 'TST1A01', modelo: 'Carro popular 1.0 (exemplo)', combustivel: 'Gasolina', tanque: 50, tipo: 'Próprio', ultimoKm: 45210 },

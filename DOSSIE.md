@@ -32,8 +32,8 @@ Documento interno — não distribuir a terceiros
 |---|---|---|
 | 1.0 | 23/09/2026 | Primeira versão: requisitos organizados, metodologias, base legal, concorrentes, SWOT, estratégia. |
 | 1.1 | 26/09/2026 | **Reorganizado em 2 produtos principais, cada um vendido separadamente** (Parte A — Patrimônio; Parte B — Cemitério), com o mesmo nível de detalhe. **Pesquisa legal de bens móveis e imóveis aprofundada:** NBC TSP 37 (substitui a NBC TSP 07 a partir de 01/01/2027), prazos do PIPCP confirmados, IN TC-20/2015 do TCE/SC (demonstrativo de imóveis e frota), Nota Técnica CNM 23/2018, alienação e doação (Lei 14.133 art. 76), classificação dos bens públicos, áreas públicas de loteamentos. Novos requisitos: frota de veículos, regularização documental de imóveis, cessões/comodatos, avaliação para alienação. Roteiro em duas trilhas. Nenhum conteúdo da v1.0 foi retirado — só reorganizado ou ampliado. |
-| 1.2 | 07/10/2026 | **Decisões do usuário registradas** na seção 1 (impedimento legal resolvido; sistema independente da IPM; equipes de trabalho e treinamento intensivo; apresentação e projetos-piloto no lugar de atestado). **Novo: reavaliação em blocos** por unidade e por outros filtros (Módulo 9, seções A1.13 e A2.13). **Novo: gestão de frota de veículos** completa, com contratos de locação, combustível e quilometragem, tendo o GAX (3ia) como referência (Módulo 10, seções A1.14 e A2.14). **Novo: aplicativo de campo piloto** em HTML, instalável em celular e tablet e funcionando sem internet (seção A2.15, pasta `app-campo/`). O texto original das seções alteradas foi mantido, e as atualizações aparecem marcadas como "Atualização v1.2". |
-| 1.3 | 07/10/2026 | **Nome provisório: VitalPat**, com logo (P sobre o V, T compartilhado entre VITAL e PAT, em outra cor e grande) — arquivo `app-campo/icones/logo-vitalpat.svg`. **Relatórios visuais** e **exportação em planilha simples com escolha de colunas** (PB-04, PB-18 e PB-19). **Estrutura da planilha "Lista de chãos do cemitério"** registrada como modelo de importação (seção B5), sem os dados pessoais. |
+| 1.2 | 07/10/2026 | **Decisões do usuário registradas** na seção 1 (impedimento legal resolvido; sistema independente da IPM; equipes de trabalho e treinamento intensivo; apresentação e projetos-piloto no lugar de atestado). **Novo: reavaliação em blocos** por unidade e por outros filtros (Módulo 9, seções A1.13 e A2.13). **Novo: gestão de frota de veículos** completa, com contratos de locação, combustível e quilometragem, tendo o GAX (3ia) como referência (Módulo 10, seções A1.14 e A2.14). **Novo: aplicativo de campo piloto** em HTML, instalável em celular e tablet e funcionando sem internet (seção A2.15, pasta `app-campo/`; na v1.3 separado em `patrimonio/app-campo/` e `cemiterio/app-campo/`). O texto original das seções alteradas foi mantido, e as atualizações aparecem marcadas como "Atualização v1.2". |
+| 1.3 | 07/10/2026 | **Nome provisório: VitalPat**, com logo (P sobre o V, T compartilhado entre VITAL e PAT, em outra cor e grande) — arquivo `app-campo/icones/logo-vitalpat.svg`. **Relatórios visuais** e **exportação em planilha simples com escolha de colunas** (PB-04, PB-18 e PB-19). **Estrutura da planilha "Lista de chãos do cemitério"** registrada como modelo de importação (seção B5), sem os dados pessoais. **Decisão do usuário: os 2 produtos ficam no mesmo repositório, em pastas independentes** (`patrimonio/` e `cemiterio/`), sem código compartilhado; o app de campo foi separado em dois. Planilha de chãos limpa (só quadra, aléia e sepultura) em `cemiterio/modelos-importacao/`. |
 
 # 1. Alertas críticos — ler antes de investir tempo e dinheiro
 
@@ -475,6 +475,7 @@ A Lei 14.133/2021, art. 76, exige para qualquer alienação: **interesse públic
 - **Formato:** página web instalável ("aplicativo web progressivo"). Abre no navegador do celular ou tablet e pode ser **adicionada à tela inicial**, aparecendo como um aplicativo. Não precisa de loja de aplicativos.
 - **Sem internet:** depois de aberto uma vez, funciona offline. Os registros ficam guardados no próprio aparelho até serem enviados.
 - **O que o piloto faz:** vistoria e inventário de bens (leitura de QR Code pela câmera, quando o aparelho permite, ou digitação do número), vistoria de túmulos (V1–V5 da seção B2), frota (abastecimento e saída/retorno com km e checklist), foto com data/hora e GPS, lista de pendentes de envio, Lixeira e exportação dos dados (planilha CSV e arquivo JSON).
+- **Atualização v1.3:** o piloto foi separado em **dois aplicativos independentes**, um por produto: **VitalPat Patrimônio** (`patrimonio/app-campo/`: bens, abastecimento, saída/retorno de veículo) e **VitalPat Cemitério** (`cemiterio/app-campo/`: vistoria de túmulo). Cada um tem seu próprio armazenamento no aparelho, então os dois podem ser instalados no mesmo celular sem misturar dados.
 - **O que o piloto ainda não faz:** envio para um servidor (ainda não existe servidor), login de usuários e sincronização entre aparelhos. Os dados de exemplo são fictícios.
 - **Limitações reais conhecidas:** leitura de QR pela câmera depende do navegador (funciona no Chrome para Android; no iPhone o piloto oferece a digitação do número); a instalação no iPhone é feita pelo menu "Compartilhar → Adicionar à Tela de Início"; o funcionamento offline e a câmera exigem que o aplicativo seja aberto por endereço **https**.
 
@@ -839,7 +840,7 @@ Princípio: **o sistema aponta indícios; quem decide é a autoridade, em proces
 
 ## B5. Planilha "Lista de chãos do cemitério" — modelo de importação (novo na v1.3)
 
-Arquivo recebido do usuário em 07/10/2026 (`LISTA_CHÃOS_DO_CEMITÉRIO.xlsx`). **O arquivo não foi copiado para o repositório**, porque tem nomes e CPFs e o repositório é público. Aqui fica só a estrutura, levantada por leitura automática do arquivo **[C — lido do arquivo]**.
+Arquivo recebido do usuário em 07/10/2026 (`LISTA_CHÃOS_DO_CEMITÉRIO.xlsx`). **O arquivo original não foi copiado para o repositório**, porque tem nomes e CPFs e o repositório é público. A pedido do usuário, foi gerada uma **versão limpa**, só com quadra (nome da aba), aléia e sepultura: `cemiterio/modelos-importacao/lista-chaos-modelo.xlsx` (48 abas, 6.479 covas; varredura sem CPF nem nomes). Aqui fica só a estrutura, levantada por leitura automática do arquivo **[C — lido do arquivo]**.
 
 ### Visão geral
 
@@ -950,7 +951,9 @@ Cada produto tem sua própria trilha e sua versão mínima vendável. Rodar as d
 | 14 | Testar o app piloto em celulares e tablets reais (Android e iPhone), por endereço https | 1 e 2 | Vocês |
 | 15 | Planilha de chãos: o que significa a coluna "Data" e os valores "I" e "P" de "Situação"; regra para ano com 2 dígitos | 2 | Vocês |
 | 16 | Pesquisar a marca "VitalPat" no INPI antes de registrar (busca na internet não achou o nome exato; achou parecidos na área da saúde, como VITALPAC) | 1 e 2 | Vocês |
-| 17 | Repositório no GitHub é **público**: decidir se o dossiê (marcado "documento interno") pode ficar lá ou se o repositório vira privado | 1 e 2 | Vocês |
+| 17 | Repositório no GitHub é **público**: decidir se o dossiê (marcado "documento interno") pode ficar lá ou se o repositório vira privado — **v1.3: o usuário vai tornar privado depois; por ora fica público** | 1 e 2 | Vocês |
+| 18 | Planilha de chãos limpa: revisar 109 covas sem aléia e 14 com aléia "ok" (como vieram no original) | 2 | Vocês |
+| 19 | O que fazer com a estrutura Django que já existia no repositório (pastas `apps/`, `config/`, `gestao/` etc.): em qual produto entra, ou se será substituída | 1 e 2 | Vocês |
 
 ## C4. Fontes consultadas (v1.0 + v1.1)
 

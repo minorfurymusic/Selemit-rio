@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 340" role="img" aria-labelledby="t">
+  <title id="t">VitalPat</title>
+  <!-- VITAL na linha de cima; PAT na de baixo. O P fica sobre o V e o T é o mesmo nas duas palavras. -->
+  <g fill="none" stroke="#1f5f8b" stroke-width="24" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M40 70 L88 190 L136 70"/>          <!-- V -->
+    <path d="M178 70 V190"/>                    <!-- I -->
+    <path d="M318 190 L358 70 L398 190 M333 148 H383"/> <!-- A (vital) -->
+    <path d="M444 70 V190 H510"/>               <!-- L -->
+  </g>
+  <!-- PAT em outro tom; contorno branco separa o P do V -->
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M52 300 V138 H110 A42 42 0 0 1 110 222 H52" stroke="#ffffff" stroke-width="32"/>
+    <g stroke="#2a9d8f" stroke-width="24">
+      <path d="M52 300 V138 H110 A42 42 0 0 1 110 222 H52"/> <!-- P (sobre o V) -->
+      <path d="M160 300 L198 196 L236 300 M173 262 H223"/>   <!-- A (pat) -->
+    </g>
+  </g>
+  <g fill="none" stroke="#e07a1f" stroke-width="34" stroke-linecap="round">
+    <path d="M220 34 H530 M276 34 V300"/>       <!-- T grande, compartilhado -->
+  </g>
+</svg>

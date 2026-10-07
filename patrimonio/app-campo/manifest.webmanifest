@@ -1,7 +1,7 @@
 {
-  "name": "VitalPat — Campo",
-  "short_name": "VitalPat",
-  "description": "VitalPat, aplicativo de campo (demonstração): vistoria de bens, túmulos e veículos, funcionando sem internet.",
+  "name": "VitalPat Patrimônio",
+  "short_name": "VP Patrimônio",
+  "description": "VitalPat Patrimônio, aplicativo de campo (demonstração): conferência de bens e frota de veículos, funcionando sem internet.",
   "lang": "pt-BR",
   "start_url": "./index.html",
   "scope": "./",
@@ -28,5 +28,6 @@
       "type": "image/png",
       "purpose": "maskable"
     }
-  ]
+  ],
+  "id": "./vitalpat-patrimonio"
 }
