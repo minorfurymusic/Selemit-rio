@@ -313,3 +313,11 @@ tr.chegou { background: var(--primaria-clara); } tr.sobra { background: #fff4e0;
 /* topo: texto sempre legível (claro e escuro) */
 .topo, .topo .botao.claro, .topo .botao-icone { color: #ffffff; }
 .topo { background: #1f5f8b; }
+
+/* ---------- servidor: modo e papéis (o banco também barra; aqui só some o que a pessoa não pode usar) */
+.modo-sistema { font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 99px; border: 1px solid currentColor; opacity: .9; white-space: nowrap; }
+body.papel-consulta #acoes-tela .botao.primario, body.papel-campo #acoes-tela .botao.primario,
+body.papel-consulta .barra-lote, body.papel-campo .barra-lote,
+body.papel-consulta [data-acao]:not([data-acao="etiqueta"]):not([data-acao="imprimir"]), body.papel-campo [data-acao]:not([data-acao="etiqueta"]):not([data-acao="imprimir"]):not([data-acao="vistoria"]),
+body.papel-consulta [data-editar], body.papel-consulta [data-novo], body.papel-consulta [data-novo-cad], body.papel-consulta [data-excluir-cad], body.papel-consulta [data-restaurar-item], body.papel-consulta [data-salvar-cfg],
+body.papel-campo [data-editar], body.papel-campo [data-novo], body.papel-campo [data-novo-cad], body.papel-campo [data-excluir-cad], body.papel-campo [data-restaurar-item], body.papel-campo [data-salvar-cfg] { display: none !important; }

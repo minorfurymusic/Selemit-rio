@@ -42,6 +42,12 @@
   };
 
   const montarLayout = () => {
+    const sv = VP.servidor;
+    if (sv.ativo && sv.perfil?.papel === 'admin') MENU.splice(MENU.length - 1, 0, ['pessoas', 'Pessoas', '☺']);
+    // Faixa que diz se é demonstração ou o sistema de verdade
+    const faixa = document.querySelector('.rodape-demo');
+    if (sv.ativo) faixa.textContent = `Conectado ao servidor${sv.municipio ? ' · ' + sv.municipio : ''} · ${sv.perfil.nome || sv.perfil.email}`;
+    document.getElementById('modo-sistema').textContent = sv.ativo ? (sv.municipio || 'Conectado') : 'Demonstração';
     document.getElementById('menu').innerHTML = MENU.map(([rota, nome, ic]) => `<a href="#${rota}" data-rota="${rota}"><span class="ic" aria-hidden="true">${ic}</span><span>${nome}</span>${rota === 'painel' ? '<b id="selo-pendencias" class="selo-menu" hidden></b>' : ''}</a>`).join('');
     document.getElementById('busca-global').addEventListener('keydown', (e) => {
       if (e.key !== 'Enter') return;
@@ -52,7 +58,8 @@
       VP.app.ir('#bens');
     });
     document.getElementById('abrir-menu').addEventListener('click', () => document.body.classList.toggle('menu-aberto'));
-    document.getElementById('sair').addEventListener('click', () => {
+    document.getElementById('sair').addEventListener('click', async () => {
+      if (VP.servidor.ativo) await VP.servidor.sair();
       try { localStorage.removeItem('vitalpat-sessao'); } catch (_) { /* nada a fazer */ }
       location.replace('../../index.html?motivo=saiu');
     });
@@ -63,13 +70,16 @@
     const carregando = document.getElementById('carregando');
     try {
       const n = await VP.db.carregar();
-      if (!n || !VP.db.pega('meta', 'semente')) {
+      // Dados de exemplo só na demonstração; com servidor, o sistema começa vazio
+      if (!VP.servidor.ativo && (!n || !VP.db.pega('meta', 'semente'))) {
         carregando.querySelector('span').textContent = 'Preparando os dados de exemplo (fictícios)…';
         await VP.db.limparTudo();
         await VP.criarDadosExemplo();
       }
     } catch (e) {
-      carregando.innerHTML = `<p>Não foi possível abrir os dados neste navegador. Saia do modo anônimo e tente de novo.<br><small>${esc(e.message || e)}</small></p>`;
+      carregando.innerHTML = VP.servidor.ativo
+        ? `<p>Não foi possível abrir os dados do servidor. Confira a internet e tente de novo.<br><small>${esc(e.message || e)}</small></p><p><a href="../../index.html?motivo=saiu">Voltar ao login</a></p>`
+        : `<p>Não foi possível abrir os dados neste navegador. Saia do modo anônimo e tente de novo.<br><small>${esc(e.message || e)}</small></p>`;
       return;
     }
     if (VP.config().minhaResponsabilidadePadrao && !Object.keys(VP.estado.filtrosBens).length) VP.estado.filtrosBens.minha = true;

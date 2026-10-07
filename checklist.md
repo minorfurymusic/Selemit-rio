@@ -68,8 +68,10 @@ Atualizar este arquivo a cada entrega, sem apagar o histórico. Marcar `[x]` com
 - [x] Passo 1: biblioteca supabase-js 2.117.3 (MIT) em `vendor/` de cada sistema e da entrada; `patrimonio/config-servidor.js` e `cemiterio/config-servidor.js` (vazio = demonstração). — 07/10/2026.
 - [x] Passo 2: banco cria o perfil (inativo) de quem é cadastrado no Supabase; admin libera pelo sistema; nunca fica sem admin ativo. Testado 2x em PostgreSQL 16 local nos dois produtos: `perfis_criados_inativos = 5`, `inativo_nao_ve = 0`, `É preciso ter pelo menos um administrador ativo.` — 07/10/2026.
 - [x] Passo 3: login de verdade (e-mail e senha) na entrada única; demonstração continua sem configuração. — 07/10/2026. Testado com Supabase **simulado** no navegador automático (13 verificações: e-mail/senha, escolha entre os 2 sistemas, inativo barrado, papel campo abre o app de campo, esqueci a senha, nova senha). Demonstração: campo 43/0, gestão patrimônio `TODOS PASSARAM`, gestão cemitério `TUDO PASSOU`, fumaça `ERROS: []`. Falta provar no Supabase real.
-- [ ] Passo 4: Gestão (patrimônio e cemitério) grava no servidor; tela Pessoas; botões por papel.
-- [ ] Passo 5: fotos no armazenamento de arquivos.
+- [x] Passo 4: Gestão (patrimônio e cemitério) grava no servidor; tela Pessoas; botões por papel. — 07/10/2026. Testado com o roteiro do banco REAL em PostgreSQL 16 + PostgREST 12.2.3 locais (mesmo programa que o Supabase usa); login e fotos simulados. Cemitério: 23 verificações (importação real da lista de chãos, 6.468 túmulos em 2,3 s; recarregar lê do servidor em páginas; histórico com valor anterior; Lixeira; desfazer; Pessoas; consulta recusada pelo banco). Patrimônio: 15 verificações (2.500 bens em lotes; Configurações; consulta recusada). Defeito achado e corrigido no banco: o histórico ganhava linha falsa em "grava ou atualiza".
+- [x] Passo 5: fotos no armazenamento de arquivos (registro guarda só o caminho; tela usa link temporário de 12 h). — 07/10/2026, armazenamento simulado no teste.
+- [ ] Limitação conhecida: duas pessoas alterando o mesmo registro ao mesmo tempo → vale a última gravação (as duas ficam no histórico).
+- [ ] Botões escondidos por papel cobrem as ações principais; o que escapar, o banco recusa com a mensagem "Seu acesso não permite esta alteração".
 - [ ] Passo 6: apps de campo: sem internet + "Enviar para o servidor".
 - [ ] Passo 7: documentos e texto do AI Studio.
 - [ ] Prova contra o Supabase de verdade (depende do passo 0).

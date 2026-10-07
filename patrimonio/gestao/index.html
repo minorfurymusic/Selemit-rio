@@ -24,6 +24,7 @@
   <header class="topo">
     <button id="abrir-menu" class="botao-icone" aria-label="Abrir menu">☰</button>
     <a href="#painel" class="marca"><img src="icones/logo-vitalpat.svg" alt="" width="56" height="34"><span>Patrimônio</span></a>
+    <span id="modo-sistema" class="modo-sistema"></span>
     <input id="busca-global" type="search" placeholder="Buscar bem (código, plaqueta, nome, placa…) e Enter" aria-label="Buscar bem">
     <a class="botao pequeno claro link-campo" href="../app-campo/" title="Aplicativo para celular e tablet">Aplicativo de campo</a>
     <button id="sair" class="botao pequeno claro">Sair</button>
@@ -35,6 +36,8 @@
     <p class="rodape-demo">Demonstração: dados fictícios, guardados só neste navegador.</p>
   </main>
   <script src="vendor/qrcode.js"></script>
+  <script src="vendor/supabase.js"></script>
+  <script src="../config-servidor.js"></script>
   <script src="js/base.js"></script>
   <script src="js/calculos.js"></script>
   <script src="js/semente.js"></script>
@@ -44,6 +47,7 @@
   <script src="js/telas-operacoes.js"></script>
   <script src="js/telas-relatorios.js"></script>
   <script src="js/telas-cadastros.js"></script>
+  <script src="js/servidor.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>
