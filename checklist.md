@@ -77,9 +77,12 @@ Atualizar este arquivo a cada entrega, sem apagar o histórico. Marcar `[x]` com
 - Rodada final do zero (07/10/2026): campo demonstração 43/0; gestão patrimônio demonstração `TODOS PASSARAM`; gestão cemitério demonstração `TUDO PASSOU`; fumaça `ERROS: []`; login servidor `TUDO PASSOU`; gestão cemitério servidor, campo cemitério servidor e gestão patrimônio servidor `TUDO PASSOU`.
 - [x] Um projeto Supabase para os dois sistemas (decisão do usuário, 07/10/2026, por causa do limite do plano gratuito): cada sistema na sua área do banco (`patrimonio` e `cemiterio`) e com armazenamento de fotos próprio. Testado com os dois instalados no mesmo banco local: regras do banco nos dois (rodado 2x), gestor liberado só no cemitério vê `0` registros do patrimônio e não grava lá; testes com servidor das 2 Gestões e dos 2 apps de campo `TUDO PASSOU`; demonstração 43/0, `TODOS PASSARAM`, `TUDO PASSOU`, `ERROS: []`.
 - [x] Projeto de teste criado pelo usuário no Supabase (07/10/2026): `https://scmrceuxzsukxwsusygk.supabase.co` (nome "departamenteo de patrimônio", região São Paulo, plano Free, mesma organização do Sispu).
-- [ ] No projeto: rodar os 2 arquivos de instalação, liberar as áreas em Exposed schemas, criar o administrador; passar a chave anon.
-- [ ] Liberar `*.supabase.co` na rede do ambiente do Claude Code.
-- [ ] Prova contra o Supabase de verdade (depende dos 2 itens acima). Só depois disso enviar os commits ao GitHub (decisão do usuário, 07/10/2026).
+- [x] No projeto: instalação dos 2 sistemas, áreas liberadas em Exposed schemas, administrador criado, chave anon passada. — 07/10/2026 (usuário; print com `minorfurymusic@gmail.com | admin | true` nas duas áreas).
+- [x] Liberar `*.supabase.co` na rede do ambiente do Claude Code. — 07/10/2026.
+- [x] Prova contra o Supabase de verdade — 07/10/2026, navegador automático no projeto `scmrceuxzsukxwsusygk`, nada simulado: `TUDO PASSOU NO SUPABASE REAL`. Login por e-mail com escolha do sistema; importação da lista de chãos (6.468 túmulos em 23,8 s; reabrir lendo do servidor 8,4 s); histórico real com valor anterior (versões 1,2); banco recusa apagar (`permission denied for table docs`); foto no armazenamento real aparece depois de recarregar; excluir → Lixeira; tela Pessoas; app de campo enviou 1 registro e a Gestão recebeu; patrimônio entra, grava Configurações e não vê nada do cemitério; sem erros no console. Sem internet: o servidor recusa quem não fez login (`permission denied for schema cemiterio`).
+- [ ] Trocar a senha de teste do usuário (passou pelo chat).
+- [ ] Decidir se o AI Studio passa a usar o servidor de teste (preencher `*/config-servidor.js`) ou continua em demonstração.
+- [ ] Observação: excluir usuário pelo painel do Supabase dá erro, porque o perfil fica ligado à pessoa e o banco não apaga nada; para tirar o acesso, desativar em Pessoas.
 
 ## Gestão do cemitério (`cemiterio/gestao/`) — plano em etapas
 
@@ -110,3 +113,4 @@ Atualizar este arquivo a cada entrega, sem apagar o histórico. Marcar `[x]` com
 - 07/10/2026: roteiros de instalação do banco (Supabase) para patrimônio e cemitério, um projeto por cidade e por produto.
 - 07/10/2026: pesquisa de sistemas de outros países; Atlas descartado; 10 funções aprovadas (DOSSIE.md B7).
 - 07/10/2026: sistema ligado ao Supabase (login de verdade, Gestões e apps de campo gravando no servidor), testado com o banco real em PostgreSQL+PostgREST locais; falta provar no Supabase de verdade (passo 0).
+- 07/10/2026: ligação ao Supabase provada no projeto de teste real (um projeto para os dois sistemas).
