@@ -672,12 +672,12 @@
       titulo: 'Configurações',
       acoes: '<button class="botao primario" data-salvar>Salvar</button>',
       html: `<form id="form-cfg" class="cartao">${ui.campos(campos, cfg)}</form>
-        <section class="cartao"><h3>Cópia de segurança</h3><p class="ajuda">Nesta demonstração os dados ficam neste navegador. Na versão com servidor (Supabase), ficam guardados no servidor.</p>
-          <div class="linha-botoes"><button class="botao" data-backup>Baixar cópia completa</button><label class="botao">Restaurar cópia<input type="file" accept=".json" data-restaurar hidden></label><button class="botao perigo" data-reset>Voltar aos dados de exemplo</button></div></section>`,
+        <section class="cartao"><h3>Cópia de segurança</h3>${VP.servidor.ativo ? '<p class="ajuda">Os dados ficam guardados no servidor da prefeitura, com histórico de cada alteração. Você pode baixar uma cópia completa para guardar.</p><div class="linha-botoes"><button class="botao" data-backup>Baixar cópia completa</button></div>' : `<p class="ajuda">Nesta demonstração os dados ficam neste navegador.</p>
+          <div class="linha-botoes"><button class="botao" data-backup>Baixar cópia completa</button><label class="botao">Restaurar cópia<input type="file" accept=".json" data-restaurar hidden></label><button class="botao perigo" data-reset>Voltar aos dados de exemplo</button></div>`}</section>`,
       ligar() {
         document.querySelector('[data-salvar]').addEventListener('click', async () => { const { valores } = ui.lerCampos(document.getElementById('form-cfg'), campos); await VP.salvarConfig(Object.assign({}, cfg, valores)); ui.aviso('Configurações salvas.'); });
         document.querySelector('[data-backup]').addEventListener('click', () => ui.baixar(`vitalpat-cemiterio-copia-${VP.Plataforma.hoje()}.json`, JSON.stringify({ sistema: 'VitalPat Cemitério', versao: 1, geradoEm: VP.Plataforma.agoraISO(), dados: Object.fromEntries(VP.COLECOES.map((c) => [c, VP.db.lista(c, true)])) }), 'application/json'));
-        document.querySelector('[data-restaurar]').addEventListener('change', async (e) => {
+        document.querySelector('[data-restaurar]')?.addEventListener('change', async (e) => {
           try {
             const dump = JSON.parse(await e.target.files[0].text());
             if (dump.sistema !== 'VitalPat Cemitério') return ui.aviso('Este arquivo não é uma cópia do VitalPat Cemitério.', 'erro');
@@ -687,7 +687,7 @@
             ui.aviso('Cópia restaurada.'); VP.app.ir('#painel');
           } catch (_) { ui.aviso('Não foi possível ler a cópia.', 'erro'); }
         });
-        document.querySelector('[data-reset]').addEventListener('click', async () => {
+        document.querySelector('[data-reset]')?.addEventListener('click', async () => {
           if (!await ui.confirmar('Apagar os dados deste navegador e voltar ao cemitério de exemplo (fictício)?', { sim: 'Voltar aos dados de exemplo', classe: 'perigo' })) return;
           await VP.db.limparTudo(); await VP.criarDadosExemplo(); VP.app.ir('#painel');
         });

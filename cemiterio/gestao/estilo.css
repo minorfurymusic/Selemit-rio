@@ -342,3 +342,12 @@ tr.chegou { background: var(--primaria-clara); } tr.sobra { background: #fff4e0;
 .galeria-fotos img { width: 100%; height: 110px; object-fit: cover; border-radius: 8px; }
 .p-icone { text-align: center; }
 .p-texto { min-width: 0; }
+
+/* ---------- servidor: modo e papéis (o banco também barra; aqui só some o que a pessoa não pode usar) */
+.modo-sistema { font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 99px; border: 1px solid currentColor; opacity: .9; white-space: nowrap; }
+body.papel-consulta #acoes-tela .botao.primario, body.papel-campo #acoes-tela .botao.primario,
+body.papel-consulta .barra-lote, body.papel-campo .barra-lote,
+body.papel-consulta [data-acao="editar"], body.papel-consulta [data-acao="excluir"], body.papel-consulta [data-acao="local"], body.papel-consulta [data-acao="gps"], body.papel-consulta [data-acao="observacao"],
+body.papel-campo [data-acao="editar"], body.papel-campo [data-acao="excluir"], body.papel-campo [data-acao="local"],
+body.papel-consulta [data-editar], body.papel-consulta [data-excluir], body.papel-consulta [data-restaurar], body.papel-consulta [data-salvar],
+body.papel-campo [data-editar], body.papel-campo [data-excluir], body.papel-campo [data-restaurar], body.papel-campo [data-salvar] { display: none !important; }

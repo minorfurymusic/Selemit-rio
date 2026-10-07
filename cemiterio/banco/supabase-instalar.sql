@@ -108,13 +108,23 @@ begin
   end if;
   new.atualizado_em := now();
   new.atualizado_por := auth.uid();
-  insert into public.historico (colecao, id, versao, dados_anteriores, dados_novos, alterado_por)
-  values (new.colecao, new.id, new.versao, case when tg_op = 'UPDATE' then old.dados end, new.dados, auth.uid());
   return new;
 end $$;
 drop trigger if exists docs_antes_de_gravar on public.docs;
 create trigger docs_antes_de_gravar before insert or update on public.docs
   for each row execute function public.docs_antes_de_gravar();
+
+-- O histórico é escrito DEPOIS de gravar: assim um "grava ou atualiza" (upsert) não deixa linha falsa
+create or replace function public.docs_depois_de_gravar() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  insert into public.historico (colecao, id, versao, dados_anteriores, dados_novos, alterado_por)
+  values (new.colecao, new.id, new.versao, case when tg_op = 'UPDATE' then old.dados end, new.dados, auth.uid());
+  return null;
+end $$;
+drop trigger if exists docs_depois_de_gravar on public.docs;
+create trigger docs_depois_de_gravar after insert or update on public.docs
+  for each row execute function public.docs_depois_de_gravar();
 
 create or replace function public.nao_apagar() returns trigger language plpgsql as $$
 begin
