@@ -1,0 +1,161 @@
+/* VitalPat Cemitério · Gestão — base: utilidades, armazenamento e configuração.
+   Sistema do Produto 2. Não usa nenhum arquivo do sistema do patrimônio. */
+'use strict';
+
+const VP = window.VP = window.VP || {};
+
+// Funções que dependem do ambiente ficam aqui para poderem ser trocadas em teste
+VP.Plataforma = VP.Plataforma || {
+  hoje: () => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  },
+  agoraISO: () => new Date().toISOString()
+};
+
+VP.u = {
+  esc: (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])),
+  id: () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8),
+  num: (v) => {
+    if (typeof v === 'number') return Number.isFinite(v) ? v : null;
+    const t = String(v ?? '').trim();
+    if (!t) return null;
+    const n = parseFloat(t.includes(',') ? t.replace(/\.(?=\d{3}(\D|$))/g, '').replace(',', '.') : t);
+    return Number.isFinite(n) ? n : null;
+  },
+  moeda: (v) => (v ?? 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+  moedaCurta: (v) => VP.u.moeda(v),
+  inteiro: (v) => (v ?? 0).toLocaleString('pt-BR'),
+  pct: (v) => ((v ?? 0) * 100).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + '%',
+  data: (iso) => {
+    if (!iso) return '—';
+    const [a, m, d] = String(iso).slice(0, 10).split('-');
+    return d && m && a ? `${d}/${m}/${a}` : '—';
+  },
+  normalizar: (t) => String(t ?? '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').trim(),
+  faixas: (texto) => {
+    const partes = String(texto || '').split(/[;,\s]+/).filter(Boolean);
+    const testes = [];
+    for (const p of partes) {
+      const m = p.match(/^(\d+)\s*-\s*(\d+)$/);
+      if (m) testes.push((n) => n >= +m[1] && n <= +m[2]);
+      else if (/^\d+$/.test(p)) testes.push((n) => n === +p);
+      else return null;
+    }
+    return testes.length ? (n) => testes.some((t) => t(Number(n))) : null;
+  },
+  prng: (semente) => {
+    let s = semente >>> 0;
+    return () => { s = (s + 0x6D2B79F5) >>> 0; let t = s; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+  },
+  agruparSoma: (lista, chave, valor) => {
+    const m = new Map();
+    for (const x of lista) {
+      const k = typeof chave === 'function' ? chave(x) : x[chave];
+      m.set(k, (m.get(k) || 0) + (typeof valor === 'function' ? valor(x) : (valor ? x[valor] : 1)));
+    }
+    return m;
+  },
+  // Ordena "001", "001 A", "2", "010 B" pela parte numérica e depois pela letra
+  ordemNumero: (a, b) => {
+    const pa = String(a).match(/^(\d*)\s*(.*)$/), pb = String(b).match(/^(\d*)\s*(.*)$/);
+    return (Number(pa[1] || 1e9) - Number(pb[1] || 1e9)) || pa[2].localeCompare(pb[2], 'pt-BR');
+  }
+};
+
+VP.LISTAS = {
+  tipos: { sepultura: 'Sepultura (chão)', jazigo: 'Jazigo', gaveta: 'Gaveta', ossario: 'Ossário', capela: 'Capela' },
+  ocupacao: { ocupado: 'Ocupado', vago: 'Vago', reservado: 'Reservado', 'nao-informado': 'Não informado' },
+  tiposQuadra: { comum: 'Comum', infantil: 'Infantil', gaveteiro: 'Gaveteiro', jazigos: 'Jazigos' },
+  fontesGeo: { levantamento: 'Levantamento da empresa especializada', 'gps-celular': 'GPS do celular (aproximado)', manual: 'Informado à mão' },
+  eventos: {
+    cadastro: 'Cadastro', alteracao: 'Alteração de dados', importacao: 'Importação de planilha', georreferenciamento: 'Localização exata',
+    foto: 'Foto', observacao: 'Observação', qr: 'Plaqueta QR afixada'
+  }
+};
+
+VP.CONFIG_PADRAO = {
+  entidade: 'Prefeitura Municipal de Exemplo',
+  // Avisos e regras ficam configuráveis por município (lei municipal de cada um)
+  precisaoMaximaLevantamento: 0.5, // metros: acima disso, a coordenada é marcada como "aproximada"
+  mostrarFotos: true
+};
+
+VP.COLECOES = ['cemiterios', 'quadras', 'tumulos', 'eventos', 'importacoes', 'filtrosSalvos', 'meta'];
+
+// Armazenamento no navegador (IndexedDB). Tudo é carregado na memória ao abrir.
+// Preparado para trocar por servidor (Supabase) mantendo as mesmas funções: carregar, lista, pega, gravar, gravarVarias.
+VP.db = {
+  _db: null,
+  dados: {},
+  nomeBanco: 'vitalpat-cemiterio-gestao',
+  abrir() {
+    return new Promise((ok, erro) => {
+      const req = indexedDB.open(this.nomeBanco, 1);
+      req.onupgradeneeded = () => req.result.createObjectStore('docs', { keyPath: 'chave' });
+      req.onsuccess = () => { this._db = req.result; ok(); };
+      req.onerror = () => erro(req.error);
+    });
+  },
+  async carregar() {
+    await this.abrir();
+    for (const c of VP.COLECOES) this.dados[c] = new Map();
+    const todos = await new Promise((ok, erro) => {
+      const r = this._db.transaction('docs').objectStore('docs').getAll();
+      r.onsuccess = () => ok(r.result);
+      r.onerror = () => erro(r.error);
+    });
+    for (const d of todos) {
+      const [col] = d.chave.split('/');
+      if (this.dados[col]) this.dados[col].set(d.id, d);
+    }
+    return todos.length;
+  },
+  lista(col, incluirExcluidos = false) {
+    const v = [...this.dados[col].values()];
+    return incluirExcluidos ? v : v.filter((x) => !x.excluido);
+  },
+  pega(col, id) { return this.dados[col].get(id) || null; },
+  gravar(col, docs) { return this.gravarVarias({ [col]: Array.isArray(docs) ? docs : [docs] }); },
+  async gravarVarias(mapa) {
+    const t = this._db.transaction('docs', 'readwrite');
+    const s = t.objectStore('docs');
+    for (const [col, docs] of Object.entries(mapa)) {
+      for (const d of docs) {
+        if (!d.id) d.id = VP.u.id();
+        d.chave = `${col}/${d.id}`;
+        delete d._busca;
+        this.dados[col].set(d.id, d);
+        s.put(d);
+      }
+    }
+    VP.invalidar && VP.invalidar();
+    return new Promise((ok, erro) => { t.oncomplete = () => ok(); t.onerror = () => erro(t.error); });
+  },
+  async limparTudo() {
+    const t = this._db.transaction('docs', 'readwrite');
+    t.objectStore('docs').clear();
+    await new Promise((ok) => { t.oncomplete = ok; });
+    for (const c of VP.COLECOES) this.dados[c] = new Map();
+  }
+};
+
+VP.config = () => Object.assign({}, VP.CONFIG_PADRAO, (VP.db.pega('meta', 'config') || {}).valores || {});
+VP.salvarConfig = (valores) => VP.db.gravar('meta', { id: 'config', valores });
+VP.nomeEntidade = () => VP.config().entidade;
+
+VP.novoEvento = (tumuloId, tipo, dados = {}) => ({
+  id: VP.u.id(), tumuloId, tipo,
+  data: dados.data || VP.Plataforma.hoje(),
+  descricao: dados.descricao || '',
+  dados: dados.extra || {},
+  loteId: dados.loteId || null,
+  usuario: VP.sessao?.usuario || 'demonstração',
+  criadoEm: VP.Plataforma.agoraISO(),
+  cancelado: false
+});
+
+VP.nome = (col, id) => {
+  const x = VP.db.pega(col, id);
+  return x ? (x.nome || x.codigo || '—') : '—';
+};

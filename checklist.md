@@ -13,7 +13,9 @@ Atualizar este arquivo a cada entrega, sem apagar o histórico. Marcar `[x]` com
 ## Decisões do usuário
 
 - [x] Um repositório ou dois (um por produto)? — 07/10/2026: um repositório, duas pastas independentes (`patrimonio/` e `cemiterio/`). Commit: ver histórico do git.
-- [ ] Stack/tecnologia.
+- [ ] Stack/tecnologia. — 07/10/2026: servidor = Supabase (decisão do usuário). Falta o resto.
+- [ ] Supabase: criar projeto próprio do VitalPat e passar URL e chave pública (anon key). Nunca a chave secreta.
+- [ ] Contratar a empresa do levantamento (localização exata dos túmulos); formato de entrega no DOSSIE.md B6.
 - [x] As duas trilhas andam juntas, ou uma sai primeiro? — 07/10/2026: decisão do usuário: equipes de trabalho e treinamento intensivo.
 - [ ] Em que fase entra a frota de veículos (Módulo 10).
 - [ ] Confirmar se "Serfic" = SIAFIC.
@@ -55,6 +57,20 @@ Atualizar este arquivo a cada entrega, sem apagar o histórico. Marcar `[x]` com
 - [ ] Configurações que ainda só ficam guardadas (lista em `patrimonio/gestao/LEIA-ME.md`) dependem do servidor.
 - [ ] Ajustar o logo (o usuário vai rever).
 
+## Gestão do cemitério (`cemiterio/gestao/`) — plano em etapas
+
+- [x] Etapa 1 — túmulos, importação da lista de chãos (De/Para, prévia, desfazer), mapa por posição, painel, ficha com QR, recebimento do levantamento (CSV/GeoJSON), KML, etiquetas, Lixeira. — 07/10/2026, 29 verificações passaram no navegador automático (commit no histórico do git).
+- [ ] Etapa 0 — conferir no AI Studio, rodando, se o estilo (.css) do cemitério é publicado (aparecia sem estilo).
+- [ ] Etapa 2 — vistorias, triagem de possível abandono, ordens de limpeza, app de campo ampliado.
+- [ ] Etapa 3 — concessões, sepultamentos, exumações e ossário.
+- [ ] Etapa 4 — processo administrativo (nada automático; pessoa decide).
+- [ ] Etapa 5 — imóveis (Patrimônio).
+- [ ] Etapa 6 — chamados de conserto, manutenção preventiva, vistorias e equipes.
+- [ ] Etapa 7 — mapas com fundo de imagem (Leaflet + OpenStreetMap), Google Maps, KML.
+- [ ] Etapa 8 — relatórios com fotos e mapas.
+- [ ] Planilha de chãos: 11 linhas repetidas na mesma aba aparecem como Conflito na importação (bate com o DOSSIE.md B5, item 6).
+- [ ] Gestão do patrimônio: mesmo defeito corrigido no cemitério (clique que pode ser contado duas vezes em Cadastros) existe em `patrimonio/gestao/js/telas-cadastros.js`; corrigir só com autorização.
+
 ## Histórico
 
 - 23/09/2026: dossiê v1.0 criado (Cowork).
@@ -65,3 +81,4 @@ Atualizar este arquivo a cada entrega, sem apagar o histórico. Marcar `[x]` com
 - 07/10/2026: separação em 2 sistemas independentes (`patrimonio/`, `cemiterio/`), cada um com seu app de campo; planilha de chãos limpa em `cemiterio/modelos-importacao/`.
 - 07/10/2026: tela de login única na raiz; cada usuário abre seu sistema (teste: 42 verificações passaram no navegador automático).
 - 07/10/2026: Gestão do patrimônio criada em `patrimonio/gestao/` a partir das 47 telas do concorrente (DOSSIE.md A5); login `patrimonio` passa a abrir a Gestão.
+- 07/10/2026: dossiê v1.5; Gestão do cemitério (etapa 1) em `cemiterio/gestao/`; login `selemitério` passa a abrir a Gestão; decisões: Supabase e empresa de levantamento.

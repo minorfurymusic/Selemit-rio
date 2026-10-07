@@ -26,6 +26,10 @@ A referência de público-alvo é a Prefeitura de Rio do Sul/SC.
 - (07/10/2026) Entrada única com login (`index.html` na raiz): o tipo de usuário abre o sistema certo. Usuários de teste `patrimonio`/`123456` e `selemitério`/`123456`. É login **de demonstração** (só no navegador), não é segurança real.
 - (07/10/2026) Publicação e testes pelo Google AI Studio, sincronizado com o GitHub.
 - (07/10/2026) Sistema de gestão do patrimônio em `patrimonio/gestao/` (HTML/JS puros, dados no navegador). O login `patrimonio` abre a Gestão; o app de campo fica no botão do topo. Base: as 47 telas do concorrente, numa versão mais simples e visual, **sem cópia** (mapa em `DOSSIE.md` A5). As imagens do concorrente ficam fora do repositório (Google Drive, pasta Trabalho → "Manual de Utilização Sistema"), porque têm dados internos e nomes de servidores.
+- (07/10/2026) Manter as telas adaptadas do concorrente e **somar** a elas o que está no dossiê (imóveis, manutenção, chamados, fotos, georreferenciamento). Plano em etapas; cada etapa testada e commitada, push só com autorização.
+- (07/10/2026) **Servidor: Supabase** (projeto próprio do VitalPat, ainda não criado). Por enquanto os dados ficam no navegador, com as mesmas funções de armazenamento para trocar depois.
+- (07/10/2026) A localização exata dos túmulos virá de **empresa especializada** (drone/GNSS). O sistema só recebe (CSV ou GeoJSON, com prévia) — formato no `DOSSIE.md` B6.
+- (07/10/2026) Gestão do cemitério em `cemiterio/gestao/`. O login `selemitério` abre a Gestão; o app de campo fica no botão do topo.
 - (07/10/2026) Modelo de importação do cemitério (planilha limpa, só quadra/aléia/sepultura): `cemiterio/modelos-importacao/`.
 
 ## Bloqueador legal (ler antes de qualquer coisa comercial)
@@ -39,7 +43,7 @@ A Lei 14.133/2021, art. 9º, §1º, impede servidor da prefeitura contratante de
 
 - ~~Um repositório ou dois?~~ **Decidido em 07/10/2026: um repositório, duas pastas independentes** — `patrimonio/` (Produto 1) e `cemiterio/` (Produto 2). Nenhuma pasta usa arquivo da outra; o que for parecido é copiado e adaptado em cada uma.
 - O que fazer com a estrutura Django que já existia na raiz (`apps/`, `config/`, `gestao/`, `selemit_projeto/` etc.).
-- Stack/tecnologia: o dossiê só sugere PostgreSQL + PostGIS como exemplo; isso não foi decidido. (O repositório já tem uma estrutura Django de julho/2026, que o usuário disse que será parcialmente substituída.)
+- Stack/tecnologia: servidor decidido (Supabase, 07/10/2026); o resto não. Hoje é HTML/JS puro. (O repositório já tem uma estrutura Django de julho/2026, que o usuário disse que será parcialmente substituída.)
 - Em que fase entra a frota de veículos.
 - As duas trilhas andam juntas, ou uma sai primeiro?
 - Qual produto ou fase começa a ser codificada.

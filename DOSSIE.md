@@ -12,7 +12,7 @@ Público-alvo de referência: Prefeitura Municipal de Rio do Sul/SC
 
 Requisitos • Metodologias • Base legal • Concorrentes e SWOT • Estratégia de licitação
 
-Versão 1.4 — 07/10/2026
+Versão 1.5 — 07/10/2026
 
 Documento interno — não distribuir a terceiros
 
@@ -35,6 +35,7 @@ Documento interno — não distribuir a terceiros
 | 1.2 | 07/10/2026 | **Decisões do usuário registradas** na seção 1 (impedimento legal resolvido; sistema independente da IPM; equipes de trabalho e treinamento intensivo; apresentação e projetos-piloto no lugar de atestado). **Novo: reavaliação em blocos** por unidade e por outros filtros (Módulo 9, seções A1.13 e A2.13). **Novo: gestão de frota de veículos** completa, com contratos de locação, combustível e quilometragem, tendo o GAX (3ia) como referência (Módulo 10, seções A1.14 e A2.14). **Novo: aplicativo de campo piloto** em HTML, instalável em celular e tablet e funcionando sem internet (seção A2.15, pasta `app-campo/`; na v1.3 separado em `patrimonio/app-campo/` e `cemiterio/app-campo/`). O texto original das seções alteradas foi mantido, e as atualizações aparecem marcadas como "Atualização v1.2". |
 | 1.3 | 07/10/2026 | **Nome provisório: VitalPat**, com logo (P sobre o V, T compartilhado entre VITAL e PAT, em outra cor e grande) — arquivo `app-campo/icones/logo-vitalpat.svg`. **Relatórios visuais** e **exportação em planilha simples com escolha de colunas** (PB-04, PB-18 e PB-19). **Estrutura da planilha "Lista de chãos do cemitério"** registrada como modelo de importação (seção B5), sem os dados pessoais. **Decisão do usuário: os 2 produtos ficam no mesmo repositório, em pastas independentes** (`patrimonio/` e `cemiterio/`), sem código compartilhado; o app de campo foi separado em dois. Planilha de chãos limpa (só quadra, aléia e sepultura) em `cemiterio/modelos-importacao/`. |
 | 1.4 | 07/10/2026 | **Seção A5:** as 47 telas do sistema concorrente (patrimônio) foram mapeadas função por função para uma versão VitalPat mais simples, visual e automática, sem excluir nenhuma função. Criado o sistema de gestão do patrimônio em `patrimonio/gestao/`. |
+| 1.5 | 07/10/2026 | **Decisões do usuário:** manter as telas adaptadas do concorrente e somar a elas tudo o que está no dossiê (imóveis, manutenção, chamados, fotos, georreferenciamento); **servidor: Supabase** (já usado pelo usuário em outro projeto); a localização exata de cada túmulo será medida por **empresa especializada** contratada, e o sistema precisa estar pronto para receber esse levantamento (seção B6). Criado o sistema de gestão do cemitério em `cemiterio/gestao/` (etapa 1: túmulos, importação da lista de chãos, mapa por posição, painel, recebimento do levantamento). |
 
 # 1. Alertas críticos — ler antes de investir tempo e dinheiro
 
@@ -986,6 +987,19 @@ Arquivo recebido do usuário em 07/10/2026 (`LISTA_CHÃOS_DO_CEMITÉRIO.xlsx`). 
 7. **Chave da sepultura no sistema:** quadra (nome da aba) + aléia + número da sepultura (com letra). Ex.: "Quadra 01 / Aléia 01 / 001 A".
 8. Comprimento e largura como texto com vírgula; observações gerais no cabeçalho (ex.: "Todos lotes da Quadra 42 são 2,80m x 1,40m").
 
+## B6. Localização exata dos túmulos e servidor (novo na v1.5)
+
+**Decisão do usuário (07/10/2026):** uma empresa especializada fará o levantamento da posição exata de cada túmulo. O sistema não mede nada sozinho; ele fica pronto para receber o resultado.
+
+- **Por que não o GPS do celular [D]:** o GPS comum erra de 3 a 15 m, e as covas ficam a cerca de 1,5 m uma da outra. Por isso, até o levantamento chegar, o túmulo é achado pela posição (quadra → aléia → número), pelo mapa esquemático e pela plaqueta QR. Coordenada do celular fica marcada como **aproximada**.
+- **O que o sistema entrega à empresa:** planilha com todos os túmulos (quadra, aléia, número, código do QR) e colunas vazias `latitude`, `longitude`, `precisao_m`.
+- **O que a empresa devolve (formato a combinar no contrato):** a mesma planilha preenchida (CSV, `quadra;aleia;numero;latitude;longitude;precisao_m`, coordenadas em graus decimais WGS84) **ou** GeoJSON com pontos ou contornos dos túmulos (`properties`: quadra, aleia, numero) e contornos das quadras (`properties`: tipo = "quadra", quadra). Ortofoto (foto aérea do drone) com os limites (norte, sul, leste, oeste) fica no cadastro do cemitério.
+- **Como entra:** prévia antes de gravar (recebem localização, trocam localização, não encontrados, erros como latitude/longitude trocadas ou fora do Brasil); a coordenada anterior vai para a linha do tempo; dá para desfazer.
+- **O que é "exata":** origem = levantamento e precisão até o valor configurado (padrão 0,5 m; ajustável por município).
+- **Saídas:** botão do Google Maps na ficha; arquivo KML para o Google Earth. Mapa com fundo de imagem (Leaflet + OpenStreetMap) fica para a etapa 7.
+
+**Servidor [decisão do usuário, 07/10/2026]: Supabase.** Hoje os dados ficam no navegador; o armazenamento foi escrito com as mesmas funções (carregar, listar, gravar) para trocar pelo Supabase depois. **[D]** Pela regra "cada projeto é independente", o VitalPat deve ter um projeto Supabase próprio, separado do outro projeto do usuário. A troca exige login de verdade e regras de acesso por usuário antes de colocar dados reais.
+
 # PARTE C — ESTRATÉGIA COMERCIAL E PRÓXIMOS PASSOS
 
 ## C1. Como vender — cada produto separado
@@ -1055,6 +1069,8 @@ Cada produto tem sua própria trilha e sua versão mínima vendável. Rodar as d
 | 17 | Repositório no GitHub é **público**: decidir se o dossiê (marcado "documento interno") pode ficar lá ou se o repositório vira privado — **v1.3: o usuário vai tornar privado depois; por ora fica público** | 1 e 2 | Vocês |
 | 18 | Planilha de chãos limpa: revisar 109 covas sem aléia e 14 com aléia "ok" (como vieram no original) | 2 | Vocês |
 | 20 | Login de verdade (servidor, senhas fortes, troca de senha); o login atual é só de demonstração | 1 e 2 | Desenvolvimento |
+| 21 | Supabase: criar um projeto novo só do VitalPat e informar o endereço (URL) e a chave pública (anon key). A chave secreta (service role) **nunca** vai para o repositório | 1 e 2 | Vocês |
+| 22 | Contratar a empresa do levantamento: combinar no contrato o formato de entrega (B6), a precisão mínima e a ortofoto | 2 | Vocês |
 | 19 | O que fazer com a estrutura Django que já existia no repositório (pastas `apps/`, `config/`, `gestao/` etc.): em qual produto entra, ou se será substituída | 1 e 2 | Vocês |
 
 ## C4. Fontes consultadas (v1.0 + v1.1)

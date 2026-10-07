@@ -6,7 +6,7 @@ A equipe usa este aplicativo em campo, no celular ou no tablet. Ele é feito em 
 
 ## Entrar
 
-O aplicativo só abre depois do login na tela inicial do VitalPat (`index.html`, na raiz do repositório). Usuário de teste: `selemitério`, senha `123456`. Esse login é de demonstração e não é segurança de verdade. O botão **Sair** volta para o login; os registros continuam guardados no aparelho.
+O aplicativo só abre depois do login na tela inicial do VitalPat (`index.html`, na raiz do repositório). Usuário de teste: `selemitério`, senha `123456`. O login abre a Gestão do Cemitério (`cemiterio/gestao/`); este aplicativo fica no botão **Aplicativo de campo**, no topo da Gestão. Esse login é de demonstração e não é segurança de verdade. O botão **Sair** volta para o login; os registros continuam guardados no aparelho.
 
 ## O que ele faz
 
