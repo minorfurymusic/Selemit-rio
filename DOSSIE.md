@@ -1,5 +1,7 @@
 DOSSIÊ DE PRODUTO E MERCADO
 
+**VitalPat** (nome provisório, escolhido pelo usuário em 07/10/2026)
+
 Dois produtos para prefeituras, vendidos separadamente
 
 Produto 1 — Gestão Patrimonial: bens móveis, bens imóveis, inventário, vistorias e frota de veículos
@@ -10,7 +12,7 @@ Público-alvo de referência: Prefeitura Municipal de Rio do Sul/SC
 
 Requisitos • Metodologias • Base legal • Concorrentes e SWOT • Estratégia de licitação
 
-Versão 1.2 — 07/10/2026
+Versão 1.3 — 07/10/2026
 
 Documento interno — não distribuir a terceiros
 
@@ -31,6 +33,7 @@ Documento interno — não distribuir a terceiros
 | 1.0 | 23/09/2026 | Primeira versão: requisitos organizados, metodologias, base legal, concorrentes, SWOT, estratégia. |
 | 1.1 | 26/09/2026 | **Reorganizado em 2 produtos principais, cada um vendido separadamente** (Parte A — Patrimônio; Parte B — Cemitério), com o mesmo nível de detalhe. **Pesquisa legal de bens móveis e imóveis aprofundada:** NBC TSP 37 (substitui a NBC TSP 07 a partir de 01/01/2027), prazos do PIPCP confirmados, IN TC-20/2015 do TCE/SC (demonstrativo de imóveis e frota), Nota Técnica CNM 23/2018, alienação e doação (Lei 14.133 art. 76), classificação dos bens públicos, áreas públicas de loteamentos. Novos requisitos: frota de veículos, regularização documental de imóveis, cessões/comodatos, avaliação para alienação. Roteiro em duas trilhas. Nenhum conteúdo da v1.0 foi retirado — só reorganizado ou ampliado. |
 | 1.2 | 07/10/2026 | **Decisões do usuário registradas** na seção 1 (impedimento legal resolvido; sistema independente da IPM; equipes de trabalho e treinamento intensivo; apresentação e projetos-piloto no lugar de atestado). **Novo: reavaliação em blocos** por unidade e por outros filtros (Módulo 9, seções A1.13 e A2.13). **Novo: gestão de frota de veículos** completa, com contratos de locação, combustível e quilometragem, tendo o GAX (3ia) como referência (Módulo 10, seções A1.14 e A2.14). **Novo: aplicativo de campo piloto** em HTML, instalável em celular e tablet e funcionando sem internet (seção A2.15, pasta `app-campo/`). O texto original das seções alteradas foi mantido, e as atualizações aparecem marcadas como "Atualização v1.2". |
+| 1.3 | 07/10/2026 | **Nome provisório: VitalPat**, com logo (P sobre o V, T compartilhado entre VITAL e PAT, em outra cor e grande) — arquivo `app-campo/icones/logo-vitalpat.svg`. **Relatórios visuais** e **exportação em planilha simples com escolha de colunas** (PB-04, PB-18 e PB-19). **Estrutura da planilha "Lista de chãos do cemitério"** registrada como modelo de importação (seção B5), sem os dados pessoais. |
 
 # 1. Alertas críticos — ler antes de investir tempo e dinheiro
 
@@ -95,7 +98,7 @@ Todos os itens do texto original foram mantidos. Itens repetidos foram unidos em
 | PB-01 | Banco de dados com metodologia clara (dicionário de dados, identificador único por bem/túmulo/unidade, histórico de alterações) | Pedido | Detalhado na seção A2.1 |
 | PB-02 | Usuários múltiplos, cada um com limitações próprias, e **admin central** que ajusta o acesso de cada um | Pedido | Perfis + escopo por unidade/centro de custo (A2.9) |
 | PB-03 | Dois ambientes: **Gestor** (tudo + relatórios gerenciais) e **Operador** (cadastro e checagem; relatórios só do próprio trabalho) | Pedido |  |
-| PB-04 | Importar e exportar em todas as telas; na exportação escolher o que exportar da aba atual | Pedido | Unido: "funções de exportar/importar" + "botões de importar e exportar" |
+| PB-04 | Importar e exportar em todas as telas; na exportação escolher o que exportar da aba atual | Pedido | Unido: "funções de exportar/importar" + "botões de importar e exportar". v1.3: detalhado em PB-18 e PB-19 |
 | PB-05 | Importação segura com **De/Para**, sem sobrescrever o que não deve, guardando o registro anterior sem duplicar, com escolha do que fazer em cada caso | Pedido (melhorar) | Metodologia proposta na seção A2.2 |
 | PB-06 | Backup de todos os bens móveis e imóveis cadastrados | Pedido | Ampliado para backup de toda a base + teste de restauração (A2.1) |
 | PB-07 | Georreferenciamento e rastreabilidade no que couber | Pedido | Mapa de unidades, bens, túmulos, vistorias |
@@ -109,6 +112,8 @@ Todos os itens do texto original foram mantidos. Itens repetidos foram unidos em
 | PB-15 | Assinatura eletrônica de termos (responsabilidade, transferência, laudo) | Adicionado |  |
 | PB-16 | Integrações: SIAFIC/IPM, PNCP, SEFAZ (NF-e), Ambiente Nacional NFS-e, Portal da Transparência | Adicionado | Seção A2.11 |
 | PB-17 | Acessibilidade e linguagem simples, sem jargão técnico nas telas | Adicionado |  |
+| PB-18 | **Relatórios visuais**: gráficos, mapas, fotos, cores por situação e resumo no topo; prontos para imprimir ou salvar em PDF | Pedido (v1.3) | Vale para todos os relatórios gerados pelo sistema |
+| PB-19 | **Exportação em planilha simples** (CSV/Excel, sem formatação e sem gráficos), com escolha de **quais informações (colunas) entram**; a escolha pode ser salva como **modelo de exportação** por sistema de destino (ex.: "Planilha para o sistema X") | Pedido (v1.3) | Cada sistema de destino aceita só parte das informações. Já no piloto do app: escolha de colunas, lembrada no aparelho |
 
 ### A1.2 Módulo 1 — Unidades (visão 360°: móveis + imóvel juntos)
 
@@ -832,6 +837,53 @@ Princípio: **o sistema aponta indícios; quem decide é a autoridade, em proces
 - Processos judiciais de famílias
 - Leis municipais diferentes exigem parametrização
 
+## B5. Planilha "Lista de chãos do cemitério" — modelo de importação (novo na v1.3)
+
+Arquivo recebido do usuário em 07/10/2026 (`LISTA_CHÃOS_DO_CEMITÉRIO.xlsx`). **O arquivo não foi copiado para o repositório**, porque tem nomes e CPFs e o repositório é público. Aqui fica só a estrutura, levantada por leitura automática do arquivo **[C — lido do arquivo]**.
+
+### Visão geral
+
+| Item | Encontrado |
+|---|---|
+| Abas | 51: 47 de quadras/gavetas, 1 "MARMORARIAS", 1 "TOTAL DE SEPULTURAS", 1 "gaveta jardim primavera" (só cabeçalho) e as abas "A" (ex.: "Quadra 01 A") |
+| Linhas de sepultura | cerca de **6.457** (contando só linhas cujo código parece de sepultura) |
+| Com nome do proprietário | 274 linhas |
+| Com CPF | 247 linhas |
+| Cabeçalho | linha 4 na maioria das abas (linha 5 em "GAVETA 36"); título "Serviços de Administração do Cemitério Municipal" nas linhas 1–3 |
+
+### Colunas das abas de quadra (layout padrão)
+
+| Coluna na planilha | Campo no sistema (De/Para proposto) | Observação |
+|---|---|---|
+| Sepulturas | Número da sepultura | Formatos: "001", "001 A", "001 B", "001 C", "001 Jazigos", "01 Irregulares", "001 - 005" (faixa), "001 (02)" |
+| Aléia | Aléia | Uma aba usa "Aléia-A" |
+| Nome Proprietário | Titular da concessão | Dado pessoal |
+| CPF | CPF do titular | Dado pessoal (LGPD; mascarar na tela) |
+| Registros de Inumações | Sepultamentos ligados à sepultura | Várias colunas mescladas |
+| Situação | Situação | Quase sempre vazia; valores achados: "I" (24) e "P" (1) — **significado a confirmar** |
+| Comp. | Comprimento (m) | Texto com vírgula ("2,80") → número |
+| Largura | Largura (m) | Idem |
+| Observações | Observação | |
+| Título Aforamento | Número do título de aforamento | Em algumas abas o cabeçalho tem quebra de linha |
+| Data | Data (**qual data? a confirmar**) | Maioria "dd/mm/aa" (ano com 2 dígitos); algumas "dd/mm/aaaa" e algumas com histórico na mesma célula ("dd/mm/aaaa — Antigo: dd/mm/aa") |
+
+**Aba de gavetas ("GAVETA 36") tem layout diferente:** sepultura, aléia, nome do sepultado, CPF, nº da inumação, data do sepultamento, data da exumação, observação, liberação, contato. Vira um segundo modelo de importação.
+
+**Aba "MARMORARIAS":** nº da licença, data, localização e marmoraria — registro de licenças de obra em túmulo. Pode virar um cadastro de licenças de marmoraria **[D]**.
+
+**Aba "TOTAL DE SEPULTURAS":** total por quadra — serve para **conferir** a importação (total importado × total da planilha).
+
+### Problemas que a importação precisa tratar
+
+1. **A posição das colunas muda entre abas:** em 6 abas, as colunas a partir de "Situação" estão uma casa para a direita. O De/Para tem que ligar **pelo nome do cabeçalho**, e não pela posição.
+2. **Cabeçalhos repetidos no meio da aba** (quebra de página de impressão): cerca de 240 linhas "Sepulturas" e 230 linhas "Quadra NN" no meio dos dados. Essas linhas devem ser ignoradas.
+3. **Células mescladas** (nome, inumações, título) — ler o valor da primeira célula do bloco.
+4. **Ano com 2 dígitos:** é preciso uma regra (ex.: 00–29 = 20xx; 30–99 = 19xx) **confirmada pelo usuário**.
+5. **Histórico dentro da célula** ("Antigo: ...") — separar: valor atual no campo, valor antigo no histórico (regra de não apagar).
+6. **Códigos repetidos na mesma aba:** Quadra 02 (1), Quadra 14 (3), Quadra 29 (6), Quadra 35 Crianças (1) — vão para a prévia como **Conflito**, para decisão humana.
+7. **Chave da sepultura no sistema:** quadra (nome da aba) + aléia + número da sepultura (com letra). Ex.: "Quadra 01 / Aléia 01 / 001 A".
+8. Comprimento e largura como texto com vírgula; observações gerais no cabeçalho (ex.: "Todos lotes da Quadra 42 são 2,80m x 1,40m").
+
 # PARTE C — ESTRATÉGIA COMERCIAL E PRÓXIMOS PASSOS
 
 ## C1. Como vender — cada produto separado
@@ -882,7 +934,7 @@ Cada produto tem sua própria trilha e sua versão mínima vendável. Rodar as d
 
 | # | Pendência | Produto | Quem resolve |
 |---|---|---|---|
-| 1 | Enviar as 2 planilhas do cemitério (cabeçalho completo) | 2 | Vocês |
+| 1 | Enviar as 2 planilhas do cemitério (cabeçalho completo) — **v1.3: recebida a "Lista de chãos" (B5); falta a 2ª planilha, se existir** | 2 | Vocês |
 | 2 | Parecer de advogado sobre o impedimento (art. 9º §1º Lei 14.133) — **v1.2: resolvido, segundo o usuário (documento não anexado)** | 1 e 2 | Advogado |
 | 3 | Texto integral da Lei Municipal 4.100/2004 e decretos do cemitério (concessões perpétuas, taxas) | 2 | Pesquisa / Câmara |
 | 4 | Confirmar se "Serfic" = SIAFIC | 1 | Vocês |
@@ -896,6 +948,9 @@ Cada produto tem sua própria trilha e sua versão mínima vendável. Rodar as d
 | 12 | Em que fase entra a frota (Módulo 10) | 1 | Vocês |
 | 13 | Conferir as funções do GAX direto no site/manual da 3ia (o site não abriu deste ambiente) | 1 | Pesquisa |
 | 14 | Testar o app piloto em celulares e tablets reais (Android e iPhone), por endereço https | 1 e 2 | Vocês |
+| 15 | Planilha de chãos: o que significa a coluna "Data" e os valores "I" e "P" de "Situação"; regra para ano com 2 dígitos | 2 | Vocês |
+| 16 | Pesquisar a marca "VitalPat" no INPI antes de registrar (busca na internet não achou o nome exato; achou parecidos na área da saúde, como VITALPAC) | 1 e 2 | Vocês |
+| 17 | Repositório no GitHub é **público**: decidir se o dossiê (marcado "documento interno") pode ficar lá ou se o repositório vira privado | 1 e 2 | Vocês |
 
 ## C4. Fontes consultadas (v1.0 + v1.1)
 

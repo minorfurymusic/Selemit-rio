@@ -5,7 +5,8 @@ Atualizar este arquivo a cada entrega, sem apagar o histórico. Marcar `[x]` com
 ## Bloqueadores
 
 - [x] Parecer de advogado sobre o impedimento do art. 9º §1º da Lei 14.133 (sócio servidor em Rio do Sul). Produtos 1 e 2. — 07/10/2026: resolvido, segundo o usuário. Prova: nenhum documento anexado ao repositório.
-- [ ] Receber as 2 planilhas do cemitério, com o cabeçalho completo, para mapear a importação. Produto 2.
+- [ ] Receber as 2 planilhas do cemitério, com o cabeçalho completo, para mapear a importação. Produto 2. — 07/10/2026: recebida a "Lista de chãos" (estrutura no DOSSIE.md, seção B5; arquivo fora do repositório por ter nomes e CPFs). Falta a 2ª, se existir.
+- [ ] Repositório público: decidir se o dossiê pode ficar público ou se o repositório vira privado (antes do primeiro envio).
 
 ## Decisões do usuário
 
@@ -14,6 +15,9 @@ Atualizar este arquivo a cada entrega, sem apagar o histórico. Marcar `[x]` com
 - [x] As duas trilhas andam juntas, ou uma sai primeiro? — 07/10/2026: decisão do usuário: equipes de trabalho e treinamento intensivo.
 - [ ] Em que fase entra a frota de veículos (Módulo 10).
 - [ ] Confirmar se "Serfic" = SIAFIC.
+- [ ] Planilha de chãos: significado da coluna "Data", dos valores "I" e "P" em "Situação" e regra do ano com 2 dígitos.
+- [ ] Pesquisar "VitalPat" no INPI antes de registrar a marca.
+- [x] Nome provisório do sistema: VitalPat — 07/10/2026, decisão do usuário. Logo em `app-campo/icones/logo-vitalpat.svg`.
 - [ ] Confirmar o que significa "emissão de notas fiscais" no pedido original.
 - [ ] Escolher municípios piloto sem vínculo com os sócios, um por produto. (07/10/2026: estratégia de apresentação + projetos-piloto no lugar de atestado.)
 
@@ -44,3 +48,4 @@ Atualizar este arquivo a cada entrega, sem apagar o histórico. Marcar `[x]` com
 - 26/09/2026: dossiê v1.1, com 2 produtos vendidos separadamente e pesquisa legal de bens móveis e imóveis aprofundada (Cowork).
 - 07/10/2026: exportado para o Claude Code (`CLAUDE.md`, `DOSSIE.md`, `checklist.md`).
 - 07/10/2026: dossiê v1.2 (Claude Code): reavaliação em blocos, frota de veículos (referência GAX), decisões do usuário e aplicativo de campo piloto em `app-campo/`.
+- 07/10/2026: dossiê v1.3 (Claude Code): nome VitalPat e logo, relatórios visuais, exportação com escolha de colunas (já no app), estrutura da planilha de chãos.

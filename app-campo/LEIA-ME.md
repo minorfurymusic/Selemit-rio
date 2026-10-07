@@ -1,4 +1,4 @@
-# Aplicativo de campo — piloto (demonstração)
+# VitalPat — aplicativo de campo, piloto (demonstração)
 
 Este é o aplicativo que a equipe usa em campo, no celular ou no tablet. Ele é feito em HTML e pode ser instalado na tela inicial, como qualquer outro aplicativo. Depois de aberto uma vez, funciona sem internet.
 
@@ -8,7 +8,7 @@ Este é o aplicativo que a equipe usa em campo, no celular ou no tablet. Ele é 
 - **Vistoria de túmulo:** dá notas de 0 a 4 para estrutura, limpeza, identificação e tampa, registra se há sinais de visita recente e guarda as fotos. O aplicativo só registra o que foi visto e não toma nenhuma medida sobre o túmulo.
 - **Abastecimento:** registra veículo, motorista, quilometragem, litros, valor, posto e a foto do cupom. Avisa quando a quilometragem é menor que a anterior, quando os litros passam da capacidade do tanque ou quando o combustível é diferente do veículo. Para salvar mesmo com o aviso, é preciso escrever uma explicação.
 - **Saída e retorno de veículo:** registra quilometragem, destino, motivo, checklist (pneus, luzes, lataria e documento) e fotos.
-- **Registros:** mostra tudo o que está guardado no aparelho. Daqui você baixa uma planilha (sem fotos) ou uma cópia completa (com fotos).
+- **Registros:** mostra tudo o que está guardado no aparelho. Daqui você baixa uma cópia completa (com fotos) ou uma planilha simples, escolhendo o tipo de registro e marcando só as colunas que quer. O aparelho lembra a última escolha.
 - **Lixeira:** o que você exclui vai para a Lixeira e pode ser restaurado. Nada é apagado de verdade.
 
 Toda foto recebe a data, a hora e a localização gravadas na própria imagem.

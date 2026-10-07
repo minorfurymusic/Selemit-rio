@@ -1,6 +1,6 @@
 // Guarda os arquivos do aplicativo no aparelho para funcionar sem internet.
 // Ao mudar qualquer arquivo abaixo, aumentar a VERSAO para os aparelhos baixarem de novo.
-const VERSAO = 'campo-v1';
+const VERSAO = 'vitalpat-v2';
 const ARQUIVOS = [
   './',
   './index.html',
@@ -9,7 +9,8 @@ const ARQUIVOS = [
   './dados-exemplo.js',
   './manifest.webmanifest',
   './icones/icone-192.png',
-  './icones/icone-512.png'
+  './icones/icone-512.png',
+  './icones/logo-vitalpat.svg'
 ];
 
 self.addEventListener('install', (e) => {

@@ -1,4 +1,4 @@
-/* Aplicativo de campo — piloto (demonstração).
+/* VitalPat — aplicativo de campo, piloto (demonstração).
    Tudo fica guardado no próprio aparelho (IndexedDB) até existir um servidor para envio. */
 'use strict';
 
@@ -31,7 +31,7 @@ const Banco = {
   abrir() {
     if (this._db) return Promise.resolve(this._db);
     return new Promise((ok, erro) => {
-      const req = indexedDB.open('campo', 1);
+      const req = indexedDB.open('campo', 1); // nome interno mantido para não perder registros já salvos
       req.onupgradeneeded = () => req.result.createObjectStore('registros', { keyPath: 'id' });
       req.onsuccess = () => { this._db = req.result; ok(this._db); };
       req.onerror = () => erro(req.error);
@@ -192,7 +192,7 @@ Telas.inicio = async () => {
   const aguardando = regs.filter((r) => r.situacao === 'aguardando').length;
   const lixeira = regs.filter((r) => r.situacao === 'lixeira').length;
   return {
-    titulo: 'Campo',
+    titulo: 'VitalPat',
     html: `
       <p class="aviso-demo">Versão de demonstração. Os dados de exemplo são fictícios.</p>
       <div class="grade tres">
@@ -531,16 +531,49 @@ Telas.registros = async () => {
         <p style="margin-top:0"><span class="contador">${regs.length}</span> registro(s) guardado(s) neste aparelho, aguardando envio.</p>
         <button class="botao" disabled title="Ainda não disponível">Enviar</button>
         <p class="ajuda">O envio ainda não existe nesta versão de demonstração. Para tirar os dados do aparelho, use “Baixar planilha” ou “Baixar cópia completa”.</p>
-        <div class="linha" style="margin-top:12px">
-          <button class="botao secundario" id="csv">Baixar planilha (sem fotos)</button>
-          <button class="botao secundario" id="json">Baixar cópia completa (com fotos)</button>
+        <button class="botao secundario" id="json" style="margin-top:8px">Baixar cópia completa (com fotos)</button>
+      </div>
+      <div class="cartao" style="margin-top:12px">
+        <h3 style="margin-top:0">Baixar planilha</h3>
+        <p class="ajuda">Escolha o tipo de registro e marque só as informações que o outro sistema aceita.</p>
+        <label for="tipo-planilha">Tipo de registro</label>
+        <select id="tipo-planilha">
+          <option value="">Todos</option>
+          ${Object.entries(NOMES_TIPO).map(([k, v]) => `<option value="${k}">${esc(v)}</option>`).join('')}
+        </select>
+        <label>Informações (colunas)</label>
+        <div class="linha">
+          <button type="button" class="botao secundario" id="marcar-todas">Marcar todas</button>
+          <button type="button" class="botao secundario" id="desmarcar-todas">Desmarcar todas</button>
         </div>
+        <div id="colunas" class="colunas"></div>
+        <button class="botao largo" id="csv">Baixar planilha</button>
       </div>
       <h2>Lista</h2>
       ${listaHtml(regs, 'excluir')}`,
     ligar() {
-      $('#csv').addEventListener('click', () => exportarCSV(regs));
-      $('#json').addEventListener('click', () => baixar(`campo-registros-${carimbo()}.json`, JSON.stringify(regs, null, 2), 'application/json'));
+      const desenhar = () => {
+        const tipo = $('#tipo-planilha').value;
+        const filtrados = regs.filter((r) => !tipo || r.tipo === tipo);
+        const salvas = Preferencias.ler('colunas-' + (tipo || 'todos'));
+        $('#colunas').innerHTML = colunasDisponiveis(filtrados).map((c) => `
+          <label class="opcao"><input type="checkbox" value="${esc(c.chave)}" ${!salvas || salvas.includes(c.chave) ? 'checked' : ''}> ${esc(c.rotulo)}</label>`).join('')
+          || '<p class="ajuda">Nenhum registro deste tipo.</p>';
+      };
+      $('#tipo-planilha').addEventListener('change', desenhar);
+      $('#marcar-todas').addEventListener('click', () => document.querySelectorAll('#colunas input').forEach((i) => { i.checked = true; }));
+      $('#desmarcar-todas').addEventListener('click', () => document.querySelectorAll('#colunas input').forEach((i) => { i.checked = false; }));
+      desenhar();
+      $('#csv').addEventListener('click', () => {
+        const tipo = $('#tipo-planilha').value;
+        const escolhidas = [...document.querySelectorAll('#colunas input:checked')].map((i) => i.value);
+        const filtrados = regs.filter((r) => !tipo || r.tipo === tipo);
+        if (!filtrados.length) { avisar('Não há registros deste tipo.'); return; }
+        if (!escolhidas.length) { avisar('Marque pelo menos uma informação.'); return; }
+        Preferencias.gravar('colunas-' + (tipo || 'todos'), escolhidas);
+        exportarCSV(filtrados, escolhidas);
+      });
+      $('#json').addEventListener('click', () => baixar(`vitalpat-registros-${carimbo()}.json`, JSON.stringify(regs, null, 2), 'application/json'));
       ligarAcoesLista();
     }
   };
@@ -595,19 +628,51 @@ function baixar(nome, conteudo, tipo) {
   a.href = url; a.download = nome; document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
-function exportarCSV(regs) {
+// Nomes das informações como aparecem na escolha de colunas e no cabeçalho da planilha
+const ROTULOS = {
+  plaqueta: 'Plaqueta', descricao: 'Descrição', semCadastro: 'Sem cadastro', unidadeCadastro: 'Unidade no cadastro',
+  unidade: 'Unidade onde foi encontrado', foraDoLocal: 'Fora do local', movidoDuranteInventario: 'Movido durante o inventário',
+  estado: 'Estado de conservação', observacao: 'Observação', codigo: 'Código do túmulo', cadastrado: 'Túmulo cadastrado',
+  estrutura: 'Estrutura', limpeza: 'Limpeza', identificacao: 'Identificação', tampa: 'Tampa', sinaisDeVisita: 'Sinais de visita',
+  placa: 'Placa', tipoVeiculo: 'Tipo do veículo', motorista: 'Motorista', km: 'Quilometragem', litros: 'Litros', valor: 'Valor (R$)',
+  combustivel: 'Combustível', posto: 'Posto', tanqueCheio: 'Tanque cheio', explicacao: 'Explicação do aviso', alertas: 'Avisos',
+  kmAnterior: 'Quilometragem anterior', kmRodado: 'Km rodados', kmPorLitro: 'Km por litro', precoLitro: 'Preço do litro',
+  movimento: 'Saída ou retorno', destino: 'Destino', motivo: 'Motivo', checklist: 'Checklist', temProblema: 'Com problema'
+};
+const COLUNAS_FIXAS = [
+  { chave: '_id', rotulo: 'Número do registro', valor: (r) => r.id },
+  { chave: '_tipo', rotulo: 'Tipo de registro', valor: (r) => NOMES_TIPO[r.tipo] },
+  { chave: '_data', rotulo: 'Data e hora', valor: (r) => dataHora(r.criadoEm) },
+  { chave: '_lat', rotulo: 'Latitude', valor: (r) => r.gps?.lat },
+  { chave: '_lon', rotulo: 'Longitude', valor: (r) => r.gps?.lon },
+  { chave: '_precisao', rotulo: 'Precisão da localização (m)', valor: (r) => r.gps?.precisao },
+  { chave: '_fotos', rotulo: 'Quantidade de fotos', valor: (r) => r.fotos.length }
+];
+function colunasDisponiveis(regs) {
+  if (!regs.length) return [];
   const chaves = [...new Set(regs.flatMap((r) => Object.keys(r.dados)))];
-  const cab = ['id', 'tipo', 'criado_em', 'latitude', 'longitude', 'precisao_m', 'qtd_fotos', ...chaves];
+  return [...COLUNAS_FIXAS, ...chaves.map((k) => ({ chave: k, rotulo: ROTULOS[k] || k, valor: (r) => r.dados[k] }))];
+}
+
+// Lembra a última escolha de colunas neste aparelho (só conveniência; pode faltar)
+const Preferencias = {
+  ler(k) { try { return JSON.parse(localStorage.getItem('vitalpat-' + k)); } catch (_) { return null; } },
+  gravar(k, v) { try { localStorage.setItem('vitalpat-' + k, JSON.stringify(v)); } catch (_) { /* sem problema */ } }
+};
+
+// Planilha simples: só texto, ";" como separador e marca BOM para abrir certo no Excel em português
+function exportarCSV(regs, escolhidas) {
+  const cols = colunasDisponiveis(regs).filter((c) => !escolhidas || escolhidas.includes(c.chave));
   const cel = (v) => {
+    if (v === true) v = 'Sim';
+    if (v === false) v = 'Não';
     if (v === null || v === undefined) return '';
     if (typeof v === 'object') v = JSON.stringify(v);
     v = String(v);
     return /[;"\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v;
   };
-  const linhas = regs.map((r) => [r.id, NOMES_TIPO[r.tipo], dataHora(r.criadoEm), r.gps?.lat, r.gps?.lon, r.gps?.precisao, r.fotos.length,
-    ...chaves.map((k) => r.dados[k])].map(cel).join(';'));
-  // ";" e marca BOM para abrir certo no Excel em português
-  baixar(`campo-registros-${carimbo()}.csv`, '﻿' + [cab.join(';'), ...linhas].join('\r\n'), 'text/csv;charset=utf-8');
+  const linhas = regs.map((r) => cols.map((c) => cel(c.valor(r))).join(';'));
+  baixar(`vitalpat-registros-${carimbo()}.csv`, '\ufeff' + [cols.map((c) => cel(c.rotulo)).join(';'), ...linhas].join('\r\n'), 'text/csv;charset=utf-8');
 }
 
 // ---------------------------------------------------------------------------

@@ -1,6 +1,6 @@
-# CLAUDE.md: Patrimônio e Cemitério para prefeituras
+# CLAUDE.md: VitalPat — Patrimônio e Cemitério para prefeituras
 
-Contexto para o Claude Code. Este arquivo veio de uma conversa no Cowork (set–out/2026). O detalhe completo está em `DOSSIE.md` (v1.2). As pendências estão em `checklist.md`.
+Contexto para o Claude Code. Este arquivo veio de uma conversa no Cowork (set–out/2026). O detalhe completo está em `DOSSIE.md` (v1.3). Nome provisório do sistema: **VitalPat**. As pendências estão em `checklist.md`.
 
 ## O que é o projeto
 
@@ -20,6 +20,8 @@ A referência de público-alvo é a Prefeitura de Rio do Sul/SC.
 - A importação usa De/Para com área de espera e prévia. O valor anterior vai para o histórico, sem duplicar o registro.
 - (07/10/2026) O sistema é **independente** da IPM. Mesmo assim, não faz lançamento contábil: entrega arquivo/relatório para o setor contábil.
 - (07/10/2026) Equipes de trabalho e treinamento intensivo; apresentação e projetos-piloto no lugar de atestado.
+- (07/10/2026) Relatórios do sistema são visuais. Exportação em planilha é simples, com escolha das colunas (cada sistema de destino aceita só parte das informações).
+- (07/10/2026) O repositório é público: **nunca** colocar nele planilhas ou dados reais com nomes, CPFs ou outros dados pessoais. Só estrutura (cabeçalhos) e dados fictícios.
 - (07/10/2026) O aplicativo de campo é HTML instalável (aplicativo web progressivo), funcionando sem internet, em celular e tablet. O piloto está em `app-campo/`.
 
 ## Bloqueador legal (ler antes de qualquer coisa comercial)
