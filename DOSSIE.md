@@ -1002,6 +1002,8 @@ Arquivo recebido do usuário em 07/10/2026 (`LISTA_CHÃOS_DO_CEMITÉRIO.xlsx`). 
 
 **Atualização (07/10/2026): ligação feita.** Com `patrimonio/config-servidor.js` ou `cemiterio/config-servidor.js` preenchido, o sistema usa login por e-mail e senha, grava tudo no banco da cidade, guarda fotos no armazenamento privado e os aplicativos de campo enviam sozinhos quando há internet. Sem configuração, segue a demonstração. Testado com o roteiro real do banco em PostgreSQL + PostgREST locais (login e fotos simulados); **falta testar no Supabase de verdade**.
 
+**Atualização (07/10/2026, decisão do usuário):** no teste, **um projeto só para os dois sistemas**, cada um na sua área do banco (`patrimonio` e `cemiterio`), sem misturar dados, pessoas liberadas, histórico ou fotos. O mesmo arquivo de instalação serve para projeto separado ou dividido.
+
 **Atualização (07/10/2026, decisão do usuário):** um projeto Supabase **por cidade e por produto**; cada um roda separado. Roteiros de instalação (ver também B7): `patrimonio/banco/supabase-instalar.sql` e `cemiterio/banco/supabase-instalar.sql` (sem login ninguém acessa; nada é apagado; histórico de toda alteração; papéis admin, gestor, campo e consulta; fotos em armazenamento privado). **[A conferir]** custo: o plano gratuito do Supabase limita o número de projetos ativos e pausa projeto parado; com 2 projetos por cidade, o plano pago será necessário a partir da primeira cidade em produção. Conferir valores em supabase.com/pricing antes de fazer proposta.
 
 ## B7. Funções inspiradas em sistemas de cemitério de outros países (novo na v1.5)

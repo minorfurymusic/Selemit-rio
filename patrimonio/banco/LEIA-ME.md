@@ -1,6 +1,6 @@
 # VitalPat Patrimônio — banco de dados (Supabase)
 
-**Um projeto Supabase por cidade, só para o patrimônio.** O cemitério tem o seu próprio (`cemiterio/banco/`). Nenhum dado de uma cidade fica no banco de outra.
+**Cada sistema fica numa área própria do banco** (`patrimonio`), então ele pode ter um projeto Supabase só dele **ou dividir o projeto com o cemitério** (`cemiterio/banco/`), sem misturar dados, pessoas liberadas, histórico nem fotos. Atualização de 07/10/2026: decisão do usuário de usar, no teste, **um projeto só para os dois**. A ideia original era um projeto por cidade e por produto; as duas formas funcionam. Nenhum dado de uma cidade fica no banco de outra.
 
 ## Instalar (uma vez por cidade)
 
@@ -11,14 +11,15 @@
 2. Abra **SQL Editor** → **New query**, cole o arquivo `supabase-instalar.sql` inteiro e clique em **Run**. Pode rodar de novo sem estragar nada.
 3. Ainda no SQL Editor, identifique a cidade (troque o nome e a UF):
    ```sql
-   insert into public.instalacao (produto, municipio, uf) values ('patrimonio', 'Rio do Sul', 'SC');
+   insert into patrimonio.instalacao (produto, municipio, uf) values ('patrimonio', 'Rio do Sul', 'SC');
    ```
 4. Crie o primeiro administrador: **Authentication** → **Users** → **Add user** → **Create new user** (e-mail e senha, marque "Auto Confirm User"). Depois rode, trocando o e-mail:
    ```sql
-   update public.perfis set papel = 'admin', ativo = true, nome = 'Nome da pessoa' where email = 'email@prefeitura.gov.br';
+   update patrimonio.perfis set papel = 'admin', ativo = true, nome = 'Nome da pessoa' where email = 'email@prefeitura.gov.br';
    ```
    As próximas pessoas são criadas do mesmo jeito (Add user), mas entram **inativas**: o administrador libera e escolhe o papel dentro do sistema, em Configurações → Pessoas.
-5. Em **Project Settings** → **API**, copie a **Project URL** e a chave **anon / public**. São essas duas que o sistema vai usar.
+5. **Liberar a área para o sistema:** **Project Settings** → **Data API** (ou **API**) → **Exposed schemas** → acrescente `patrimonio` (e `cemiterio`, se o projeto for dividido) → **Save**. Sem isso o sistema não enxerga os dados.
+6. Em **Project Settings** → **API**, copie a **Project URL** e a chave **anon / public**. São essas duas que o sistema vai usar.
    - A chave **service_role** é secreta: nunca vai para o repositório, nem para o sistema, nem para o chat.
 
 ## O que o banco garante sozinho (testado em PostgreSQL local, ver checklist.md)

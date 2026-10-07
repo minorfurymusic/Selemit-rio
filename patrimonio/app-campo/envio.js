@@ -10,7 +10,9 @@
   const Envio = window.Envio = { ativo, municipio: (cfg && cfg.municipio) || '', enviando: false };
   if (!ativo) return;
 
+  // db.schema: cada sistema usa a sua área do banco (pode dividir o projeto com o outro sistema)
   const c = window.supabase.createClient(cfg.url, cfg.chavePublica, {
+    db: { schema: PRODUTO },
     auth: { storageKey: `vitalpat-auth-${PRODUTO}`, persistSession: true, autoRefreshToken: true, detectSessionInUrl: false }
   });
   Envio.cliente = c;
@@ -40,7 +42,7 @@
             const caminho = `registrosCampo/${r.id}/${k + 1}.jpg`;
             if (!(r.fotosEnviadas || []).includes(caminho)) {
               const blob = await (await fetch(f)).blob();
-              const { error } = await c.storage.from('arquivos').upload(caminho, blob, { contentType: blob.type || 'image/jpeg', upsert: false });
+              const { error } = await c.storage.from(`${PRODUTO}-arquivos`).upload(caminho, blob, { contentType: blob.type || 'image/jpeg', upsert: false });
               if (error && !/exists|Duplicate/i.test(error.message)) throw error;
               r.fotosEnviadas = (r.fotosEnviadas || []).concat(caminho);
               await Banco.salvar(r); // se cair no meio, não reenvia a mesma foto

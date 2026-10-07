@@ -15,7 +15,9 @@
   VP.servidor = { ativo: !!(cfg && cfg.url && cfg.chavePublica && window.supabase) };
   if (!VP.servidor.ativo) return;
 
+  // db.schema: cada sistema usa a sua área do banco (pode dividir o projeto com o outro sistema)
   const c = window.supabase.createClient(cfg.url, cfg.chavePublica, {
+    db: { schema: PRODUTO },
     auth: { storageKey: `vitalpat-auth-${PRODUTO}`, persistSession: true, autoRefreshToken: true, detectSessionInUrl: false }
   });
   Object.assign(VP.servidor, { cliente: c, municipio: cfg.municipio || '', perfil: null });
@@ -62,7 +64,7 @@
     for (const a of pendentes) {
       const blob = await (await fetch(a.dataURL)).blob();
       const caminho = `${col}/${d.id}/${a.id || u.id()}.${extensao(blob.type || a.tipo)}`;
-      const { error } = await c.storage.from('arquivos').upload(caminho, blob, { contentType: blob.type || a.tipo || 'application/octet-stream', upsert: false });
+      const { error } = await c.storage.from(`${PRODUTO}-arquivos`).upload(caminho, blob, { contentType: blob.type || a.tipo || 'application/octet-stream', upsert: false });
       if (error) throw erroDoServidor(error);
       a.caminho = caminho;
     }
@@ -72,7 +74,7 @@
     for (const d of docs) percorrer(d, 'caminho', (a) => { if (typeof a.caminho === 'string') itens.push(a); });
     for (let i = 0; i < itens.length; i += PAGINA) {
       const parte = itens.slice(i, i + PAGINA);
-      const { data, error } = await c.storage.from('arquivos').createSignedUrls(parte.map((a) => a.caminho), VALIDADE_FOTO);
+      const { data, error } = await c.storage.from(`${PRODUTO}-arquivos`).createSignedUrls(parte.map((a) => a.caminho), VALIDADE_FOTO);
       if (error) continue; // sem foto não impede de trabalhar
       data.forEach((r, k) => { if (r.signedUrl) parte[k].dataURL = r.signedUrl; });
     }

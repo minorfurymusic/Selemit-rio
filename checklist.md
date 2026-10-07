@@ -75,7 +75,11 @@ Atualizar este arquivo a cada entrega, sem apagar o histórico. Marcar `[x]` com
 - [x] Passo 6: apps de campo: sem internet + "Enviar para o servidor". — 07/10/2026, commit `f84e51b`. Cemitério: 14 verificações (sem internet fica no aparelho; internet volta → envia sozinho; foto, GPS e notas no banco; banco registra quem enviou; consulta recusada com motivo; Gestão recebe). Patrimônio: 3 verificações.
 - [x] Passo 7: documentos (LEIA-ME dos 4 sistemas, dossiê B6, CLAUDE.md) e texto do AI Studio. — 07/10/2026.
 - Rodada final do zero (07/10/2026): campo demonstração 43/0; gestão patrimônio demonstração `TODOS PASSARAM`; gestão cemitério demonstração `TUDO PASSOU`; fumaça `ERROS: []`; login servidor `TUDO PASSOU`; gestão cemitério servidor, campo cemitério servidor e gestão patrimônio servidor `TUDO PASSOU`.
-- [ ] Prova contra o Supabase de verdade (depende do passo 0).
+- [x] Um projeto Supabase para os dois sistemas (decisão do usuário, 07/10/2026, por causa do limite do plano gratuito): cada sistema na sua área do banco (`patrimonio` e `cemiterio`) e com armazenamento de fotos próprio. Testado com os dois instalados no mesmo banco local: regras do banco nos dois (rodado 2x), gestor liberado só no cemitério vê `0` registros do patrimônio e não grava lá; testes com servidor das 2 Gestões e dos 2 apps de campo `TUDO PASSOU`; demonstração 43/0, `TODOS PASSARAM`, `TUDO PASSOU`, `ERROS: []`.
+- [x] Projeto de teste criado pelo usuário no Supabase (07/10/2026): `https://scmrceuxzsukxwsusygk.supabase.co` (nome "departamenteo de patrimônio", região São Paulo, plano Free, mesma organização do Sispu).
+- [ ] No projeto: rodar os 2 arquivos de instalação, liberar as áreas em Exposed schemas, criar o administrador; passar a chave anon.
+- [ ] Liberar `*.supabase.co` na rede do ambiente do Claude Code.
+- [ ] Prova contra o Supabase de verdade (depende dos 2 itens acima). Só depois disso enviar os commits ao GitHub (decisão do usuário, 07/10/2026).
 
 ## Gestão do cemitério (`cemiterio/gestao/`) — plano em etapas
 

@@ -91,7 +91,7 @@
     const MODO_SERVIDOR = SERVIDORES.length > 0;
     // Mesmo nome de armazenamento usado pelos sistemas: a sessão aberta aqui vale lá dentro.
     const clientes = {};
-    const cliente = (k) => clientes[k] || (clientes[k] = window.supabase.createClient(CONFIG[k].url, CONFIG[k].chavePublica, { auth: { storageKey: `vitalpat-auth-${k}`, persistSession: true, autoRefreshToken: true, detectSessionInUrl: false } }));
+    const cliente = (k) => clientes[k] || (clientes[k] = window.supabase.createClient(CONFIG[k].url, CONFIG[k].chavePublica, { db: { schema: k }, auth: { storageKey: `vitalpat-auth-${k}`, persistSession: true, autoRefreshToken: true, detectSessionInUrl: false } }));
 
     if (!MODO_SERVIDOR) {
       // ------------------------------------------------------------ DEMONSTRAÇÃO
