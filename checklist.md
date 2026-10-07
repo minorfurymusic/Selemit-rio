@@ -80,8 +80,10 @@ Atualizar este arquivo a cada entrega, sem apagar o histórico. Marcar `[x]` com
 - [x] No projeto: instalação dos 2 sistemas, áreas liberadas em Exposed schemas, administrador criado, chave anon passada. — 07/10/2026 (usuário; print com `minorfurymusic@gmail.com | admin | true` nas duas áreas).
 - [x] Liberar `*.supabase.co` na rede do ambiente do Claude Code. — 07/10/2026.
 - [x] Prova contra o Supabase de verdade — 07/10/2026, navegador automático no projeto `scmrceuxzsukxwsusygk`, nada simulado: `TUDO PASSOU NO SUPABASE REAL`. Login por e-mail com escolha do sistema; importação da lista de chãos (6.468 túmulos em 23,8 s; reabrir lendo do servidor 8,4 s); histórico real com valor anterior (versões 1,2); banco recusa apagar (`permission denied for table docs`); foto no armazenamento real aparece depois de recarregar; excluir → Lixeira; tela Pessoas; app de campo enviou 1 registro e a Gestão recebeu; patrimônio entra, grava Configurações e não vê nada do cemitério; sem erros no console. Sem internet: o servidor recusa quem não fez login (`permission denied for schema cemiterio`).
-- [ ] Trocar a senha de teste do usuário (passou pelo chat).
-- [ ] Decidir se o AI Studio passa a usar o servidor de teste (preencher `*/config-servidor.js`) ou continua em demonstração.
+- [x] Trocar a senha de teste do usuário (passou pelo chat). — 07/10/2026, feito pelo usuário.
+- [x] Decidir se o AI Studio passa a usar o servidor de teste — 07/10/2026: decisão do usuário: **sim**. `patrimonio/config-servidor.js` e `cemiterio/config-servidor.js` preenchidos com o projeto de teste. O login de demonstração (`patrimonio`/`selemitério` + `123456`) deixa de valer na versão publicada. Testado contra o projeto real: `TUDO PASSOU` (entrada pede e-mail; demonstração recusada; senha errada com mensagem clara; Gestão sem login volta para a entrada).
+- [ ] Supabase → Authentication → URL Configuration: colocar o endereço publicado do AI Studio em Site URL e Redirect URLs, para o "Esqueci a senha" voltar para o sistema.
+- [ ] Testes automáticos do modo demonstração agora precisam forçar a configuração vazia (o repositório aponta para o servidor de teste).
 - [ ] Observação: excluir usuário pelo painel do Supabase dá erro, porque o perfil fica ligado à pessoa e o banco não apaga nada; para tirar o acesso, desativar em Pessoas.
 
 ## Gestão do cemitério (`cemiterio/gestao/`) — plano em etapas
