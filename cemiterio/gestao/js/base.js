@@ -72,7 +72,7 @@ VP.LISTAS = {
     cadastro: 'Cadastro', alteracao: 'Alteração de dados', importacao: 'Importação de planilha', georreferenciamento: 'Localização exata',
     foto: 'Foto', observacao: 'Observação', qr: 'Plaqueta QR afixada',
     vistoria: 'Vistoria', situacao: 'Mudança de situação', indicador: 'Indicador documental', ordem: 'Ordem de serviço',
-    concessao: 'Concessão', sepultamento: 'Sepultamento', exumacao: 'Exumação', ossario: 'Ossário'
+    concessao: 'Concessão', sepultamento: 'Sepultamento', exumacao: 'Exumação', ossario: 'Ossário', processo: 'Processo administrativo'
   },
   // Classificação do DOSSIE.md B2-C. Só muda por decisão de uma pessoa; o sistema apenas sugere.
   situacoes: { regular: 'Regular', atencao: 'Atenção', indicio: 'Indício de abandono', apuracao: 'Abandono em apuração', declarado: 'Abandono declarado (ato publicado)' },
@@ -95,7 +95,12 @@ VP.LISTAS = {
   situacoesSepultamento: { agendado: 'Agendado', sepultado: 'Sepultado', exumado: 'Exumado', cancelado: 'Cancelado' },
   motivosExumacao: { prazo: 'Prazo de permanência vencido', familia: 'Pedido da família (translado ou ossário)', judicial: 'Ordem judicial ou policial', abandono: 'Abandono declarado (ato publicado)' },
   destinosExumacao: { ossario: 'Ossário do cemitério', translado: 'Translado para outro cemitério', familia: 'Entregue à família', cremacao: 'Cremação' },
-  situacoesExumacao: { agendada: 'Agendada', realizada: 'Realizada', cancelada: 'Cancelada' }
+  situacoesExumacao: { agendada: 'Agendada', realizada: 'Realizada', cancelada: 'Cancelada' },
+  // Etapa 4
+  meiosNotificacao: { email: 'E-mail', whatsapp: 'WhatsApp', telefone: 'Telefone', pessoal: 'Pessoalmente', carta: 'Carta com AR' },
+  resultadosNotificacao: { enviada: 'Enviada, sem confirmação', entregue: 'Recebida ou lida (confirmado)', semResposta: 'Sem resposta', naoLocalizado: 'Não localizado ou devolvida' },
+  fasesProcesso: { notificacao: 'Notificação', edital: 'Edital', prazo: 'Prazo para manifestação', analise: 'Análise de defesa', termo: 'Termo de compromisso', decisao: 'Pronto para decisão', encerrado: 'Encerrado' },
+  resultadosProcesso: { regularizado: 'Regularizado (arquivado)', arquivado: 'Arquivado por outro motivo', declarado: 'Abandono declarado' }
 };
 
 VP.CONFIG_PADRAO = {
@@ -113,10 +118,17 @@ VP.CONFIG_PADRAO = {
   permanenciaCriancaAnos: 3,  // gaveta: Rio do Sul [C]
   exumacaoMinimaAnos: 5,      // Bom Retiro, Lei 2.573/2024: não antes de 5 anos, salvo ordem judicial ou policial [C]
   guardaOssarioAnos: 3,       // Joinville: a família pode retirar em 3 anos [C]
-  leiPermiteRetomadaPerpetua: false // só marque se a lei municipal prever retomada de concessão perpétua
+  leiPermiteRetomadaPerpetua: false, // só marque se a lei municipal prever retomada de concessão perpétua
+  // Etapa 4 — processo administrativo. Referências: Rio do Sul 15 dias úteis + 10 corridos; Joinville 30 dias úteis; Bom Retiro até 60 dias [C]
+  prazoManifestacaoDias: 30,
+  prazoManifestacaoUteis: true,
+  prazoTermoDias: 60,        // prazo padrão do termo de compromisso (reforma/limpeza)
+  exigirAR: false,           // pendência jurídica: a prefeitura hoje notifica por e-mail e WhatsApp
+  exigirAvisoTumulo: true,   // aviso físico (placa) no túmulo antes da decisão
+  limitePlaquetas: 100000    // plaquetas numeradas de 000000 até este número (decisão do usuário)
 };
 
-VP.COLECOES = ['cemiterios', 'quadras', 'tumulos', 'eventos', 'importacoes', 'filtrosSalvos', 'meta', 'registrosCampo', 'vistorias', 'ordensServico', 'concessoes', 'sepultamentos', 'exumacoes', 'funerarias'];
+VP.COLECOES = ['cemiterios', 'quadras', 'tumulos', 'eventos', 'importacoes', 'filtrosSalvos', 'meta', 'registrosCampo', 'vistorias', 'ordensServico', 'concessoes', 'sepultamentos', 'exumacoes', 'funerarias', 'processos', 'editais', 'plaquetas'];
 
 // Armazenamento no navegador (IndexedDB). Tudo é carregado na memória ao abrir.
 // Preparado para trocar por servidor (Supabase) mantendo as mesmas funções: carregar, lista, pega, gravar, gravarVarias.

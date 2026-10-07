@@ -5,8 +5,8 @@
   const esc = VP.u.esc;
 
   const MENU = [
-    ['painel', 'Painel', '◧'], ['mapa', 'Mapa', '▦'], ['tumulos', 'Túmulos', '☰'], ['vistorias', 'Vistorias', '✓'], ['triagem', 'Triagem', '⚑'], ['ordens', 'Ordens de serviço', '✎'], ['sepultamentos', 'Sepultamentos', '✝'], ['concessoes', 'Concessões', '§'], ['exumacoes', 'Exumações e ossário', '⌂'], ['vagas', 'Vagas', '▥'], ['importar', 'Importar planilha', '⇩'],
-    ['levantamento', 'Localização', '⌖'], ['relatorios', 'Relatórios', '▤'], ['cadastros', 'Cadastros', '☷'],
+    ['painel', 'Painel', '◧'], ['mapa', 'Mapa', '▦'], ['tumulos', 'Túmulos', '☰'], ['vistorias', 'Vistorias', '✓'], ['triagem', 'Triagem', '⚑'], ['processos', 'Processos', '⚖'], ['ordens', 'Ordens de serviço', '✎'], ['sepultamentos', 'Sepultamentos', '✝'], ['concessoes', 'Concessões', '§'], ['exumacoes', 'Exumações e ossário', '⌂'], ['vagas', 'Vagas', '▥'], ['importar', 'Importar planilha', '⇩'],
+    ['levantamento', 'Localização', '⌖'], ['plaquetas', 'Plaquetas', '#'], ['relatorios', 'Relatórios', '▤'], ['cadastros', 'Cadastros', '☷'],
     ['configuracoes', 'Configurações', '⚙'], ['lixeira', 'Lixeira', '🗑']
   ];
   const rotaMenu = { tumulo: 'tumulos', relatorio: 'relatorios' };

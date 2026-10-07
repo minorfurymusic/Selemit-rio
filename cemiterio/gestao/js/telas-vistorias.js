@@ -44,9 +44,11 @@
   // ===================================================================== SITUAÇÃO (decisão humana)
   E.mudarSituacao = (t, depois) => {
     const atual = VP.situacaoAtual(t);
+    const pa = VP.processoAberto && VP.processoAberto(t.id);
+    if (pa) return ui.aviso(`Este túmulo tem o processo ${pa.numero} aberto. A situação muda pela decisão do processo (menu Processos).`, 'erro');
     const sug = VP.sugestaoTriagem(t);
     const campos = [
-      { chave: 'para', rotulo: 'Nova situação', tipo: 'select', opcoes: Object.entries(L.situacoes).filter(([k]) => k !== atual), obrigatorio: true },
+      { chave: 'para', rotulo: 'Nova situação', tipo: 'select', opcoes: Object.entries(L.situacoes).filter(([k]) => k !== atual && k !== 'declarado'), obrigatorio: true },
       { chave: 'motivo', rotulo: 'Motivo da decisão', tipo: 'area', obrigatorio: true },
       { chave: 'processo', rotulo: 'Nº do processo administrativo', largura: 'meia', ajuda: 'Obrigatório para "Abandono em apuração" e "Abandono declarado".' },
       { chave: 'revisor', rotulo: 'Quem revisou (comissão ou servidor designado)', largura: 'meia', ajuda: 'Obrigatório para "Abandono em apuração".' },
@@ -55,17 +57,19 @@
     ui.formulario({
       titulo: 'Mudar situação — ' + VP.codigoTumulo(t), campos, largura: 'media',
       intro: `<p>Situação atual: ${E.seloSituacao(t)} · Sugestão do sistema: <b>${esc(L.situacoes[sug.nivel])}</b> <span class="sugestao">(${esc(sug.motivo)})</span></p>
-        <p class="aviso-inline">Esta mudança só registra a decisão de uma pessoa. Nada é feito no túmulo pelo sistema. "Abandono em apuração" exige 2 vistorias em datas diferentes (com intervalo mínimo), pelo menos 1 indicador documental e a revisão de uma comissão ou servidor designado.</p>`,
+        <p class="aviso-inline">Esta mudança só registra a decisão de uma pessoa. Nada é feito no túmulo pelo sistema. "Abandono em apuração" abre o processo administrativo e exige 2 vistorias em datas diferentes (com intervalo mínimo), pelo menos 1 indicador documental e a revisão de uma comissão ou servidor designado. "Abandono declarado" só sai pela decisão do processo.</p>`,
       salvar: async (x) => {
         if (x.para === 'apuracao') {
           const faltas = VP.requisitosApuracao(t);
           if (faltas.length) return 'Ainda não pode: ' + faltas.join(' ');
           if (!x.processo || !x.revisor) return 'Informe o nº do processo e quem revisou.';
+          // Abandono em apuração = abre o processo administrativo (etapa 4)
+          await VP.etapa4.abrir(t, x);
+          ui.aviso(`Processo ${x.processo} aberto.`);
+          depois && depois();
+          return null;
         }
-        if (x.para === 'declarado') {
-          if (atual !== 'apuracao') return 'Só pode ser declarado depois de "Abandono em apuração".';
-          if (!x.processo || !x.ato || !x.dataAto) return 'Informe o nº do processo, o nº do ato e a data da publicação.';
-        }
+        if (x.para === 'declarado') return 'O abandono só é declarado pela decisão do processo administrativo.';
         const reg = { de: atual, para: x.para, data: VP.Plataforma.hoje(), motivo: x.motivo, processo: x.processo || '', revisor: x.revisor || '', ato: x.ato || '', dataAto: x.dataAto || '', usuario: usuario(), quando: VP.Plataforma.agoraISO() };
         t.situacao = x.para;
         t.situacaoHist = (t.situacaoHist || []).concat(reg);
@@ -244,7 +248,7 @@
         <p class="sugestao">Sugestão do sistema: <b>${esc(L.situacoes[sug.nivel])}</b> (${esc(sug.motivo)}). ${VP.sugestaoDiferente(t) ? '<b>Diferente da situação gravada — confira.</b>' : ''}</p>
         ${t.excecaoHistorica ? '<p class="aviso-inline">Marcado como túmulo de valor histórico, artístico ou de personalidade.</p>' : ''}
         <p>Indicadores documentais: ${VP.indicadoresDe(t).length ? VP.indicadoresDe(t).map((k) => `<span class="selo-status" title="${esc(L.indicadores[k])}">${esc(k)}</span>`).join(' ') : 'nenhum'}</p>
-        ${t.processo ? `<p>Processo administrativo: <b>${esc(t.processo)}</b></p>` : ''}
+        ${VP.etapa4.secaoFicha(t)}
         ${faltas ? (faltas.length ? `<p class="ajuda">Para passar a "Abandono em apuração" ainda falta:</p><ul class="requisitos">${faltas.map((f) => `<li>${esc(f)}</li>`).join('')}</ul>` : '<p class="ajuda">Requisitos para "Abandono em apuração" atendidos. A decisão continua sendo de uma pessoa.</p>') : ''}
         <div class="linha-botoes"><button class="botao" data-e2="vistoria">Nova vistoria</button><button class="botao" data-e2="situacao">Mudar situação</button><button class="botao" data-e2="indicadores">Indicadores documentais</button><button class="botao" data-e2="ordem">Nova ordem de serviço</button></div>
         <h4>Vistorias (${vs.length})</h4>

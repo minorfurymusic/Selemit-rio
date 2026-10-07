@@ -88,7 +88,13 @@ const Catalogo = {
   ordens() { return this.servidor() ? (this.ler()?.ordens || []) : (D.ordens || []); },
   // Sem diferença de maiúsculas, espaços e zeros à esquerda (Q01-A01-002 = Q1-A1-2)
   norm: (c) => String(c || '').toUpperCase().replace(/\s+/g, '').replace(/(^|-)([A-Z]?)0*(\d)/g, '$1$2$3'),
-  achar(cod) { const n = this.norm(cod); return n ? this.tumulos().find((t) => this.norm(t.codigo) === n) || null : null; }
+  achar(cod) {
+    const n = this.norm(cod);
+    if (!n) return null;
+    // Só números = número da plaqueta (000123 = 123)
+    if (/^\d{1,6}$/.test(n)) return this.tumulos().find((t) => t.plaqueta && Number(t.plaqueta) === Number(n)) || null;
+    return this.tumulos().find((t) => this.norm(t.codigo) === n) || null;
+  }
 };
 async function atualizarLista() {
   if (!window.Envio?.ativo || !P().online()) return null;
@@ -268,7 +274,7 @@ Telas.tumulo = async () => {
   return {
     titulo: 'Vistoria de túmulo',
     html: `
-      ${campoCodigo('Código do túmulo', 'Ex.: Q01-A01-L001')}
+      ${campoCodigo('Número da plaqueta ou código do túmulo', 'Ex.: 000123 ou Q01-A1-2')}
       <div id="achado"></div>
       <p class="ajuda">Notas de 0 (sem problema) a 4 (muito grave).</p>
       <label>Estrutura (rachaduras, desabamento, risco)</label>${escala('v1', ['0', '1', '2', '3', '4'], rot)}
@@ -319,7 +325,7 @@ Telas.ocorrencia = async () => {
   return {
     titulo: 'Aviso de problema',
     html: `
-      ${campoCodigo('Código do túmulo', 'Ex.: Q01-A1-2')}
+      ${campoCodigo('Número da plaqueta ou código do túmulo', 'Ex.: 000123 ou Q01-A1-2')}
       <div id="achado"></div>
       <label>O que precisa</label>
       ${escala('tipo-oc', ['Limpeza', 'Conserto', 'Acidente ou risco', 'Outro'])}

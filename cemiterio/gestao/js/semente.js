@@ -73,6 +73,16 @@
     }
     // 2 sepultamentos agendados para amanhã em sepulturas vagas
     tumulos.filter((t) => t.ocupacao === 'vago' && t.tipo === 'sepultura').slice(0, 2).forEach((t, i) => sepultamentos.push(novo({ numero: `${++ns}/${hoje.slice(0, 4)}`, tumuloId: t.id, falecido: nome(), data: diasAntes(-1), hora: ['10:00', '15:30'][i], funerariaId: 'F1', declarante: 'Familiar (exemplo)', situacao: 'agendado' })));
-    await VP.db.gravarVarias({ cemiterios: [cem], quadras, tumulos, vistorias, ordensServico, funerarias, concessoes, sepultamentos, meta:[{ id: 'config', valores: Object.assign({}, VP.CONFIG_PADRAO) }, { id: 'semente', ficticio: true, criadoEm: VP.Plataforma.agoraISO() }] });
+    // Etapa 4: um processo de abandono de exemplo (fictício), já com uma notificação sem sucesso
+    const contagem = new Map(); for (const v of vistorias) contagem.set(v.tumuloId, (contagem.get(v.tumuloId) || 0) + 1);
+    const alvo = tumulos.find((t) => contagem.get(t.id) >= 2 && t.tipo !== 'jazigo');
+    const processos = [];
+    if (alvo) {
+      const numero = `1/${hoje.slice(0, 4)}`;
+      alvo.indicadores = ['D3']; alvo.situacao = 'apuracao'; alvo.processo = numero;
+      alvo.situacaoHist = [{ de: 'indicio', para: 'apuracao', data: diasAntes(20), motivo: 'Exemplo fictício', processo: numero, revisor: 'Comissão de exemplo', ato: '', dataAto: '', usuario: 'demonstração', quando: VP.Plataforma.agoraISO() }];
+      processos.push({ id: u.id(), numero, tumuloId: alvo.id, abertoEm: diasAntes(20), revisor: 'Comissão de exemplo', motivoAbertura: 'Exemplo fictício: duas vistorias com nota alta e titular sem contato', situacao: 'andamento', notificacoes: [{ id: u.id(), meio: 'whatsapp', data: diasAntes(15), destinatario: 'Titular (exemplo)', contato: '(00) 00000-0000', resultado: 'naoLocalizado', comprovante: [], nota: 'Número não existe (exemplo)', usuario: 'demonstração' }], manifestacoes: [], aviso: null, edital: null, decisao: null, historico: [{ quando: VP.Plataforma.agoraISO(), acao: 'Processo aberto (exemplo)', usuario: 'demonstração' }], usuario: 'demonstração', criadoEm: VP.Plataforma.agoraISO() });
+    }
+    await VP.db.gravarVarias({ cemiterios: [cem], quadras, tumulos, vistorias, ordensServico, funerarias, concessoes, sepultamentos, processos, meta:[{ id: 'config', valores: Object.assign({}, VP.CONFIG_PADRAO) }, { id: 'semente', ficticio: true, criadoEm: VP.Plataforma.agoraISO() }] });
   };
 })();

@@ -35,7 +35,7 @@
 
   // ---------------------------------------------------------------- busca e filtros
   VP.textoBusca = (t) => {
-    if (!t._busca) t._busca = u.normalizar([VP.codigoTumulo(t), VP.rotuloTumulo(t), t.numero, t.observacao, VP.LISTAS.tipos[t.tipo]].join(' | '));
+    if (!t._busca) t._busca = u.normalizar([VP.codigoTumulo(t), VP.rotuloTumulo(t), t.numero, t.observacao, VP.LISTAS.tipos[t.tipo], t.plaqueta != null ? String(t.plaqueta).padStart(6, '0') : ''].join(' | '));
     return t._busca;
   };
   VP.filtrarTumulos = (f = {}) => {
@@ -53,6 +53,7 @@
     if (f.sugestao) l = l.filter((t) => VP.sugestaoTriagem(t).nivel === f.sugestao);
     if (f.risco) l = l.filter((t) => VP.temRisco(t));
     if (f.semVistoria) l = l.filter((t) => !VP.vistoriasDe(t.id).length);
+    if (f.semPlaqueta) l = l.filter((t) => t.plaqueta == null);
     if (f.concessao === 'sem') l = l.filter((t) => !VP.concessaoAtual(t.id));
     else if (f.concessao === 'vencida') l = l.filter((t) => VP.concessaoVencida(VP.concessaoAtual(t.id)));
     else if (f.concessao) l = l.filter((t) => VP.concessaoAtual(t.id)?.tipo === f.concessao);
@@ -221,6 +222,8 @@
   VP.acharPorCodigo = (codigo) => {
     const alvo = String(codigo || '').toUpperCase().replace(/\s+/g, '');
     if (!alvo) return null;
+    // Só números = número da plaqueta
+    if (/^\d{1,6}$/.test(alvo)) return VP.db.lista('tumulos').find((t) => t.plaqueta === Number(alvo)) || null;
     const norm = (c) => c.replace(/(^|-)([A-Z]?)0*(\d)/g, '$1$2$3');
     const de = (t) => VP.codigoTumulo(t).toUpperCase().replace(/\s+/g, '');
     return VP.db.lista('tumulos').find((t) => de(t) === alvo || norm(de(t)) === norm(alvo)) || null;
@@ -240,6 +243,12 @@
     const hoje = VP.Plataforma.hoje();
     add('atencao', 'Sepultamentos agendados com data passada (confirmar se aconteceram)', VP.db.lista('sepultamentos').filter((x) => x.situacao === 'agendado' && x.data < hoje).length, '#agenda');
     add('atencao', 'Exumações agendadas com data passada', VP.db.lista('exumacoes').filter((e) => e.situacao === 'agendada' && e.dataPrevista < hoje).length, '#exumacoes');
+    const procs = VP.db.lista('processos').filter((x) => x.situacao === 'andamento');
+    if (VP.etapa4) {
+      add('critico', 'Processos de abandono com prazo encerrado, aguardando decisão', procs.filter((x) => VP.etapa4.fase(x) === 'decisao').length, '#processos');
+      add('atencao', 'Processos de abandono sem nenhuma notificação registrada', procs.filter((x) => !(x.notificacoes || []).length).length, '#processos');
+      add('atencao', 'Defesas sem resposta ou termos de compromisso vencidos sem verificação', procs.filter((x) => VP.etapa4.defesaPendente(x) || (VP.etapa4.termoEmAberto(x)?.prazo || '9') < hoje).length, '#processos');
+    }
     add('info', 'Concessões temporárias vencidas', VP.db.lista('concessoes').filter(VP.concessaoVencida).length, '#concessoes?vencidas=1');
     add('info', 'Gavetas com prazo de permanência vencido (exumação possível, decisão de uma pessoa)', VP.db.lista('sepultamentos').filter(VP.permanenciaVencida).length, '#tumulos?permanenciaVencida=1');
     add('atencao', 'Túmulos em que a sugestão da triagem difere da situação gravada', tum.filter(VP.sugestaoDiferente).length, '#triagem');

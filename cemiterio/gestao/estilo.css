@@ -372,3 +372,13 @@ body.papel-consulta [data-e3], body.papel-campo [data-e3], body.papel-consulta [
 body.papel-consulta [data-cancelar-sep], body.papel-campo [data-cancelar-sep], body.papel-consulta [data-exumar], body.papel-campo [data-exumar],
 body.papel-consulta [data-realizar-ex], body.papel-campo [data-realizar-ex], body.papel-consulta [data-cancelar-ex], body.papel-campo [data-cancelar-ex],
 body.papel-consulta [data-registrar-sep], body.papel-campo [data-registrar-sep] { display: none !important; }
+/* etapa 4: processo administrativo */
+.texto-notificacao { white-space: pre-wrap; font: 13px/1.5 system-ui, sans-serif; background: var(--superficie-2); border: 1px solid var(--borda); border-radius: 8px; padding: 10px; max-height: 260px; overflow: auto; }
+body.papel-consulta [data-p4], body.papel-campo [data-p4], body.papel-consulta [data-edital], body.papel-campo [data-edital],
+body.papel-consulta [data-atualizar-notif], body.papel-campo [data-atualizar-notif], body.papel-consulta [data-responder], body.papel-campo [data-responder],
+body.papel-consulta [data-verificar-termo], body.papel-campo [data-verificar-termo] { display: none !important; }
+/* plaquetas numeradas */
+.etq-numero { font-size: 20px; letter-spacing: 1px; font-variant-numeric: tabular-nums; }
+.ficha-qr .botao { margin-top: 6px; }
+body.papel-consulta [data-plaq], body.papel-campo [data-plaq], body.papel-consulta [data-mais], body.papel-campo [data-mais],
+body.papel-consulta [data-gerar-plaq], body.papel-campo [data-gerar-plaq] { display: none !important; }

@@ -53,10 +53,10 @@
     const TIPOS = { limpeza: 'Limpeza', reparo: 'Conserto', acidente: 'Acidente ou risco', vistoria: 'Fazer vistoria', outro: 'Outro' };
     const lista = {
       quando: new Date().toISOString(),
-      tumulos: docs.tumulos.map((t) => ({ codigo: codigo(t), descricao: descricao(t) })),
+      tumulos: docs.tumulos.map((t) => ({ codigo: codigo(t), descricao: descricao(t), plaqueta: t.plaqueta != null ? String(t.plaqueta).padStart(6, '0') : '' })),
       ordens: docs.ordensServico.filter((o) => o.situacao === 'aberta' || o.situacao === 'andamento').map((o) => {
         const t = porId.get(o.tumuloId);
-        return { id: o.id, numero: o.numero, codigo: t ? codigo(t) : '', descricao: t ? descricao(t) : (o.local || ''), tipo: o.tipo, tipoNome: TIPOS[o.tipo] || o.tipo, prioridade: o.prioridade, oQueFazer: o.descricao, prazo: o.prazo };
+        return { id: o.id, numero: o.numero, codigo: t ? (t.plaqueta != null ? String(t.plaqueta).padStart(6, '0') : codigo(t)) : '', descricao: t ? descricao(t) : (o.local || ''), tipo: o.tipo, tipoNome: TIPOS[o.tipo] || o.tipo, prioridade: o.prioridade, oQueFazer: o.descricao, prazo: o.prazo };
       })
     };
     return { lista };

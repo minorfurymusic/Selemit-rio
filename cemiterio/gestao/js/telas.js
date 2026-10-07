@@ -110,6 +110,7 @@
       { chave: 'situacao', rotulo: 'Situação', tipo: 'select', opcoes: Object.entries(L.situacoes) },
       { chave: 'risco', rotulo: 'Com risco (estrutura ou tampa)', tipo: 'bool' },
       { chave: 'semVistoria', rotulo: 'Sem vistoria', tipo: 'bool' },
+      { chave: 'semPlaqueta', rotulo: 'Sem plaqueta numerada', tipo: 'bool' },
       { chave: 'concessao', rotulo: 'Concessão', tipo: 'select', opcoes: [['perpetua', 'Perpétua'], ['temporaria', 'Temporária'], ['vencida', 'Temporária vencida'], ['sem', 'Sem concessão']] },
       { chave: 'permanenciaVencida', rotulo: 'Gaveta com permanência vencida', tipo: 'bool' }];
     const colunas = [
@@ -125,6 +126,7 @@
       { chave: 'medidas', titulo: 'Medidas (m)', valor: (t) => (t.comprimento ? `${String(t.comprimento).replace('.', ',')} × ${String(t.largura).replace('.', ',')}` : ''), oculta: true },
       { chave: 'foto', titulo: 'Foto', valor: (t) => ((t.fotos || []).length ? 'Sim' : 'Não') },
       { chave: 'qr', titulo: 'Plaqueta QR', valor: (t) => (t.qrAfixado ? 'Sim' : 'Não') },
+      { chave: 'plaqueta', titulo: 'Nº da plaqueta', valor: (t) => (t.plaqueta != null ? VP.plaquetas.texto(t.plaqueta) : ''), ordenar: (t) => t.plaqueta ?? 1e9 },
       { chave: 'situacao', titulo: 'Situação', html: (t) => VP.etapa2.seloSituacao(t), valor: (t) => L.situacoes[VP.situacaoAtual(t)] },
       { chave: 'concessao', titulo: 'Concessão', html: (t) => VP.etapa3.seloConcessao(VP.concessaoAtual(t.id)), valor: (t) => { const c = VP.concessaoAtual(t.id); return !c ? 'Sem concessão' : VP.concessaoVencida(c) ? 'Temporária vencida' : L.tiposConcessao[c.tipo]; }, oculta: true },
       { chave: 'sepultados', titulo: 'Sepultados', valor: (t) => VP.sepultadosAtivos(t.id).map((x) => x.falecido).join('; '), oculta: true },
@@ -151,6 +153,7 @@
         <button class="botao pequeno" data-lote="ocupacao">Definir ocupação</button>
         <button class="botao pequeno" data-lote="tipo">Definir tipo</button>
         <button class="botao pequeno" data-lote="qr">Plaqueta QR afixada</button>
+        <button class="botao pequeno" data-lote="numerar">Numerar plaquetas</button>
         <button class="botao pequeno" data-lote="etiquetas">Etiquetas QR</button>
         <button class="botao pequeno perigo" data-lote="excluir">Excluir</button>`;
       el.querySelectorAll('[data-lote]').forEach((b) => b.addEventListener('click', () => lote(b.dataset.lote, [...sel].map((id) => VP.db.pega('tumulos', id)), () => { sel.clear(); atualizar(); })));
@@ -171,6 +174,7 @@
         salvar: (x) => aplicar((t) => { const a = t[acao]; t[acao] = x.valor; return a; }, `${acao === 'ocupacao' ? 'Ocupação' : 'Tipo'}: ${lista[x.valor]}`) });
     }
     if (acao === 'qr') return aplicar((t) => { const a = t.qrAfixado; t.qrAfixado = true; return a; }, 'Plaqueta QR afixada');
+    if (acao === 'numerar') return VP.plaquetas.numerarLote(tumulos, depois);
     if (acao === 'etiquetas') { VP.estado.etiquetasIds = tumulos.map((t) => t.id); return VP.app.ir('#relatorio/etiquetas'); }
     if (acao === 'excluir') return excluir(tumulos, depois);
   };
@@ -233,7 +237,7 @@
             <div class="resumo-linha">${G.numero('Medidas', t.comprimento ? `${String(t.comprimento).replace('.', ',')} × ${String(t.largura).replace('.', ',')} m` : '—')}${G.numero('Plaqueta QR', t.qrAfixado ? 'Afixada' : 'Não afixada')}${G.numero('Fotos', u.inteiro((t.fotos || []).length))}</div>
             <h4>Posição na aléia</h4><div class="trecho-aleia">${trecho.map((x) => `<a href="#tumulo/${esc(x.id)}" class="cova-txt c-${esc(x.ocupacao)} ${x.id === t.id ? 'atual' : ''}" title="${esc(L.ocupacao[x.ocupacao])}">${esc(x.numero)}</a>`).join('')}</div>
           </div>
-          <div class="ficha-qr" title="QR Code do túmulo">${G.qr(VP.codigoTumulo(t), 3)}<small>${esc(VP.codigoTumulo(t))}</small></div>
+          <div class="ficha-qr" title="QR Code do túmulo">${G.qr(VP.codigoQR(t), 3)}<small>${t.plaqueta != null ? `Plaqueta <b>${VP.plaquetas.texto(t.plaqueta)}</b>` : esc(VP.codigoTumulo(t))}</small>${t.plaqueta != null ? '<button class="botao pequeno" data-plaq="desligar">Desligar plaqueta</button>' : '<button class="botao pequeno" data-plaq="ligar">Ligar plaqueta</button>'}</div>
         </div>
         <div class="barra-acoes"><button class="botao" data-acao="editar">Editar</button><button class="botao" data-acao="local">Informar localização</button><button class="botao" data-acao="gps">Usar GPS deste aparelho</button><button class="botao" data-acao="observacao">Observação</button><button class="botao" data-acao="etiqueta">Etiqueta QR</button><button class="botao perigo" data-acao="excluir">Excluir</button></div>
         <div class="grade-secoes">
@@ -255,6 +259,7 @@
         const recarrega = () => VP.app.render();
         VP.etapa2.ligarFicha(t, recarrega);
         VP.etapa3.ligarFicha(t, recarrega);
+        c.querySelector('[data-plaq]')?.addEventListener('click', (e) => (e.currentTarget.dataset.plaq === 'ligar' ? VP.plaquetas.vincular(t, recarrega) : VP.plaquetas.desvincular(t, recarrega)));
         c.querySelector('[data-foto]').addEventListener('change', async (e) => {
           const fotos = await ui.lerArquivos(e.target.files);
           if (!fotos.length) return;
@@ -624,7 +629,7 @@
           const c = document.getElementById('conteudo');
           const lista = ids ? VP.ordenarTumulos(ids.map((id) => VP.db.pega('tumulos', id)).filter(Boolean)) : VP.filtrarTumulos(ui.limparValores({ quadraId: c.querySelector('[name=quadraId]').value, aleia: c.querySelector('[name=aleia]').value }));
           if (!lista.length) return ui.aviso('Nenhum túmulo.', 'erro');
-          const html = `<div class="folha-etiquetas">${lista.map((t) => `<div class="etiqueta"><div class="etq-qr">${G.qr(VP.codigoTumulo(t), 2)}</div><div class="etq-txt"><small>${esc(VP.nome('cemiterios', t.cemiterioId))}</small><b>${esc(VP.codigoTumulo(t))}</b><span>${esc(VP.rotuloTumulo(t))}</span></div></div>`).join('')}</div>`;
+          const html = `<div class="folha-etiquetas">${lista.map((t) => `<div class="etiqueta"><div class="etq-qr">${G.qr(VP.codigoQR(t), 2)}</div><div class="etq-txt"><small>${esc(VP.nome('cemiterios', t.cemiterioId))}</small><b class="${t.plaqueta != null ? 'etq-numero' : ''}">${esc(VP.codigoQR(t))}</b><span>${esc(VP.rotuloTumulo(t))}</span></div></div>`).join('')}</div>`;
           document.getElementById('etq').innerHTML = `<p><b>${lista.length}</b> etiquetas. <button class="botao primario" data-imp>Imprimir</button></p>${html}`;
           document.querySelector('[data-imp]').addEventListener('click', () => ui.imprimir(html, 'Etiquetas dos túmulos'));
         });
@@ -702,6 +707,12 @@
       { chave: 'permanenciaCriancaAnos', rotulo: 'Permanência em gaveta: criança (anos)', tipo: 'numero', largura: 'meia', ajuda: 'Padrão 3 (Rio do Sul).' },
       { chave: 'exumacaoMinimaAnos', rotulo: 'Exumação: mínimo de anos depois do sepultamento', tipo: 'numero', largura: 'meia', ajuda: 'Padrão 5 (referência: Bom Retiro). Ordem judicial ou policial não tem mínimo.' },
       { chave: 'guardaOssarioAnos', rotulo: 'Ossário: anos de guarda para a família retirar', tipo: 'numero', largura: 'meia', ajuda: 'Padrão 3 (referência: Joinville).' },
+      { chave: 'limitePlaquetas', rotulo: 'Plaquetas: maior número permitido', tipo: 'numero', largura: 'meia', ajuda: 'Padrão 100.000. Os números vão de 000000 até este.' },
+      { chave: 'prazoManifestacaoDias', rotulo: 'Processo: prazo para manifestação (dias)', tipo: 'numero', largura: 'meia', ajuda: 'Referências: Rio do Sul 15 úteis + 10 corridos; Joinville 30 úteis; Bom Retiro até 60.' },
+      { chave: 'prazoManifestacaoUteis', rotulo: 'Processo: contar só dias úteis (segunda a sexta; feriados não descontados)', tipo: 'bool', largura: 'meia' },
+      { chave: 'prazoTermoDias', rotulo: 'Processo: prazo padrão do termo de compromisso (dias)', tipo: 'numero', largura: 'meia' },
+      { chave: 'exigirAvisoTumulo', rotulo: 'Processo: exigir aviso (placa com foto) no túmulo antes de declarar', tipo: 'bool', largura: 'meia' },
+      { chave: 'exigirAR', rotulo: 'Processo: exigir carta com AR (pendência jurídica; hoje a prefeitura usa e-mail e WhatsApp)', tipo: 'bool' },
       { chave: 'leiPermiteRetomadaPerpetua', rotulo: 'A lei municipal permite retomar concessão perpétua por abandono', tipo: 'bool', ajuda: 'Deixe desmarcado até conferir a lei. Desmarcado, túmulo com concessão perpétua não passa a "Abandono em apuração".' }];
     return {
       titulo: 'Configurações',
@@ -711,7 +722,7 @@
           <div class="linha-botoes"><button class="botao" data-backup>Baixar cópia completa</button><label class="botao">Restaurar cópia<input type="file" accept=".json" data-restaurar hidden></label><button class="botao perigo" data-reset>Voltar aos dados de exemplo</button></div>`}</section>`,
       ligar() {
         document.querySelector('[data-salvar]').addEventListener('click', async () => { const { valores } = ui.lerCampos(document.getElementById('form-cfg'), campos);
-          for (const k of ['notaAtencao', 'notaIndicio', 'intervaloVistoriasDias', 'prazoOrdemDias', 'permanenciaAdultoAnos', 'permanenciaCriancaAnos', 'exumacaoMinimaAnos', 'guardaOssarioAnos']) if (valores[k] == null || valores[k] < 0) return ui.aviso('Preencha todos os números das Configurações.', 'erro');
+          for (const k of ['notaAtencao', 'notaIndicio', 'intervaloVistoriasDias', 'prazoOrdemDias', 'permanenciaAdultoAnos', 'permanenciaCriancaAnos', 'exumacaoMinimaAnos', 'guardaOssarioAnos', 'prazoManifestacaoDias', 'prazoTermoDias', 'limitePlaquetas']) if (valores[k] == null || valores[k] < 0) return ui.aviso('Preencha todos os números das Configurações.', 'erro');
           if (valores.notaAtencao > valores.notaIndicio) return ui.aviso('A nota de "Atenção" precisa ser menor ou igual à de "Indício".', 'erro');
           await VP.salvarConfig(Object.assign({}, cfg, valores)); ui.aviso('Configurações salvas.'); });
         document.querySelector('[data-backup]').addEventListener('click', () => ui.baixar(`vitalpat-cemiterio-copia-${VP.Plataforma.hoje()}.json`, JSON.stringify({ sistema: 'VitalPat Cemitério', versao: 1, geradoEm: VP.Plataforma.agoraISO(), dados: Object.fromEntries(VP.COLECOES.map((c) => [c, VP.db.lista(c, true)])) }), 'application/json'));

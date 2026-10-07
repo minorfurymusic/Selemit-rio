@@ -33,6 +33,16 @@ Abra o `index.html` da raiz e entre com `selemitério` / `123456` (login de demo
 - **Vagas:** livres por tipo e quadra, sepultamentos por mês, previsão em 3 cenários e vagas que podem voltar (cada uma depende de decisão e processo).
 - **Configurações:** prazos de permanência, exumação mínima, guarda no ossário e se a lei permite retomar concessão perpétua. Os valores padrão vêm de leis de referência; confira a do seu município.
 
+## Etapa 4: processo administrativo do abandono
+
+- **Processos:** abre pela ficha do túmulo ("Mudar situação" → Abandono em apuração). Cada processo tem notificações (e-mail e WhatsApp com texto pronto; carta com AR opcional), aviso com foto no túmulo, edital (vários túmulos de uma vez), prazo para manifestação, defesa ou termo de compromisso e a decisão da autoridade.
+- **Nada é enviado nem decidido pelo sistema:** ele prepara o texto, conta os prazos, mostra o que falta e registra. "Abandono declarado" só sai da decisão do processo, com o nº do ato publicado.
+- **Dossiê:** botão no processo que junta tudo (túmulo, concessão, vistorias com fotos, notificações, aviso, edital, manifestações, decisão e exumações) para imprimir ou salvar em PDF.
+
+## Plaquetas numeradas
+
+Menu **Plaquetas**: números de 000000 até o limite (padrão 100.000), gerados em lotes (+10, +30, +50…). Cada número é ligado a um túmulo por uma pessoa (ficha do túmulo ou em lote pela lista de Túmulos, com prévia). O QR Code da plaqueta leva o número, e a busca acha o túmulo por ele. Plaqueta perdida: desligue e marque como inutilizada (fica no histórico).
+
 ## O que ainda não faz
 
 Importação de titulares e sepultados das planilhas antigas, portal das funerárias e do titular, sepultamentos, exumações, ossário, processo administrativo e mapa sobre imagem real. Estão nas próximas etapas do `checklist.md`. (Atualização: a ligação ao servidor já existe; veja abaixo.)
