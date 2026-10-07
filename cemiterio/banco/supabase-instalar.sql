@@ -27,6 +27,40 @@ create table if not exists public.perfis (
   criado_em timestamptz not null default now()
 );
 
+alter table public.perfis add column if not exists email text;
+
+-- Pessoa cadastrada no Supabase (Authentication → Users) ganha perfil automático, INATIVO.
+-- Quem libera e escolhe o papel é o administrador, dentro do sistema.
+create or replace function public.novo_usuario() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  insert into public.perfis (user_id, nome, email, papel, ativo)
+  values (new.id, coalesce(nullif(new.raw_user_meta_data ->> 'nome', ''), new.email), new.email, 'consulta', false)
+  on conflict (user_id) do nothing;
+  return new;
+end $$;
+drop trigger if exists vitalpat_novo_usuario on auth.users;
+create trigger vitalpat_novo_usuario after insert on auth.users for each row execute function public.novo_usuario();
+-- quem já estava cadastrado antes deste roteiro
+insert into public.perfis (user_id, nome, email, papel, ativo)
+select id, email, email, 'consulta', false from auth.users on conflict (user_id) do nothing;
+update public.perfis p set email = u.email from auth.users u where u.id = p.user_id and p.email is null;
+
+-- Nunca ficar sem administrador ativo
+create or replace function public.manter_um_admin() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  if not exists (select 1 from public.perfis where papel = 'admin' and ativo) then
+    raise exception 'É preciso ter pelo menos um administrador ativo.';
+  end if;
+  return null;
+end $$;
+drop trigger if exists perfis_manter_um_admin on public.perfis;
+create constraint trigger perfis_manter_um_admin after update on public.perfis
+  deferrable initially deferred for each row
+  when (old.papel = 'admin' and old.ativo and (new.papel <> 'admin' or not new.ativo))
+  execute function public.manter_um_admin();
+
 create or replace function public.meu_papel() returns text
 language sql stable security definer set search_path = public as $$
   select papel from public.perfis where user_id = auth.uid() and ativo

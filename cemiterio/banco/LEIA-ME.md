@@ -13,10 +13,11 @@
    ```sql
    insert into public.instalacao (produto, municipio, uf) values ('cemiterio', 'Rio do Sul', 'SC');
    ```
-4. Crie o primeiro administrador: **Authentication** → **Users** → **Add user** (e-mail e senha). Copie o **User UID** que aparece e rode:
+4. Crie o primeiro administrador: **Authentication** → **Users** → **Add user** → **Create new user** (e-mail e senha, marque "Auto Confirm User"). Depois rode, trocando o e-mail:
    ```sql
-   insert into public.perfis (user_id, nome, papel) values ('COLE-O-UID-AQUI', 'Nome da pessoa', 'admin');
+   update public.perfis set papel = 'admin', ativo = true, nome = 'Nome da pessoa' where email = 'email@prefeitura.gov.br';
    ```
+   As próximas pessoas são criadas do mesmo jeito (Add user), mas entram **inativas**: o administrador libera e escolhe o papel dentro do sistema, em Configurações → Pessoas.
 5. Em **Project Settings** → **API**, copie a **Project URL** e a chave **anon / public**. São essas duas que o sistema vai usar.
    - A chave **service_role** é secreta: nunca vai para o repositório, nem para o sistema, nem para o chat.
 
@@ -27,6 +28,7 @@
 - Toda alteração guarda a versão anterior no histórico, que não pode ser alterado nem apagado.
 - Papéis: **admin** (tudo e cadastra pessoas), **gestor** (cadastra e altera), **campo** (só vistorias e registros de campo), **consulta** (só vê).
 - Fotos e anexos ficam num armazenamento privado ("arquivos"); o sistema não apaga arquivo enviado.
+- Toda pessoa cadastrada no Supabase começa inativa; sempre fica pelo menos um administrador ativo.
 - O banco do cemitério recusa ser marcado como banco do patrimônio, e vice-versa.
 
 ## O que ainda falta

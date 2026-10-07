@@ -62,6 +62,18 @@ Atualizar este arquivo a cada entrega, sem apagar o histórico. Marcar `[x]` com
 - [ ] Configurações que ainda só ficam guardadas (lista em `patrimonio/gestao/LEIA-ME.md`) dependem do servidor.
 - [ ] Ajustar o logo (o usuário vai rever).
 
+## Ligar ao Supabase (plano aprovado em 07/10/2026; vem antes das etapas do cemitério)
+
+- [ ] Passo 0 (usuário): liberar `*.supabase.co` na rede do ambiente do Claude Code; criar 2 projetos de teste (`vitalpat-patrimonio-teste`, `vitalpat-cemiterio-teste`); passar URL, chave anon e um usuário de teste de cada.
+- [x] Passo 1: biblioteca supabase-js 2.117.3 (MIT) em `vendor/` de cada sistema e da entrada; `patrimonio/config-servidor.js` e `cemiterio/config-servidor.js` (vazio = demonstração). — 07/10/2026.
+- [x] Passo 2: banco cria o perfil (inativo) de quem é cadastrado no Supabase; admin libera pelo sistema; nunca fica sem admin ativo. Testado 2x em PostgreSQL 16 local nos dois produtos: `perfis_criados_inativos = 5`, `inativo_nao_ve = 0`, `É preciso ter pelo menos um administrador ativo.` — 07/10/2026.
+- [ ] Passo 3: login de verdade (e-mail e senha) na entrada única; demonstração continua sem configuração.
+- [ ] Passo 4: Gestão (patrimônio e cemitério) grava no servidor; tela Pessoas; botões por papel.
+- [ ] Passo 5: fotos no armazenamento de arquivos.
+- [ ] Passo 6: apps de campo: sem internet + "Enviar para o servidor".
+- [ ] Passo 7: documentos e texto do AI Studio.
+- [ ] Prova contra o Supabase de verdade (depende do passo 0).
+
 ## Gestão do cemitério (`cemiterio/gestao/`) — plano em etapas
 
 - [x] Etapa 1 — túmulos, importação da lista de chãos (De/Para, prévia, desfazer), mapa por posição, painel, ficha com QR, recebimento do levantamento (CSV/GeoJSON), KML, etiquetas, Lixeira. — 07/10/2026, 29 verificações passaram no navegador automático (commit no histórico do git).
