@@ -6,10 +6,10 @@
 
   const MENU = [
     ['painel', 'Painel', '◧'], ['bens/moveis', 'Bens móveis', '▦'], ['bens/imoveis', 'Bens imóveis', '⌂'], ['frota', 'Frota', '⛟'], ['entradas', 'Entradas', '⇩'], ['transferencias', 'Transferências', '⇄'],
-    ['inventario', 'Inventário', '☑'], ['financeiro/fechamento', 'Financeiro', '＄'], ['relatorios', 'Relatórios', '▤'],
+    ['inventario', 'Inventário', '☑'], ['manutencao', 'Manutenção', '⚒'], ['financeiro/fechamento', 'Financeiro', '＄'], ['relatorios', 'Relatórios', '▤'],
     ['historico', 'Histórico', '◷'], ['cadastros/unidades', 'Cadastros', '☰'], ['configuracoes', 'Configurações', '⚙'], ['lixeira', 'Lixeira', '🗑']
   ];
-  const rotaMenu = { relatorio: 'relatorios', unidade: 'cadastros/unidades' };
+  const rotaMenu = { relatorio: 'relatorios', unidade: 'cadastros/unidades', imoveis: 'bens/imoveis' };
   // Qual aba do menu acende: a ficha do bem e o "novo bem" acendem a aba do tipo do bem
   const abaDoTipo = (tipo) => (tipo === 'veiculo' ? 'frota' : ['imovel', 'infraestrutura'].includes(tipo) ? 'bens/imoveis' : 'bens/moveis');
 
@@ -109,6 +109,10 @@
     if (VP.config().depreciacaoAutomatica === 'abrir' && VP.mesesPendentes(VP.Plataforma.hoje().slice(0, 7)).length) {
       const feitos = await VP.fecharMesesPendentes(VP.Plataforma.hoje().slice(0, 7));
       VP.ui.aviso(`Depreciação lançada automaticamente: ${feitos.map((x) => VP.u.mesExtenso(x.mes)).join(', ')}.`);
+    }
+    // Manutenção preventiva: abre os chamados que chegaram na antecedência (tarefa, não decisão)
+    if (VP.manutencao && (!VP.servidor.ativo || VP.servidor.podeAlterar())) {
+      try { const n = await VP.manutencao.gerarPreventivas(); if (n.length) VP.ui.aviso(`${n.length} chamado(s) de manutenção preventiva aberto(s).`); } catch (_) { /* tenta de novo na próxima abertura */ }
     }
     await VP.app.render();
     window.VP_PRONTO = true;

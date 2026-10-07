@@ -39,6 +39,7 @@ Documento interno — não distribuir a terceiros
 | 1.6 | 07/10/2026 | **Etapa 2 da Gestão do Cemitério construída:** vistorias (V1–V5), triagem de possível abandono pela seção B2 (o sistema só sugere; a pessoa decide; trava de segurança para "Abandono em apuração"), ordens de serviço e app de campo ampliado. Situação dos itens do B7 registrada logo abaixo da tabela do B7. |
 | 1.7 | 07/10/2026 | **Etapa 3 da Gestão do Cemitério construída:** concessões, sepultamentos com agenda e funerárias, exumações com travas (prazo mínimo, abandono declarado, 2 testemunhas), ossário e painel de vagas. Prazos ajustáveis por município; D1 automático. Situação dos itens 7 e 8 do B7 registrada abaixo da tabela do B7. |
 | 1.8 | 07/10/2026 | **Etapa 4 da Gestão do Cemitério construída (fluxo B2-D):** processo administrativo com notificação por e-mail e WhatsApp (carta com AR opcional, pendência jurídica), aviso no túmulo, edital em lote, prazos, defesa e termo de compromisso, decisão da autoridade e dossiê. Decisão do usuário: coluna "Data" da lista de chãos = data do título de aforamento. |
+| 1.9 | 07/10/2026 | **Patrimônio:** etapa 5 (imóveis: documentos com validade, cessões e comodatos, pendências de regularização, demonstrativo para o TCE/SC), etapa 6 (manutenção: chamados com fluxo, preventiva automática, vistorias com checklist, equipes) e o restante da frota (pneus, reservas, cartão-combustível, dias parados); estado "Novo" no aplicativo de campo. |
 
 # 1. Alertas críticos — ler antes de investir tempo e dinheiro
 
@@ -265,6 +266,8 @@ O texto pede que "restrições legais sejam um problema a ser superado" e cita i
 ### A1.14 Módulo 10 — Frota de veículos (novo na v1.2)
 
 *Atualização 07/10/2026: aba Frota implementada na Gestão do Patrimônio (`patrimonio/gestao/js/telas-frota.js`) com FR-01 a FR-11, FR-14 e FR-16 (custos já no relatório de veículos) e FR-17 (app de campo). Faltam FR-12 (pneus), FR-13 (reservas) e FR-15 (cartão-combustível).*
+
+*Atualização 07/10/2026 (2): FR-12 (pneus), FR-13 (reservas por secretaria), FR-15 (arquivo do cartão-combustível, com prévia e desfazer) e os dias parados do FR-03 implementados em `patrimonio/gestao/js/telas-frota2.js`.*
 
 Referência de mercado pedida pelo usuário: **GAX (3ia)** — ver A4. Os itens marcados "GAX" são funções que o GAX divulga publicamente; os demais foram acrescentados.
 

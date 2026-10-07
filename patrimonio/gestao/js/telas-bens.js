@@ -163,7 +163,7 @@
     };
     return {
       titulo: grupo ? grupo.titulo : 'Todos os bens',
-      acoes: `<a class="botao primario" href="#novo-bem/${grupo ? grupo.novo : 'movel'}">+ Novo ${grupo === GRUPOS.imoveis ? 'imóvel' : 'bem'}</a> <a class="botao" href="#entradas">Itens a incorporar</a>`,
+      acoes: `${grupo === GRUPOS.imoveis ? '<a class="botao" href="#imoveis">Situação dos imóveis</a> ' : ''}<a class="botao primario" href="#novo-bem/${grupo ? grupo.novo : 'movel'}">+ Novo ${grupo === GRUPOS.imoveis ? 'imóvel' : 'bem'}</a> <a class="botao" href="#entradas">Itens a incorporar</a>`,
       html: `<div id="area-bens">${desenhar()}</div>`,
       ligar
     };
@@ -240,7 +240,7 @@
         ${cartao('Local e responsáveis', 'local', [['Unidade', VP.nome('unidades', b.unidadeId)], ['Localização', b.localizacao], ['Responsável', b.responsavelId ? VP.nome('responsaveis', b.responsavelId) : ''], ['Responsáveis adicionais', (b.responsaveisAdicionais || []).map((r) => VP.nome('responsaveis', r)).join(', ')], b.endereco ? ['Endereço', [b.endereco.logradouro, b.endereco.bairro, b.endereco.cidade].filter(Boolean).join(', ')] : null])}
         ${cartao('Origem e compra', 'origem', [['Fornecedor', VP.nome('fornecedores', b.fornecedorId)], ['Empenho', b.origem?.empenho], ['Item do empenho', b.origem?.item], ['Quantidade', b.origem?.quantidade], ['Valor unitário', b.origem?.valorUnitario != null ? u.moeda(b.origem.valorUnitario) : ''], ['Nota fiscal', [b.nf?.numero, b.nf?.serie].filter(Boolean).join(' / série ')], ['Emissão da nota', u.data(b.nf?.emissao)], ['Licitação', [b.origem?.licitacao?.modalidade, b.origem?.licitacao?.processo && 'processo ' + b.origem.licitacao.processo, b.origem?.licitacao?.numero && 'nº ' + b.origem.licitacao.numero].filter(Boolean).join(' · ')]])}
         ${cartao('Detalhes', 'detalhes', [['Marca', b.detalhes?.marca], ['Modelo', b.detalhes?.modelo], ['Cor', b.detalhes?.cor], ['Número de série', b.detalhes?.serie], ['RFID', b.detalhes?.rfid], ['Texto jurídico', [b.detalhes?.textoJuridico?.categoria, b.detalhes?.textoJuridico?.numeroAno].filter(Boolean).join(' · ')]], (b.medidas || []).length ? `<h4>Medidas</h4><dl class="dados">${b.medidas.map((m) => `<dt>${esc(m.nome)}</dt><dd>${esc(m.valor)}</dd>`).join('')}</dl>` : '')}
-        ${b.tipo === 'imovel' || b.imovel ? cartao('Imóvel: documentos e uso', 'imovel', [['Matrícula', b.imovel?.matricula], ['Cartório', b.imovel?.cartorio], ['Situação do registro', b.imovel?.situacaoRegistro], ['Classificação de uso', b.imovel?.uso]]) : ''}
+        ${b.tipo === 'imovel' || b.imovel ? cartao('Imóvel: registro e uso', 'imovel', [['Matrícula', b.imovel?.matricula], ['Cartório', b.imovel?.cartorio], ['Situação do registro', b.imovel?.situacaoRegistro], ['O que impede o registro', b.imovel?.motivoPendencia], ['Classificação de uso', b.imovel?.uso], ['Afetado', b.imovel?.afetado == null ? '' : b.imovel.afetado ? 'Sim' : 'Não'], ['Inscrição imobiliária (IPTU)', b.imovel?.inscricaoIptu], ['Escritura', b.imovel?.escritura], ['Área do terreno', b.imovel?.areaTerreno ? u.inteiro(b.imovel.areaTerreno) + ' m²' : ''], ['Área construída', b.imovel?.areaConstruida ? u.inteiro(b.imovel.areaConstruida) + ' m²' : ''], ['Valor do terreno', b.imovel?.valorTerreno ? u.moeda(b.imovel.valorTerreno) : ''], ['Origem', b.imovel?.origemArea]]) + (VP.imoveis ? VP.imoveis.secoesFicha(b) : '') : ''}
         ${b.tipo === 'veiculo' ? cartao('Veículo', 'veiculo', [['Placa', b.veiculo?.placa], ['RENAVAM', b.veiculo?.renavam], ['Chassi', b.veiculo?.chassi], ['Combustível', b.veiculo?.combustivel], ['Ano/modelo', b.veiculo?.anoModelo], ['Tanque (litros)', b.veiculo?.capacidadeTanque], ['Abastecimentos registrados', abast.length ? `${abast.length} · ${u.inteiro(litros)} L · ${u.moeda(abast.reduce((t, e) => t + e.valor, 0))}` : '']]) : ''}
         ${cartao('Seguro e garantia', 'seguro', [['Seguradora', b.seguro?.seguradoraId ? VP.nome('seguradoras', b.seguro.seguradoraId) : ''], ['Corretora', b.seguro?.corretoraId ? VP.nome('seguradoras', b.seguro.corretoraId) : ''], ['Apólice', b.seguro?.apolice], ['Vigência', b.seguro?.inicio ? `${u.data(b.seguro.inicio)} a ${u.data(b.seguro.termino)}` : ''], ['Valor do seguro', b.seguro?.valor ? u.moeda(b.seguro.valor) : ''], ['Franquia', b.seguro?.franquia ? u.moeda(b.seguro.franquia) : ''], ['Garantia', b.garantia?.termino ? `${VP.nome('tiposGarantia', b.garantia.tipoId)} até ${u.data(b.garantia.termino)}` : ''], ['Fornecedor da garantia', b.garantia?.fornecedorId ? VP.nome('fornecedores', b.garantia.fornecedorId) : '']])}
         ${cartao('Valores e contas', 'valores', [['Conta contábil', VP.nome('contas', b.contaId)], ['Valor base (aquisição, reavaliação e melhorias)', u.moeda(s.base)], ['Melhorias somadas', u.moeda(s.agregado)], ['Valor residual', u.moeda(s.residual)], ['Depreciação acumulada', u.moeda(s.acumulada)], ['Valor contábil (líquido)', u.moeda(s.liquido)]])}
@@ -295,6 +295,7 @@
           ligarEstorno(b);
         }));
         ligarEstorno(b);
+        if (VP.imoveis && (b.tipo === 'imovel' || b.imovel)) VP.imoveis.ligarFicha(b, recarrega);
       }
     };
   };
@@ -361,7 +362,13 @@
     imovel: { titulo: 'Imóvel: documentos e uso', campos: [
       { chave: 'imovel.matricula', rotulo: 'Matrícula', largura: 'meia' }, { chave: 'imovel.cartorio', rotulo: 'Cartório', largura: 'meia' },
       { chave: 'imovel.situacaoRegistro', rotulo: 'Situação do registro', tipo: 'select', opcoes: ['Registrado', 'Em regularização', 'Sem registro', 'Posse'].map((x) => [x, x]) },
-      { chave: 'imovel.uso', rotulo: 'Classificação de uso', tipo: 'select', opcoes: ['Uso comum do povo', 'Uso especial', 'Dominical'].map((x) => [x, x]), ajuda: 'Uso comum e uso especial não podem ser vendidos enquanto afetados (Código Civil, arts. 98–103).' }] },
+      { chave: 'imovel.uso', rotulo: 'Classificação de uso', tipo: 'select', opcoes: ['Uso comum do povo', 'Uso especial', 'Dominical'].map((x) => [x, x]), ajuda: 'Uso comum e uso especial não podem ser vendidos enquanto afetados (Código Civil, arts. 98–103).' },
+      { chave: 'imovel.afetado', rotulo: 'Afetado (em uso para um serviço público ou pelo povo)', tipo: 'bool' },
+      { chave: 'imovel.motivoPendencia', rotulo: 'O que impede o registro (se não estiver registrado)', tipo: 'area', ajuda: 'O TCE/SC pede o motivo de cada imóvel não registrado.' },
+      { chave: 'imovel.inscricaoIptu', rotulo: 'Inscrição imobiliária (IPTU)', largura: 'meia' }, { chave: 'imovel.escritura', rotulo: 'Escritura (livro, folha, data)', largura: 'meia' },
+      { chave: 'imovel.areaTerreno', rotulo: 'Área do terreno (m²)', tipo: 'numero', largura: 'meia' }, { chave: 'imovel.areaConstruida', rotulo: 'Área construída (m²)', tipo: 'numero', largura: 'meia' },
+      { chave: 'imovel.valorTerreno', rotulo: 'Valor do terreno (não deprecia)', tipo: 'moeda', largura: 'meia', ajuda: 'Separado da edificação. Informativo para o relatório.' },
+      { chave: 'imovel.origemArea', rotulo: 'Origem', tipo: 'select', opcoes: ['Compra', 'Doação', 'Desapropriação', 'Dação em pagamento', 'Área pública de loteamento', 'Outra'].map((x) => [x, x]), largura: 'meia' }] },
     veiculo: { titulo: 'Veículo', campos: [
       { chave: 'veiculo.placa', rotulo: 'Placa', largura: 'meia' }, { chave: 'veiculo.renavam', rotulo: 'RENAVAM', largura: 'meia' }, { chave: 'veiculo.chassi', rotulo: 'Chassi' },
       { chave: 'veiculo.combustivel', rotulo: 'Combustível', tipo: 'select', opcoes: ['Gasolina', 'Etanol', 'Flex', 'Diesel', 'Elétrico', 'GNV'].map((x) => [x, x]), largura: 'meia' },

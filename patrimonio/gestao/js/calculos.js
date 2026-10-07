@@ -237,6 +237,19 @@
     }
     const ordem = { critico: 0, atencao: 1, info: 2 };
     // Frota: um item por tipo de alerta (o detalhe fica no painel da Frota)
+    if (VP.imoveis) {
+      const ai = VP.imoveis.alertas();
+      add('imo-docs', 'atencao', 'Imóveis: documentos vencidos (habite-se, AVCB, alvarás, laudos)', ai.docsVencidos.length, '#imoveis/documentos');
+      add('imo-cessoes', 'atencao', 'Imóveis: cessões ou comodatos vencidos', ai.cessoesVencidas.length, '#imoveis/cessoes');
+      add('imo-pend', 'atencao', 'Imóveis: pendências de regularização atrasadas', ai.pendAtrasadas.length, '#imoveis/pendencias');
+      add('imo-motivo', 'info', 'Imóveis não registrados sem o motivo informado (TCE/SC)', ai.semMotivo.length, '#imoveis');
+    }
+    if (VP.manutencao) {
+      const am = VP.manutencao.alertas();
+      add('cham-atrasados', 'atencao', 'Chamados de manutenção atrasados', am.atrasados.length, '#manutencao/chamados?abertos=1&atrasados=1');
+      add('cham-urgentes', 'critico', 'Chamados urgentes em aberto', am.urgentes.length, '#manutencao/chamados');
+      add('cham-revisao', 'info', 'Chamados aguardando revisão', am.revisao.length, '#manutencao/chamados?situacao=revisao');
+    }
     if (VP.frota) { const af = VP.frota.alertas(); add('frota-critico', 'critico', 'Frota: alertas urgentes (CNH, manutenção, multas, documentos)', af.filter((a) => a.nivel === 'critico').length, '#frota'); add('frota-atencao', 'atencao', 'Frota: itens para conferir', af.filter((a) => a.nivel === 'atencao').length, '#frota'); }
     return p.sort((a, b) => ordem[a.nivel] - ordem[b.nivel]);
   };

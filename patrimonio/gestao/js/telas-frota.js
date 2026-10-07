@@ -101,6 +101,8 @@
     for (const p of VP.db.lista('planosManutencao')) { const s = F.situacaoPlano(p); if (s.nivel !== 'ok') add(s.nivel === 'vencido' ? 'critico' : 'atencao', `${p.item} ${s.nivel === 'vencido' ? 'vencida' : 'perto de vencer'}: ${nomeVeiculo(p.ref)}`, '#frota/manutencao'); }
     for (const c of VP.db.lista('contratosLocacao')) if (c.fim && c.fim >= hoje() && c.fim <= u.somaDias(hoje(), 60)) add('atencao', `Contrato de locação ${c.numero} vence em ${u.data(c.fim)}`, '#frota/contratos');
     for (const m of VP.db.lista('multas')) if (m.situacao === 'aberta' && m.prazoIndicacao && m.prazoIndicacao <= u.somaDias(hoje(), 7)) add(m.prazoIndicacao < hoje() ? 'critico' : 'atencao', `Multa ${m.auto || ''} (${nomeVeiculo(m.ref)}): prazo para indicar o condutor ${m.prazoIndicacao < hoje() ? 'vencido' : 'em ' + u.data(m.prazoIndicacao)}`, '#frota/multas');
+    const pedidos = VP.db.lista('reservasVeiculo').filter((r) => r.situacao === 'pedida').length;
+    if (pedidos) add('atencao', `${pedidos} pedido(s) de veículo aguardando aprovação`, '#frota/reservas');
     for (const d of VP.db.lista('documentosVeiculo')) if (d.vencimento && d.vencimento <= u.somaDias(hoje(), 30)) add(d.vencimento < hoje() ? 'critico' : 'atencao', `${d.tipo} ${d.vencimento < hoje() ? 'vencido' : 'vence em ' + u.data(d.vencimento)}: ${nomeVeiculo(d.ref)}`, '#frota/documentos');
     return al;
   };
@@ -147,6 +149,7 @@
       { chave: 'inicio', rotulo: 'Início da vigência', tipo: 'data', obrigatorio: true, largura: 'meia' }, { chave: 'fim', rotulo: 'Fim da vigência', tipo: 'data', obrigatorio: true, largura: 'meia' },
       { chave: 'valorMensal', rotulo: 'Valor mensal por veículo (R$)', tipo: 'moeda', obrigatorio: true, largura: 'meia' }, { chave: 'franquiaKm', rotulo: 'Franquia de km por veículo/mês', tipo: 'numero', largura: 'meia' },
       { chave: 'valorKmExcedente', rotulo: 'Valor do km excedente (R$)', tipo: 'moeda', largura: 'meia' }, { chave: 'valorTotal', rotulo: 'Valor total do contrato (R$)', tipo: 'moeda', largura: 'meia' },
+      { chave: 'descontaParada', rotulo: 'Desconta os dias em que o veículo ficou parado por conta da locadora', tipo: 'bool' },
       { chave: 'quemPaga', rotulo: 'Quem paga manutenção e combustível', tipo: 'select', opcoes: [['prefeitura', 'Prefeitura paga combustível; locadora a manutenção'], ['locadora', 'Locadora paga os dois'], ['prefeitura-tudo', 'Prefeitura paga os dois']] },
       { chave: 'observacao', rotulo: 'Aditivos e observações', tipo: 'area' }],
     motoristas: () => [
@@ -226,7 +229,7 @@
   };
 
   // ------------------------------------------------------------------ telas
-  const ABAS = [['painel', 'Painel'], ['veiculos', 'Veículos'], ['abastecimentos', 'Abastecimentos'], ['viagens', 'Diário de bordo'], ['contratos', 'Contratos de locação'], ['motoristas', 'Motoristas'], ['manutencao', 'Manutenção preventiva'], ['multas', 'Multas'], ['documentos', 'Documentos']];
+  const ABAS = [['painel', 'Painel'], ['veiculos', 'Veículos'], ['reservas', 'Reservas'], ['abastecimentos', 'Abastecimentos'], ['cartao', 'Cartão-combustível'], ['viagens', 'Diário de bordo'], ['contratos', 'Contratos de locação'], ['motoristas', 'Motoristas'], ['manutencao', 'Manutenção preventiva'], ['pneus', 'Pneus'], ['multas', 'Multas'], ['documentos', 'Documentos']];
   const nav = (qual) => `<nav class="abas">${ABAS.map(([k, n]) => `<a href="#frota/${k}" class="${k === qual ? 'ativa' : ''}">${esc(n)}</a>`).join('')}</nav>`;
   const tabela = (id, linhas, colunas, vazio) => ui.tabela({ id, linhas, colunas, nomePlanilha: id, vazio: vazio || 'Nada cadastrado ainda.' });
   const ligarComum = () => {
@@ -256,9 +259,11 @@
     const ab = ABAS.some(([k]) => k === aba) ? aba : 'painel';
     const veics = F.veiculos();
     const { resultado, medias } = F.analisar();
-    let html = '', acoes = '';
+    let html = '', acoes = '', ligarExtra = null;
     const ids = [];
-    if (ab === 'painel') {
+    // Abas da segunda parte da frota (pneus, reservas, cartão-combustível): telas-frota2.js
+    const extra = VP.frotaExtra?.abas?.[ab];
+    if (extra) { const r = extra(); html = r.html; acoes = r.acoes || ''; ligarExtra = r.ligar; } else if (ab === 'painel') {
       const mes = doMes(mesAtual());
       const meses = Array.from({ length: 12 }, (_, i) => u.somaMeses(mesAtual(), i - 11));
       const al = F.alertas();
@@ -312,8 +317,10 @@
       const v = VP.estado.frotaConferencia = VP.estado.frotaConferencia || { contratoId: contratos[0]?.id || '', mes: u.somaMeses(mesAtual(), -1) };
       const c = VP.db.pega('contratosLocacao', v.contratoId);
       const veicC = veics.filter((x) => x.contratoId === v.contratoId);
-      const conf = c ? veicC.map((x) => { const km = F.kmNoMes(x.ref, v.mes); const exc = Math.max(0, km - (Number(c.franquiaKm) || 0)); return { id: x.ref, placa: x.placa, modelo: x.modelo, km, franquia: Number(c.franquiaKm) || 0, exc, valor: (Number(c.valorMensal) || 0) + exc * (Number(c.valorKmExcedente) || 0) }; }) : [];
-      acoes = '<button class="botao primario" data-novo-frota="contratosLocacao">+ Contrato</button>';
+      // Dias parados (FR-03): paradas registradas no mês; se o contrato prevê desconto, abate o valor proporcional
+      const diasNoMes = new Date(Number(v.mes.slice(0, 4)), Number(v.mes.slice(5, 7)), 0).getDate();
+      const conf = c ? veicC.map((x) => { const km = F.kmNoMes(x.ref, v.mes); const exc = Math.max(0, km - (Number(c.franquiaKm) || 0)); const parados = F.diasParados ? F.diasParados(x.ref, v.mes) : 0; const desconto = c.descontaParada ? ((Number(c.valorMensal) || 0) / diasNoMes) * parados : 0; return { id: x.ref, placa: x.placa, modelo: x.modelo, km, franquia: Number(c.franquiaKm) || 0, exc, parados, desconto, valor: (Number(c.valorMensal) || 0) + exc * (Number(c.valorKmExcedente) || 0) - desconto }; }) : [];
+      acoes = '<button class="botao" data-nova-parada>+ Parada do veículo</button> <button class="botao primario" data-novo-frota="contratosLocacao">+ Contrato</button>';
       html = `${tabela('frota-contratos', contratos, [
           { chave: 'numero', titulo: 'Contrato' }, { chave: 'empresa', titulo: 'Locadora' },
           { chave: 'vigencia', titulo: 'Vigência', valor: (x) => `${u.data(x.inicio)} a ${u.data(x.fim)}`, ordenar: (x) => x.fim },
@@ -325,7 +332,9 @@
           <p class="ajuda">Km rodado de cada veículo no mês (abastecimentos e diário de bordo) comparado à franquia, com o valor a pagar previsto. Use para conferir a fatura.</p>
           <div class="linha-filtros"><label>Contrato <select data-conf-contrato>${contratos.map((x) => `<option value="${esc(x.id)}" ${x.id === v.contratoId ? 'selected' : ''}>${esc(x.numero)} · ${esc(x.empresa)}</option>`).join('')}</select></label>
           <label>Mês <input type="month" data-conf-mes value="${esc(v.mes)}"></label></div>
-          ${c ? tabela('frota-conferencia', conf, [{ chave: 'placa', titulo: 'Placa' }, { chave: 'modelo', titulo: 'Veículo' }, { chave: 'km', titulo: 'Km rodados', num: true, soma: true, formato: u.inteiro }, { chave: 'franquia', titulo: 'Franquia', num: true, formato: u.inteiro }, { chave: 'exc', titulo: 'Km excedente', num: true, soma: true, formato: u.inteiro }, { chave: 'valor', titulo: 'Valor previsto', num: true, soma: true, formato: u.moeda }], 'Nenhum veículo alugado ligado a este contrato.') : '<p class="vazio">Cadastre um contrato.</p>'}
+          ${c ? tabela('frota-conferencia', conf, [{ chave: 'placa', titulo: 'Placa' }, { chave: 'modelo', titulo: 'Veículo' }, { chave: 'km', titulo: 'Km rodados', num: true, soma: true, formato: u.inteiro }, { chave: 'franquia', titulo: 'Franquia', num: true, formato: u.inteiro }, { chave: 'exc', titulo: 'Km excedente', num: true, soma: true, formato: u.inteiro }, { chave: 'parados', titulo: 'Dias parados', num: true, soma: true, formato: u.inteiro }, { chave: 'desconto', titulo: 'Desconto por parada', num: true, soma: true, formato: u.moeda }, { chave: 'valor', titulo: 'Valor previsto', num: true, soma: true, formato: u.moeda }], 'Nenhum veículo alugado ligado a este contrato.') : '<p class="vazio">Cadastre um contrato.</p>'}
+          <p class="ajuda">Dias parados vêm das paradas registradas (botão "+ Parada do veículo"). ${c ? (c.descontaParada ? 'Este contrato prevê desconto proporcional por dia parado.' : 'Este contrato não prevê desconto por dia parado (ajuste no contrato).') : ''}</p>
+          ${VP.frotaExtra ? VP.frotaExtra.listaParadas(v.mes, veicC.map((x) => x.ref)) : ''}
         </section>`;
       ids.push('conf');
     } else if (ab === 'motoristas') {
@@ -370,6 +379,8 @@
         document.querySelectorAll('[data-novo-frota]').forEach((b) => b.addEventListener('click', () => editar(b.dataset.novoFrota, null)));
         document.querySelectorAll('#acoes-tela [data-abastecer]').forEach((b) => b.addEventListener('click', () => novoAbastecimento(b.dataset.abastecer)));
         document.querySelectorAll('[data-nova-viagem]').forEach((b) => b.addEventListener('click', () => novaViagem(null)));
+        if (ligarExtra) ligarExtra();
+        document.querySelector('[data-nova-parada]')?.addEventListener('click', () => VP.frotaExtra.novaParada());
         if (ids.includes('conf')) {
           document.querySelector('[data-conf-contrato]')?.addEventListener('change', (e) => { VP.estado.frotaConferencia.contratoId = e.target.value; VP.app.render(); });
           document.querySelector('[data-conf-mes]')?.addEventListener('change', (e) => { VP.estado.frotaConferencia.mes = e.target.value; VP.app.render(); });

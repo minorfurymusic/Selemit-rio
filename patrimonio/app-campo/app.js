@@ -238,8 +238,8 @@ Telas.bens = async () => {
         <label for="unidade">Onde o bem está agora</label>
         <select id="unidade">${opcoesUnidades()}</select>
         <label>Estado de conservação</label>
-        ${escala('estado', ['1', '2', '3', '4', '5'], ['Péssimo', 'Ruim', 'Regular', 'Bom', 'Ótimo'])}
-        <p class="ajuda">1 = péssimo · 2 = ruim · 3 = regular · 4 = bom · 5 = ótimo</p>
+        ${escala('estado', ['1', '2', '3', '4', '5', '6'], ['Péssimo', 'Ruim', 'Regular', 'Bom', 'Ótimo', 'Novo'])}
+        <p class="ajuda">1 = péssimo · 2 = ruim · 3 = regular · 4 = bom · 5 = ótimo · 6 = novo (sem uso)</p>
         <label for="obs">Observação</label>
         <textarea id="obs" placeholder="Opcional"></textarea>
         ${campoFotos()}

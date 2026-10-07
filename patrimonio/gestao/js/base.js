@@ -182,6 +182,7 @@ VP.CONFIG_PADRAO = {
   avisoSeguroIntervalo: 7,
   avisoGarantiaDias: 30,
   reavaliacaoAnos: 4,
+  avisoImovelDias: 60, // documentos e cessões de imóveis: avisar com esta antecedência
   // Usuário de demonstração (para "minha responsabilidade")
   usuarioResponsavelId: ''
 };
@@ -194,7 +195,13 @@ VP.COLECOES = ['bens', 'eventos', 'unidades', 'responsaveis', 'classificacoes', 
   'motivos', 'entidades', 'comissoes', 'seguradoras', 'tiposGarantia', 'itensIncorporar', 'transferencias',
   'inventarios', 'fechamentos', 'reavaliacoes', 'exportacoes', 'filtrosSalvos', 'meta', 'registrosCampo',
   // Frota (veículo próprio continua em "bens")
-  'veiculosLocados', 'abastecimentos', 'viagens', 'contratosLocacao', 'motoristas', 'planosManutencao', 'multas', 'documentosVeiculo'];
+  'veiculosLocados', 'abastecimentos', 'viagens', 'contratosLocacao', 'motoristas', 'planosManutencao', 'multas', 'documentosVeiculo',
+  // Imóveis (etapa 5)
+  'documentosImovel', 'cessoesImovel', 'pendenciasImovel',
+  // Manutenção, vistorias e equipes (etapa 6)
+  'chamados', 'planosPreventiva', 'vistoriasPat', 'equipes',
+  // Frota, segunda parte
+  'pneus', 'reservasVeiculo', 'importacoesCartao', 'paradasVeiculo'];
 
 VP.db = {
   _db: null,

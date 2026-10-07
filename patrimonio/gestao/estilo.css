@@ -340,3 +340,28 @@ body.papel-campo [data-editar], body.papel-campo [data-novo], body.papel-campo [
 .dif > span { font-weight: 600; min-width: 130px; }
 .achado .mae { display: inline-flex; gap: 6px; align-items: center; font-size: 13px; }
 .achado select, .item-nf-classe select { font: inherit; padding: 6px; border: 1px solid var(--borda); border-radius: 8px; background: var(--superficie); color: var(--texto); }
+/* etapa 5: imóveis */
+.im-bom { color: var(--ok-texto); } .im-regular { color: #a35a00; } .im-ruim { color: var(--critico); } .im-neutro { color: var(--suave); }
+.so-impressao { display: none; }
+body.papel-consulta [data-imo], body.papel-campo [data-imo], body.papel-consulta [data-imo-doc], body.papel-campo [data-imo-doc],
+body.papel-consulta [data-imo-renovar], body.papel-campo [data-imo-renovar], body.papel-consulta [data-imo-encerrar], body.papel-campo [data-imo-encerrar],
+body.papel-consulta [data-imo-pend], body.papel-campo [data-imo-pend] { display: none !important; }
+/* etapa 6: manutenção */
+.mn-aberto { color: var(--primaria); } .mn-campo { color: #a35a00; } .mn-revisao { color: #7a1fa2; } .mn-concluido { color: var(--ok-texto); } .mn-cancelado { color: var(--suave); } .mn-atrasado { color: var(--critico); font-weight: 700; }
+body.papel-consulta [data-novo-chamado], body.papel-campo [data-novo-chamado], body.papel-consulta [data-novo-plano], body.papel-campo [data-novo-plano],
+body.papel-consulta [data-nova-equipe], body.papel-campo [data-nova-equipe], body.papel-consulta [data-nova-vistoria], body.papel-campo [data-nova-vistoria] { display: none !important; }
+
+/* Etapas 7 e 8: mapa sobre imagem (Leaflet) e relatório com fotos e mapa */
+.mapa-leaflet { height: 70vh; min-height: 360px; border-radius: 10px; border: 1px solid var(--borda); background: var(--superficie-2, #e8edf2); z-index: 0; }
+.mapa-leaflet .leaflet-popup-content { font-size: 13px; line-height: 1.45; }
+.mapa-pontos { width: 100%; height: auto; max-height: 420px; color: var(--texto-2); }
+.mapa-fundo { fill: var(--superficie-2, #eef2f6); stroke: var(--borda); }
+.mapa-contorno { fill: rgba(22, 54, 90, 0.06); stroke: #16365a; stroke-width: 1; }
+.fichas-fotos { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; margin-top: 12px; }
+.ficha-foto-rel { border: 1px solid var(--borda); border-radius: 10px; padding: 10px; background: var(--superficie); break-inside: avoid; }
+.ficha-foto-rel header { font-size: 14px; margin-bottom: 4px; }
+.ficha-foto-rel p { font-size: 12px; color: var(--texto-2); margin: 0 0 6px; }
+.fotos-rel { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
+.fotos-rel figure { margin: 0; }
+.fotos-rel img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 6px; display: block; }
+.fotos-rel figcaption { font-size: 11px; color: var(--texto-2); }

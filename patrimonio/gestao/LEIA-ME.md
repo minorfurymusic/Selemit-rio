@@ -47,6 +47,14 @@ O botão **Aplicativo de campo**, no topo, abre o aplicativo de celular e tablet
 - **Tema claro/escuro**: botão "Tema" no topo (automático → claro → escuro), guardado no navegador.
 - Correções achadas pelo robô que clica em todos os botões: tirar o filtro de data do Balancete quebrava o relatório; "Editar" abastecimento dava erro; restaurar da Lixeira e editar Cadastros podiam executar o clique duas vezes.
 
+## Etapa 5: imóveis
+
+Na ficha de cada imóvel: registro e o que impede o registro, uso, áreas, documentos com validade (AVCB, habite-se, alvarás, laudos), cessões e comodatos, e pendências de regularização com responsável e prazo. Botão **Situação dos imóveis** (lista de Bens imóveis): alertas e o **demonstrativo para o TCE/SC**.
+
+## Etapa 6: manutenção
+
+Menu **Manutenção**: chamados de conserto (aberto → em campo → em revisão → concluído), manutenção preventiva por tempo (o chamado abre sozinho na antecedência), vistorias com checklist (cada item não conforme pode virar chamado) e equipes.
+
 ## Limitações reais desta demonstração
 
 - **Os dados são fictícios** e ficam só neste navegador. Para guardá-los, use Configurações → Baixar cópia completa.

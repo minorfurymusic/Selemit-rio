@@ -297,6 +297,43 @@
     const multas = v1 ? [{ id: 'MU1', ref: 'B:' + v1.id, data: u.somaDias(hoje, -20), auto: 'A00000001 (exemplo)', descricao: 'Excesso de velocidade até 20%', valor: 130.16, prazoIndicacao: u.somaDias(hoje, 5), motoristaId: '', situacao: 'aberta' }] : [];
     const docs = veiculos.map((b, i) => ({ id: 'DV' + i, ref: 'B:' + b.id, tipo: 'Licenciamento (CRLV)', vencimento: u.somaDias(hoje, i === 0 ? 12 : 60 + i * 30), observacao: '' }));
     await VP.db.gravarVarias({ contratosLocacao: [contrato], veiculosLocados: locados, motoristas, abastecimentos: abast, viagens, planosManutencao: planos, multas, documentosVeiculo: docs });
+    // Frota, segunda parte: pneus, uma reserva pedida e uma parada de veículo alugado (FICTÍCIOS)
+    const pneus = v1 ? ['DE', 'DD', 'TE', 'TD'].map((pos, i) => ({ id: 'PN' + i, codigo: 'FOGO-00' + (i + 1), marca: 'Marca Exemplo 175/70 R14', medida: '175/70 R14', valor: 420, situacao: 'rodando', ref: 'B:' + v1.id, posicao: pos, kmInstalacao: VP.frota ? Math.max(0, VP.frota.kmAtual('B:' + v1.id) - 12000 - i * 1500) : 0, kmAcumulado: 0, recapagens: 0, historico: [] })).concat([{ id: 'PN4', codigo: 'FOGO-005', marca: 'Marca Exemplo 175/70 R14', medida: '175/70 R14', valor: 420, situacao: 'estoque', ref: '', posicao: '', kmInstalacao: null, kmAcumulado: 0, recapagens: 0, historico: [] }]) : [];
+    const reservasVeiculo = [{ id: 'RV1', unidadeId: 'U3', solicitante: 'Coordenação do posto (exemplo)', ref: '', motoristaId: 'M2', data: u.somaDias(hoje, 2), horaInicio: '08:00', dataFim: u.somaDias(hoje, 2), horaFim: '12:00', destino: 'Hospital regional (exemplo)', motivo: 'Levar exames', situacao: 'pedida', historico: [] }];
+    const mesPassado = u.somaMeses(hoje.slice(0, 7), -1);
+    const paradasVeiculo = [{ id: 'PV1', ref: 'L:VL1', inicio: `${mesPassado}-10`, fim: `${mesPassado}-13`, motivo: 'Oficina da locadora (exemplo)', substituto: false, contaDesconto: true }];
+    contrato.descontaParada = true;
+    await VP.db.gravarVarias({ pneus, reservasVeiculo, paradasVeiculo, contratosLocacao: [contrato] });
+    // Imóveis (etapa 5): documentos, cessões e pendências FICTÍCIOS
+    const ims = VP.db.lista('bens').filter((b) => b.tipo === 'imovel');
+    const documentosImovel = [], cessoesImovel = [], pendenciasImovel = [];
+    ims.forEach((b, i) => {
+      b.imovel.afetado = b.imovel.uso !== 'Dominical';
+      b.imovel.areaTerreno = Number((b.medidas || []).find((m) => /terreno/i.test(m.nome))?.valor) || null;
+      b.imovel.areaConstruida = Number((b.medidas || []).find((m) => /constru/i.test(m.nome))?.valor) || null;
+      if (b.imovel.situacaoRegistro !== 'Registrado') {
+        b.imovel.motivoPendencia = i % 2 ? 'Área recebida de loteamento sem matrícula aberta (exemplo)' : '';
+        pendenciasImovel.push({ id: 'PI' + i, bemId: b.id, descricao: 'Pedir abertura de matrícula no cartório (exemplo)', responsavelId: 'R1', prazo: u.somaDias(hoje, i % 2 ? -10 : 45), situacao: 'aberta', abertaEm: u.somaDias(hoje, -60), historico: [] });
+      }
+      if (b.imovel.uso === 'Uso especial') {
+        documentosImovel.push({ id: 'DI' + i + 'a', bemId: b.id, tipo: 'AVCB (Corpo de Bombeiros)', numero: 'AVCB ' + (1000 + i) + ' (exemplo)', emissao: u.somaDias(hoje, -700), validade: u.somaDias(hoje, i === 0 ? -15 : 30 + i * 90), orgao: 'Corpo de Bombeiros (exemplo)', arquivos: [] });
+        documentosImovel.push({ id: 'DI' + i + 'b', bemId: b.id, tipo: 'Habite-se', numero: 'HB ' + (200 + i) + ' (exemplo)', emissao: u.somaDias(hoje, -3000), validade: '', orgao: 'Prefeitura (exemplo)', arquivos: [] });
+      }
+    });
+    if (ims[4]) cessoesImovel.push({ id: 'CI1', bemId: ims[4].id, tipo: 'comodato', direcao: 'a-terceiros', parte: 'Associação de Moradores Exemplo', instrumento: 'Termo de comodato 01/2022 (exemplo)', inicio: u.somaDias(hoje, -900), fim: u.somaDias(hoje, 40), finalidade: 'Sede da associação', historico: [] });
+    if (ims[0]) cessoesImovel.push({ id: 'CI2', bemId: ims[0].id, tipo: 'cessao', direcao: 'a-terceiros', parte: 'Governo do Estado (exemplo)', instrumento: 'Termo de cessão 03/2020 (exemplo)', inicio: u.somaDias(hoje, -2000), fim: u.somaDias(hoje, -30), finalidade: 'Turno noturno de escola estadual', historico: [] });
+    await VP.db.gravarVarias({ bens: ims, documentosImovel, cessoesImovel, pendenciasImovel });
+    // Manutenção (etapa 6): equipes, planos preventivos e chamados FICTÍCIOS
+    const equipes = [{ id: 'EQ1', nome: 'Equipe de manutenção predial (exemplo)', area: 'Obras e elétrica', liderId: 'R1', membros: ['R1', 'R2'] }, { id: 'EQ2', nome: 'Equipe de climatização (exemplo)', area: 'Ar-condicionado', liderId: 'R3', membros: ['R3'] }];
+    const planosPreventiva = [
+      { id: 'PP1', item: 'Limpeza do ar-condicionado (PMOC)', unidadeId: 'U1', bemId: '', cadaMeses: 3, antecedenciaDias: 15, ultimaData: u.somaDias(hoje, -100), equipeId: 'EQ2', custoPrevisto: 450, base: 'Lei 13.589/2018 — conferir detalhes', ativo: true, historico: [] },
+      { id: 'PP2', item: 'Limpeza da caixa d\'água', unidadeId: 'U3', bemId: '', cadaMeses: 6, antecedenciaDias: 15, ultimaData: u.somaDias(hoje, -60), equipeId: 'EQ1', custoPrevisto: 300, base: 'Normas sanitárias — conferir', ativo: true, historico: [] },
+      { id: 'PP3', item: 'Recarga e inspeção de extintores', unidadeId: 'U5', bemId: '', cadaMeses: 12, antecedenciaDias: 30, ultimaData: u.somaDias(hoje, -300), equipeId: 'EQ1', custoPrevisto: 900, base: 'Corpo de Bombeiros — conferir', ativo: true, historico: [] }];
+    const chamados = [
+      { id: 'CH1', numero: `1/${anoAtual}`, tipo: 'conserto', origem: 'unidade', prioridade: 'alta', unidadeId: 'U1', bemId: '', descricao: 'Goteira na sala 3 (exemplo)', solicitante: 'Direção da escola (exemplo)', custoPrevisto: 1200, equipeId: 'EQ1', responsavelId: 'R1', prazo: u.somaDias(hoje, -2), situacao: 'campo', abertoEm: u.somaDias(hoje, -12), historico: [], fotos: [] },
+      { id: 'CH2', numero: `2/${anoAtual}`, tipo: 'pedido', origem: 'unidade', prioridade: 'normal', unidadeId: 'U3', bemId: '', descricao: 'Instalar suporte para TV na recepção (exemplo)', solicitante: 'Coordenação do posto (exemplo)', custoPrevisto: 150, equipeId: '', responsavelId: '', prazo: u.somaDias(hoje, 10), situacao: 'aberto', abertoEm: u.somaDias(hoje, -3), historico: [], fotos: [] },
+      { id: 'CH3', numero: `3/${anoAtual}`, tipo: 'reforma', origem: 'unidade', prioridade: 'normal', unidadeId: 'U5', bemId: '', descricao: 'Pintura do corredor (exemplo)', solicitante: 'Administração (exemplo)', custoPrevisto: 3500, custoRealizado: 3280, equipeId: 'EQ1', responsavelId: 'R2', prazo: u.somaDias(hoje, -20), situacao: 'concluido', abertoEm: u.somaDias(hoje, -50), concluidoEm: u.somaDias(hoje, -22), historico: [], fotos: [] }];
+    await VP.db.gravarVarias({ equipes, planosPreventiva, chamados });
     await VP.salvarConfig(Object.assign({}, VP.CONFIG_PADRAO, { usuarioResponsavelId: 'R6', unidadePatrimonio: 'U6', unidadeSolicitacaoBaixa: 'U6' }));
     await VP.db.gravar('meta', { id: 'semente', criadoEm: VP.Plataforma.agoraISO(), ficticio: true });
     VP.invalidarIndice();
