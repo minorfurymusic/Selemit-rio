@@ -19,7 +19,20 @@ Abra o `index.html` da raiz e entre com `selemitério` / `123456` (login de demo
 
 ## O que ainda não faz
 
-Vistorias e túmulos possivelmente abandonados, concessões, sepultamentos, exumações, ossário, processo administrativo, mapa sobre imagem real e servidor (Supabase). Estão nas próximas etapas do `checklist.md`.
+Vistorias e túmulos possivelmente abandonados, concessões, sepultamentos, exumações, ossário, processo administrativo e mapa sobre imagem real. Estão nas próximas etapas do `checklist.md`. (Atualização: a ligação ao servidor já existe; veja abaixo.)
+
+## Com servidor (Supabase)
+
+Quando o arquivo `cemiterio/config-servidor.js` está preenchido (endereço e chave pública do banco desta cidade), o sistema deixa de ser demonstração:
+- entra com **e-mail e senha** na tela inicial (o login `selemitério`/`123456` deixa de valer);
+- começa **vazio**, sem dados de exemplo, e lê e grava tudo no servidor;
+- fotos e anexos vão para o armazenamento privado do servidor;
+- o administrador libera pessoas e escolhe o papel em **Pessoas** (menu);
+- quem é só "consulta" não vê os botões de alterar, e o banco recusa qualquer alteração dessa pessoa.
+
+Como instalar o banco: `cemiterio/banco/LEIA-ME.md`.
+
+Limitação conhecida: se duas pessoas alterarem o mesmo registro ao mesmo tempo, vale a última gravação. As duas versões ficam no histórico do banco.
 
 ## Como abrir no computador
 

@@ -20,9 +20,9 @@ Toda foto recebe a data, a hora e a localização gravadas na própria imagem.
 
 ## O que ainda não faz
 
-- Enviar os dados para um servidor, porque ele ainda não existe. Por enquanto, os dados saem do aparelho pelos botões de baixar.
-- Login de usuários.
-- Sincronização entre aparelhos.
+- (Atualização) **Com servidor configurado** (`patrimonio/config-servidor.js`): os registros são enviados sozinhos quando há internet, ou pelo botão **Enviar para o servidor** em Registros. Sem internet, ficam guardados no aparelho e vão quando a internet voltar. Se um envio falhar, o motivo aparece no próprio registro, que continua no aparelho. Sem servidor configurado, segue a demonstração abaixo.
+- Na demonstração (sem servidor): não envia; os dados saem pelos botões de baixar.
+- Sincronização entre aparelhos (cada aparelho envia o que fez; não recebe o dos outros).
 
 Todos os dados de exemplo (bens e veículos) são fictícios e ficam no arquivo `dados-exemplo.js`.
 

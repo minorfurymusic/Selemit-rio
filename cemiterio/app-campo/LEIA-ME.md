@@ -18,8 +18,9 @@ Toda foto recebe a data, a hora e a localização gravadas na própria imagem.
 
 ## O que ainda não faz
 
-- Enviar os dados para um servidor, porque ele ainda não existe.
-- Login de usuários e sincronização entre aparelhos.
+- (Atualização) **Com servidor configurado** (`cemiterio/config-servidor.js`): os registros são enviados sozinhos quando há internet, ou pelo botão **Enviar para o servidor** em Registros. Sem internet, ficam guardados no aparelho e vão quando a internet voltar. Se um envio falhar, o motivo aparece no próprio registro, que continua no aparelho. Sem servidor configurado, segue a demonstração abaixo.
+- Na demonstração (sem servidor): não envia; os dados saem pelos botões de baixar.
+- Sincronização entre aparelhos (cada aparelho envia o que fez; não recebe o dos outros).
 - Carregar a lista real de covas. O modelo da planilha está em `cemiterio/modelos-importacao/`; a importação será feita pelo sistema principal (De/Para), e não por este aplicativo.
 
 Os túmulos de exemplo são fictícios e ficam no arquivo `dados-exemplo.js`.

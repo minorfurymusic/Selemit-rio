@@ -72,8 +72,9 @@ Atualizar este arquivo a cada entrega, sem apagar o histórico. Marcar `[x]` com
 - [x] Passo 5: fotos no armazenamento de arquivos (registro guarda só o caminho; tela usa link temporário de 12 h). — 07/10/2026, armazenamento simulado no teste.
 - [ ] Limitação conhecida: duas pessoas alterando o mesmo registro ao mesmo tempo → vale a última gravação (as duas ficam no histórico).
 - [ ] Botões escondidos por papel cobrem as ações principais; o que escapar, o banco recusa com a mensagem "Seu acesso não permite esta alteração".
-- [ ] Passo 6: apps de campo: sem internet + "Enviar para o servidor".
-- [ ] Passo 7: documentos e texto do AI Studio.
+- [x] Passo 6: apps de campo: sem internet + "Enviar para o servidor". — 07/10/2026, commit `f84e51b`. Cemitério: 14 verificações (sem internet fica no aparelho; internet volta → envia sozinho; foto, GPS e notas no banco; banco registra quem enviou; consulta recusada com motivo; Gestão recebe). Patrimônio: 3 verificações.
+- [x] Passo 7: documentos (LEIA-ME dos 4 sistemas, dossiê B6, CLAUDE.md) e texto do AI Studio. — 07/10/2026.
+- Rodada final do zero (07/10/2026): campo demonstração 43/0; gestão patrimônio demonstração `TODOS PASSARAM`; gestão cemitério demonstração `TUDO PASSOU`; fumaça `ERROS: []`; login servidor `TUDO PASSOU`; gestão cemitério servidor, campo cemitério servidor e gestão patrimônio servidor `TUDO PASSOU`.
 - [ ] Prova contra o Supabase de verdade (depende do passo 0).
 
 ## Gestão do cemitério (`cemiterio/gestao/`) — plano em etapas
@@ -104,3 +105,4 @@ Atualizar este arquivo a cada entrega, sem apagar o histórico. Marcar `[x]` com
 - 07/10/2026: dossiê v1.5; Gestão do cemitério (etapa 1) em `cemiterio/gestao/`; login `selemitério` passa a abrir a Gestão; decisões: Supabase e empresa de levantamento.
 - 07/10/2026: roteiros de instalação do banco (Supabase) para patrimônio e cemitério, um projeto por cidade e por produto.
 - 07/10/2026: pesquisa de sistemas de outros países; Atlas descartado; 10 funções aprovadas (DOSSIE.md B7).
+- 07/10/2026: sistema ligado ao Supabase (login de verdade, Gestões e apps de campo gravando no servidor), testado com o banco real em PostgreSQL+PostgREST locais; falta provar no Supabase de verdade (passo 0).

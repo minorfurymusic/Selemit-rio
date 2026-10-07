@@ -1000,6 +1000,8 @@ Arquivo recebido do usuário em 07/10/2026 (`LISTA_CHÃOS_DO_CEMITÉRIO.xlsx`). 
 
 **Servidor [decisão do usuário, 07/10/2026]: Supabase.** Hoje os dados ficam no navegador; o armazenamento foi escrito com as mesmas funções (carregar, listar, gravar) para trocar pelo Supabase depois. **[D]** Pela regra "cada projeto é independente", o VitalPat deve ter um projeto Supabase próprio, separado do outro projeto do usuário. A troca exige login de verdade e regras de acesso por usuário antes de colocar dados reais.
 
+**Atualização (07/10/2026): ligação feita.** Com `patrimonio/config-servidor.js` ou `cemiterio/config-servidor.js` preenchido, o sistema usa login por e-mail e senha, grava tudo no banco da cidade, guarda fotos no armazenamento privado e os aplicativos de campo enviam sozinhos quando há internet. Sem configuração, segue a demonstração. Testado com o roteiro real do banco em PostgreSQL + PostgREST locais (login e fotos simulados); **falta testar no Supabase de verdade**.
+
 **Atualização (07/10/2026, decisão do usuário):** um projeto Supabase **por cidade e por produto**; cada um roda separado. Roteiros de instalação (ver também B7): `patrimonio/banco/supabase-instalar.sql` e `cemiterio/banco/supabase-instalar.sql` (sem login ninguém acessa; nada é apagado; histórico de toda alteração; papéis admin, gestor, campo e consulta; fotos em armazenamento privado). **[A conferir]** custo: o plano gratuito do Supabase limita o número de projetos ativos e pausa projeto parado; com 2 projetos por cidade, o plano pago será necessário a partir da primeira cidade em produção. Conferir valores em supabase.com/pricing antes de fazer proposta.
 
 ## B7. Funções inspiradas em sistemas de cemitério de outros países (novo na v1.5)

@@ -31,8 +31,8 @@ O botão **Aplicativo de campo**, no topo, abre o aplicativo de celular e tablet
 ## Limitações reais desta demonstração
 
 - **Os dados são fictícios** e ficam só neste navegador. Para guardá-los, use Configurações → Baixar cópia completa.
-- **Não existe servidor ainda.** Por isso não há login de verdade, nem uso por várias pessoas ao mesmo tempo, nem integração automática com outros sistemas (tudo é feito por arquivo).
-- **A importação do aplicativo de campo** só funciona quando os dois rodam no mesmo navegador e no mesmo endereço.
+- **Sem configuração de servidor**, não há login de verdade nem uso por várias pessoas ao mesmo tempo. (Atualização: com o servidor configurado, isso já funciona; veja a seção "Com servidor".) A integração com outros sistemas continua por arquivo.
+- **A importação do aplicativo de campo**, sem servidor, só funciona quando os dois rodam no mesmo navegador e no mesmo endereço. Com servidor, ela também usa os registros que os aparelhos já enviaram.
 - **Estas configurações ficam guardadas, mas ainda não mudam nada:**
   - cada usuário vê só as suas unidades;
   - taxa de depreciação por entidade;
@@ -48,6 +48,19 @@ O botão **Aplicativo de campo**, no topo, abre o aplicativo de celular e tablet
   - intervalo de repetição do aviso de seguro;
   - aviso de transferência (a pendência sempre aparece no painel);
   - dupla aprovação durante o inventário.
+
+## Com servidor (Supabase)
+
+Quando o arquivo `patrimonio/config-servidor.js` está preenchido (endereço e chave pública do banco desta cidade), o sistema deixa de ser demonstração:
+- entra com **e-mail e senha** na tela inicial (o login `patrimonio`/`123456` deixa de valer);
+- começa **vazio**, sem dados de exemplo, e lê e grava tudo no servidor;
+- fotos e anexos vão para o armazenamento privado do servidor;
+- o administrador libera pessoas e escolhe o papel em **Pessoas** (menu);
+- quem é só "consulta" não vê os botões de alterar, e o banco recusa qualquer alteração dessa pessoa.
+
+Como instalar o banco: `patrimonio/banco/LEIA-ME.md`.
+
+Limitação conhecida: se duas pessoas alterarem o mesmo registro ao mesmo tempo, vale a última gravação. As duas versões ficam no histórico do banco.
 
 ## Como testar no computador
 
