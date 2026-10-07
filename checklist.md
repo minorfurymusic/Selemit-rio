@@ -44,6 +44,9 @@ Atualizar este arquivo a cada entrega, sem apagar o histórico. Marcar `[x]` com
 - [ ] Testar os dois aplicativos (Patrimônio e Cemitério) em celular e tablet reais (Android e iPhone), abertos por endereço https.
 - [ ] Definir onde o piloto será hospedado para a apresentação (endereço https).
 
+- [ ] Login de verdade (servidor, senhas fortes, troca de senha). O atual é só de demonstração.
+- [ ] Conferir se o Google AI Studio publica os arquivos como estão (HTML puro) e a partir de qual ramo do GitHub.
+
 ## Histórico
 
 - 23/09/2026: dossiê v1.0 criado (Cowork).
@@ -52,3 +55,4 @@ Atualizar este arquivo a cada entrega, sem apagar o histórico. Marcar `[x]` com
 - 07/10/2026: dossiê v1.2 (Claude Code): reavaliação em blocos, frota de veículos (referência GAX), decisões do usuário e aplicativo de campo piloto em `app-campo/`.
 - 07/10/2026: dossiê v1.3 (Claude Code): nome VitalPat e logo, relatórios visuais, exportação com escolha de colunas (já no app), estrutura da planilha de chãos.
 - 07/10/2026: separação em 2 sistemas independentes (`patrimonio/`, `cemiterio/`), cada um com seu app de campo; planilha de chãos limpa em `cemiterio/modelos-importacao/`.
+- 07/10/2026: tela de login única na raiz; cada usuário abre seu sistema (teste: 42 verificações passaram no navegador automático).

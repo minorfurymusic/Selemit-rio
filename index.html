@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#1f5f8b">
+  <title>VitalPat — Entrar</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='16' fill='%23fff'/%3E%3Cpath d='M20 18H86M48 18V86' stroke='%23e07a1f' stroke-width='14' stroke-linecap='round'/%3E%3C/svg%3E">
+  <style>
+    :root { --fundo:#f4f6f8; --cartao:#fff; --texto:#1b2430; --suave:#5b6675; --borda:#d6dce3; --primaria:#1f5f8b; --primaria-texto:#fff; --perigo:#b42318; }
+    @media (prefers-color-scheme: dark) {
+      :root { --fundo:#12171d; --cartao:#1c242d; --texto:#e8edf2; --suave:#9aa6b4; --borda:#2f3b47; --primaria:#4f9bd1; --primaria-texto:#0d1318; --perigo:#ff7a6e; }
+    }
+    * { box-sizing: border-box; }
+    body { margin:0; min-height:100vh; display:grid; place-items:center; padding:16px; background:var(--fundo); color:var(--texto);
+           font:17px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
+    .caixa { width:100%; max-width:400px; background:var(--cartao); border:1px solid var(--borda); border-radius:14px; padding:24px; }
+    .logo { display:block; margin:0 auto 8px; width:200px; max-width:70%; height:auto; background:#fff; border-radius:10px; padding:8px; }
+    h1 { font-size:20px; text-align:center; margin:8px 0 16px; }
+    label { display:block; font-weight:600; margin:14px 0 6px; }
+    input { width:100%; font:inherit; color:var(--texto); background:var(--cartao); border:1px solid var(--borda); border-radius:10px; padding:12px; min-height:48px; }
+    button { width:100%; margin-top:20px; font:inherit; font-weight:600; border:0; border-radius:10px; background:var(--primaria); color:var(--primaria-texto); min-height:48px; cursor:pointer; }
+    .erro { color:var(--perigo); font-weight:600; margin:12px 0 0; min-height:1.4em; }
+    .ajuda { color:var(--suave); font-size:14px; text-align:center; margin:16px 0 0; }
+  </style>
+</head>
+<body>
+  <main class="caixa">
+    <svg class="logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 340" role="img" aria-label="VitalPat">
+      <g fill="none" stroke="#1f5f8b" stroke-width="24" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M40 70 L88 190 L136 70"/><path d="M178 70 V190"/>
+        <path d="M318 190 L358 70 L398 190 M333 148 H383"/><path d="M444 70 V190 H510"/>
+      </g>
+      <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M52 300 V138 H110 A42 42 0 0 1 110 222 H52" stroke="#ffffff" stroke-width="32"/>
+        <g stroke="#2a9d8f" stroke-width="24">
+          <path d="M52 300 V138 H110 A42 42 0 0 1 110 222 H52"/><path d="M160 300 L198 196 L236 300 M173 262 H223"/>
+        </g>
+      </g>
+      <g fill="none" stroke="#e07a1f" stroke-width="34" stroke-linecap="round"><path d="M220 34 H530 M276 34 V300"/></g>
+    </svg>
+    <h1>Entrar no VitalPat</h1>
+    <form id="form" autocomplete="on">
+      <label for="usuario">Usuário</label>
+      <input id="usuario" autocomplete="username" autocapitalize="none" spellcheck="false" required>
+      <label for="senha">Senha</label>
+      <input id="senha" type="password" autocomplete="current-password" required>
+      <p class="erro" id="erro" role="alert"></p>
+      <button type="submit">Entrar</button>
+    </form>
+    <p class="ajuda">Versão de demonstração.</p>
+  </main>
+  <script>
+    'use strict';
+    // DEMONSTRAÇÃO: este login roda só no navegador e serve para separar as telas de cada sistema.
+    // Não é proteção de verdade; o login seguro virá com o servidor.
+    // Senhas guardadas como resumo SHA-256 de "vitalpat:<usuario>:<senha>".
+    const USUARIOS = {
+      selemiterio: { sistema: 'cemiterio', destino: 'cemiterio/app-campo/', resumo: '54edf62662a19b67af8634e293cc5225352192dbba1f11db7a06fdd6f3803dbe' },
+      patrimonio: { sistema: 'patrimonio', destino: 'patrimonio/app-campo/', resumo: 'ff5df2fbcabe74a6d985e4215ba282c229325f8c1f58a4f19f900234def3af5a' }
+    };
+    const CHAVE = 'vitalpat-sessao';
+    const MENSAGENS = { 'sem-acesso': 'Este usuário não tem acesso a esse sistema. Entre com o usuário certo.', 'saiu': '' };
+
+    // Aceita maiúsculas, espaços nas pontas e com ou sem acento ("Selemitério" = "selemiterio").
+    const normalizar = (t) => String(t || '').trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+    async function resumo(texto) {
+      const bytes = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(texto));
+      return [...new Uint8Array(bytes)].map((b) => b.toString(16).padStart(2, '0')).join('');
+    }
+    const lerSessao = () => { try { return JSON.parse(localStorage.getItem(CHAVE)); } catch (_) { return null; } };
+
+    const motivo = new URLSearchParams(location.search).get('motivo');
+    document.getElementById('erro').textContent = MENSAGENS[motivo] || '';
+
+    // Já entrou antes e não veio por "sem acesso": vai direto para o sistema.
+    const atual = lerSessao();
+    if (atual && USUARIOS[atual.usuario] && motivo !== 'sem-acesso') location.replace(USUARIOS[atual.usuario].destino);
+
+    document.getElementById('form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const erro = document.getElementById('erro');
+      const usuario = normalizar(document.getElementById('usuario').value);
+      const senha = document.getElementById('senha').value;
+      const u = USUARIOS[usuario];
+      if (!u || (await resumo(`vitalpat:${usuario}:${senha}`)) !== u.resumo) {
+        erro.textContent = 'Usuário ou senha incorretos.';
+        return;
+      }
+      try {
+        localStorage.setItem(CHAVE, JSON.stringify({ usuario, sistema: u.sistema, desde: new Date().toISOString() }));
+      } catch (_) {
+        erro.textContent = 'Este navegador não permite guardar o acesso. Saia do modo anônimo e tente de novo.';
+        return;
+      }
+      location.replace(u.destino);
+    });
+  </script>
+</body>
+</html>

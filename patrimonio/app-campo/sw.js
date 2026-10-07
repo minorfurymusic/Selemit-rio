@@ -1,7 +1,7 @@
 // Guarda os arquivos do aplicativo no aparelho para funcionar sem internet.
 // Ao mudar qualquer arquivo abaixo, aumentar a VERSAO para os aparelhos baixarem de novo.
 const PREFIXO = 'vitalpat-patrimonio-';
-const VERSAO = PREFIXO + 'v3';
+const VERSAO = PREFIXO + 'v4';
 const ARQUIVOS = [
   './',
   './index.html',

@@ -651,12 +651,19 @@ function atualizarConexao() {
 }
 
 $('#voltar').addEventListener('click', () => { location.hash = 'inicio'; });
+// Sair: volta para a tela de login. Os registros continuam guardados no aparelho.
+$('#sair').addEventListener('click', () => {
+  try { localStorage.removeItem('vitalpat-sessao'); } catch (_) { /* nada a fazer */ }
+  location.replace('../../index.html?motivo=saiu');
+});
 window.addEventListener('hashchange', render);
 window.addEventListener('online', atualizarConexao);
 window.addEventListener('offline', atualizarConexao);
-atualizarConexao();
-render();
+if (!window.VP_SEM_ACESSO) {
+  atualizarConexao();
+  render();
+}
 
-if ('serviceWorker' in navigator) {
+if (!window.VP_SEM_ACESSO && 'serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js').catch(() => { /* sem modo offline neste navegador */ });
 }

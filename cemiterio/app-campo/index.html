@@ -12,6 +12,17 @@
   <link rel="icon" href="icones/logo-vitalpat.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icones/icone-192.png">
   <link rel="stylesheet" href="estilo.css">
+  <script>
+    // Só entra quem fez login com um usuário deste sistema (ver ../../index.html).
+    (function () {
+      var s = null;
+      try { s = JSON.parse(localStorage.getItem('vitalpat-sessao')); } catch (e) { s = null; }
+      if (!s || s.sistema !== 'cemiterio') {
+        window.VP_SEM_ACESSO = true;
+        location.replace('../../index.html' + (s ? '?motivo=sem-acesso' : ''));
+      }
+    })();
+  </script>
 </head>
 <body>
   <header>
@@ -19,6 +30,7 @@
     <img class="marca" src="icones/logo-vitalpat.svg" alt="VitalPat" width="56" height="34">
     <h1 id="titulo">VitalPat Cemitério</h1>
     <span class="selo" id="conexao">…</span>
+    <button class="sair" id="sair">Sair</button>
   </header>
   <main id="tela"></main>
   <div class="mensagem oculto" id="mensagem" role="status"></div>

@@ -476,6 +476,7 @@ A Lei 14.133/2021, art. 76, exige para qualquer alienação: **interesse públic
 - **Sem internet:** depois de aberto uma vez, funciona offline. Os registros ficam guardados no próprio aparelho até serem enviados.
 - **O que o piloto faz:** vistoria e inventário de bens (leitura de QR Code pela câmera, quando o aparelho permite, ou digitação do número), vistoria de túmulos (V1–V5 da seção B2), frota (abastecimento e saída/retorno com km e checklist), foto com data/hora e GPS, lista de pendentes de envio, Lixeira e exportação dos dados (planilha CSV e arquivo JSON).
 - **Atualização v1.3:** o piloto foi separado em **dois aplicativos independentes**, um por produto: **VitalPat Patrimônio** (`patrimonio/app-campo/`: bens, abastecimento, saída/retorno de veículo) e **VitalPat Cemitério** (`cemiterio/app-campo/`: vistoria de túmulo). Cada um tem seu próprio armazenamento no aparelho, então os dois podem ser instalados no mesmo celular sem misturar dados.
+- **Atualização v1.3 (login):** a pedido do usuário, há uma **tela de login única** (`index.html` na raiz). O tipo de usuário abre o sistema certo: `patrimonio` abre o VitalPat Patrimônio e `selemitério` abre o VitalPat Cemitério. Um usuário não entra no sistema do outro e há botão **Sair**. Usuários de teste: `patrimonio` / `123456` e `selemitério` / `123456`. **Este login é só de demonstração:** roda no navegador e pode ser contornado por quem entende de programação. O login seguro depende do servidor, que ainda não existe. O primeiro login precisa de internet; depois disso o aplicativo instalado abre sem internet.
 - **O que o piloto ainda não faz:** envio para um servidor (ainda não existe servidor), login de usuários e sincronização entre aparelhos. Os dados de exemplo são fictícios.
 - **Limitações reais conhecidas:** leitura de QR pela câmera depende do navegador (funciona no Chrome para Android; no iPhone o piloto oferece a digitação do número); a instalação no iPhone é feita pelo menu "Compartilhar → Adicionar à Tela de Início"; o funcionamento offline e a câmera exigem que o aplicativo seja aberto por endereço **https**.
 
@@ -953,6 +954,7 @@ Cada produto tem sua própria trilha e sua versão mínima vendável. Rodar as d
 | 16 | Pesquisar a marca "VitalPat" no INPI antes de registrar (busca na internet não achou o nome exato; achou parecidos na área da saúde, como VITALPAC) | 1 e 2 | Vocês |
 | 17 | Repositório no GitHub é **público**: decidir se o dossiê (marcado "documento interno") pode ficar lá ou se o repositório vira privado — **v1.3: o usuário vai tornar privado depois; por ora fica público** | 1 e 2 | Vocês |
 | 18 | Planilha de chãos limpa: revisar 109 covas sem aléia e 14 com aléia "ok" (como vieram no original) | 2 | Vocês |
+| 20 | Login de verdade (servidor, senhas fortes, troca de senha); o login atual é só de demonstração | 1 e 2 | Desenvolvimento |
 | 19 | O que fazer com a estrutura Django que já existia no repositório (pastas `apps/`, `config/`, `gestao/` etc.): em qual produto entra, ou se será substituída | 1 e 2 | Vocês |
 
 ## C4. Fontes consultadas (v1.0 + v1.1)
