@@ -6,7 +6,7 @@ Este é o aplicativo que a equipe usa em campo, no celular ou no tablet. Ele é 
 
 ## Entrar
 
-O aplicativo só abre depois do login na tela inicial do VitalPat (`index.html`, na raiz do repositório). Usuário de teste: `patrimonio`, senha `123456`. Esse login é de demonstração e não é segurança de verdade. O botão **Sair** volta para o login; os registros continuam guardados no aparelho.
+O aplicativo só abre depois do login na tela inicial do VitalPat (`index.html`, na raiz do repositório). Usuário de teste: `patrimonio`, senha `123456`. O login abre a **Gestão** (`patrimonio/gestao/`); o aplicativo de campo fica no botão "Aplicativo de campo", no topo, ou no endereço `patrimonio/app-campo/`. O que for registrado aqui pode ser importado na Gestão (Inventário → Importar do aplicativo de campo), no mesmo navegador. Esse login é de demonstração e não é segurança de verdade. O botão **Sair** volta para o login; os registros continuam guardados no aparelho.
 
 ## O que ele faz
 

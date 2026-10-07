@@ -47,6 +47,14 @@ Atualizar este arquivo a cada entrega, sem apagar o histórico. Marcar `[x]` com
 - [ ] Login de verdade (servidor, senhas fortes, troca de senha). O atual é só de demonstração.
 - [ ] Conferir se o Google AI Studio publica os arquivos como estão (HTML puro) e a partir de qual ramo do GitHub.
 
+## Gestão do patrimônio (`patrimonio/gestao/`)
+
+- [ ] Testar a Gestão com usuários reais do setor (fluxos: incluir, transferir, inventário, fechar mês, reavaliar, relatórios).
+- [ ] Trocar a tabela de vida útil e valor residual de exemplo pela tabela oficial do município.
+- [ ] Validar com o setor contábil o arquivo "Para a contabilidade" (layout das colunas).
+- [ ] Configurações que ainda só ficam guardadas (lista em `patrimonio/gestao/LEIA-ME.md`) dependem do servidor.
+- [ ] Ajustar o logo (o usuário vai rever).
+
 ## Histórico
 
 - 23/09/2026: dossiê v1.0 criado (Cowork).
@@ -56,3 +64,4 @@ Atualizar este arquivo a cada entrega, sem apagar o histórico. Marcar `[x]` com
 - 07/10/2026: dossiê v1.3 (Claude Code): nome VitalPat e logo, relatórios visuais, exportação com escolha de colunas (já no app), estrutura da planilha de chãos.
 - 07/10/2026: separação em 2 sistemas independentes (`patrimonio/`, `cemiterio/`), cada um com seu app de campo; planilha de chãos limpa em `cemiterio/modelos-importacao/`.
 - 07/10/2026: tela de login única na raiz; cada usuário abre seu sistema (teste: 42 verificações passaram no navegador automático).
+- 07/10/2026: Gestão do patrimônio criada em `patrimonio/gestao/` a partir das 47 telas do concorrente (DOSSIE.md A5); login `patrimonio` passa a abrir a Gestão.

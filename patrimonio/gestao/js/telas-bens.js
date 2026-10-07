@@ -1,0 +1,797 @@
+/* VitalPat Patrimônio · Gestão — Bens: lista, ficha em uma página, inclusão e ações (uma ou em lote). */
+'use strict';
+(function () {
+  const VP = window.VP;
+  const u = VP.u, esc = u.esc, ui = VP.ui, G = VP.graficos, L = VP.LISTAS;
+  const T = VP.telas = VP.telas || {};
+  const A = VP.acoes = VP.acoes || {};
+
+  const opc = (col, filtro) => VP.db.lista(col).filter(filtro || (() => true)).sort((a, b) => String(a.codigo || a.nome).localeCompare(String(b.codigo || b.nome), 'pt-BR', { numeric: true })).map((x) => [x.id, col === 'unidades' || col === 'contas' ? `${x.codigo} · ${x.nome}` : (col === 'classificacoes' ? `${'— '.repeat(x.nivel === 'grupo' ? 0 : x.nivel === 'classe' ? 1 : 2)}${x.nome}` : x.nome)]);
+  const opcClassificacoes = () => {
+    const todas = VP.db.lista('classificacoes');
+    const r = [];
+    const desce = (pai, nivel) => todas.filter((c) => (c.paiId || '') === pai).sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR')).forEach((c) => { r.push([c.id, `${'— '.repeat(nivel)}${c.nome}`]); desce(c.id, nivel + 1); });
+    desce('', 0);
+    return r;
+  };
+  VP.opc = opc;
+  VP.opcClassificacoes = opcClassificacoes;
+  const etiquetaStatus = (b) => `<span class="selo-status s-${esc(b.status)}">${esc(L.status[b.status] || b.status)}</span>`;
+  const estadoTxt = (e) => L.estados[e] || '—';
+  VP.etiquetaStatus = etiquetaStatus;
+
+  // Sem foto: mostra as iniciais do bem (configuração "Mostrar foto do bem nas listas")
+  const miniatura = (b) => {
+    if (!VP.config().usaAparencia) return '';
+    if (b.fotos?.[0]) return `<img class="mini" src="${b.fotos[0].dataURL}" alt="">`;
+    const ini = String(b.descricao || '?').split(/\s+/).filter((x) => x.length > 2).slice(0, 2).map((x) => x[0]).join('').toUpperCase() || '?';
+    return `<span class="mini sem-foto t-${esc(b.tipo)}" aria-hidden="true">${esc(ini)}</span>`;
+  };
+
+  // ======================================================== LISTA DE BENS
+  const filtrosBens = () => {
+    const cfg = VP.config();
+    const defs = [
+      { chave: 'tipo', rotulo: 'Tipo', tipo: 'select', opcoes: Object.entries(L.tiposBem) },
+      { chave: 'status', rotulo: 'Situação', tipo: 'select', opcoes: Object.entries(L.status) },
+      { chave: 'estado', rotulo: 'Estado', tipo: 'select', opcoes: Object.entries(L.estados).reverse() },
+      { chave: 'unidadeId', rotulo: 'Unidade', tipo: 'select', opcoes: opc('unidades') },
+      { chave: 'responsavelId', rotulo: 'Responsável', tipo: 'select', opcoes: opc('responsaveis') },
+      { chave: 'contaId', rotulo: 'Conta', tipo: 'select', opcoes: opc('contas', (c) => c.tipo === 'ativo') },
+      { chave: 'minha', rotulo: 'Minha responsabilidade', tipo: 'bool' },
+      { chave: 'semResponsavel', rotulo: 'Sem responsável', tipo: 'bool' },
+      { chave: 'depreciados', rotulo: 'Totalmente depreciados', tipo: 'bool' },
+      { chave: 'baixados', rotulo: 'Mostrar baixados', tipo: 'bool' },
+      { chave: 'cidade', rotulo: 'Cidade', tipo: 'texto' },
+      { chave: 'bairro', rotulo: 'Bairro', tipo: 'texto' },
+      { chave: 'logradouro', rotulo: 'Logradouro', tipo: 'texto' },
+      { chave: 'anoDe', rotulo: 'Comprado a partir do ano', tipo: 'texto', tamanho: 5 },
+      { chave: 'anoAte', rotulo: 'Comprado até o ano', tipo: 'texto', tamanho: 5 },
+      { chave: 'valorMin', rotulo: 'Valor mínimo', tipo: 'texto', tamanho: 8 },
+      { chave: 'valorMax', rotulo: 'Valor máximo', tipo: 'texto', tamanho: 8 }
+    ];
+    if (cfg.filtroPorClassificacao) defs.splice(3, 0, { chave: 'classificacaoId', rotulo: 'Classificação', tipo: 'select', opcoes: opcClassificacoes() });
+    return defs;
+  };
+  const aplicarFiltros = (v) => {
+    const f = ui.limparValores(v);
+    return VP.filtrarBens(Object.assign({}, f, {
+      totalmenteDepreciados: !!f.depreciados,
+      valorMin: f.valorMin != null ? u.num(f.valorMin) : null,
+      valorMax: f.valorMax != null ? u.num(f.valorMax) : null
+    }));
+  };
+
+  const colunasBens = () => {
+    const cfg = VP.config();
+    return [
+      { chave: 'descricao', titulo: 'Bem', html: (b) => `<span class="celula-bem">${miniatura(b)}<span><a href="#bem/${esc(b.id)}">${esc(b.descricao)}</a><small>${esc(VP.nome('classificacoes', b.classificacaoId))}</small></span></span>`, exportar: (b) => b.descricao },
+      { chave: 'codigo', titulo: 'Código', num: true },
+      { chave: 'plaqueta', titulo: 'Plaqueta' },
+      { chave: 'plaquetaAnterior', titulo: 'Plaqueta anterior', oculta: !cfg.plaquetaAnteriorRelatorio },
+      { chave: 'tipo', titulo: 'Tipo', valor: (b) => L.tiposBem[b.tipo], oculta: true },
+      { chave: 'unidade', titulo: 'Unidade', valor: (b) => VP.nome('unidades', b.unidadeId) },
+      { chave: 'responsavel', titulo: 'Responsável', valor: (b) => (b.responsavelId ? VP.nome('responsaveis', b.responsavelId) : '— sem responsável —') },
+      { chave: 'dataAquisicao', titulo: 'Aquisição', valor: (b) => u.data(b.dataAquisicao), ordenar: (b) => b.dataAquisicao },
+      { chave: 'inicioDep', titulo: 'Início da depreciação', valor: (b) => (VP.naoDeprecia(b) ? 'Não deprecia' : u.data(b.depreciacao?.inicio)), oculta: true },
+      { chave: 'valor', titulo: 'Valor contábil', num: true, soma: true, valor: (b) => VP.saldo(b).liquido, formato: u.moeda },
+      { chave: 'consumo', titulo: 'Vida útil usada', html: (b) => { const s = VP.saldo(b); return VP.naoDeprecia(b) ? '<small>—</small>' : G.medidor(s.consumido, u.pct(s.consumido)); }, valor: (b) => VP.saldo(b).consumido, exportar: (b) => Math.round(VP.saldo(b).consumido * 100) + '%' },
+      { chave: 'status', titulo: 'Situação', html: etiquetaStatus, valor: (b) => L.status[b.status] },
+      { chave: 'estado', titulo: 'Estado', valor: (b) => estadoTxt(b.estado), ordenar: (b) => Number(b.estado) },
+      { chave: 'conta', titulo: 'Conta', valor: (b) => VP.nome('contas', b.contaId), oculta: true },
+      { chave: 'caracteristicas', titulo: 'Características', valor: (b) => [b.detalhes?.marca, b.detalhes?.modelo, b.detalhes?.cor, b.veiculo?.placa].filter(Boolean).join(' · '), oculta: true },
+      { chave: 'score', titulo: 'Score', num: true, valor: (b) => VP.score(b)?.valor ?? '', oculta: true }
+    ];
+  };
+
+  VP.estado = VP.estado || { filtrosBens: {}, listaAtual: [] };
+
+  T.bens = (_, query) => {
+    const v = VP.estado.filtrosBens;
+    if (query.semResponsavel) { for (const k of Object.keys(v)) delete v[k]; v.semResponsavel = true; }
+    if (query.depreciados) { for (const k of Object.keys(v)) delete v[k]; v.depreciados = true; }
+    if (query.unidade) { for (const k of Object.keys(v)) delete v[k]; v.unidadeId = query.unidade; }
+    const desenhar = () => {
+      const bens = aplicarFiltros(v);
+      VP.estado.listaAtual = bens.map((b) => b.id);
+      const total = bens.reduce((t, b) => t + VP.saldo(b).liquido, 0);
+      const salvos = VP.db.lista('filtrosSalvos');
+      return `
+        <div class="resumo-linha">
+          ${G.numero('Bens no filtro', u.inteiro(bens.length))}
+          ${G.numero('Valor contábil', u.moedaCurta(total), u.moeda(total))}
+          ${G.numero('Em desuso', u.inteiro(bens.filter((b) => b.status === 'desuso').length))}
+          ${G.numero('Sem responsável', u.inteiro(bens.filter((b) => !b.responsavelId && b.status !== 'baixado').length))}
+        </div>
+        ${salvos.length ? `<div class="filtros-salvos"><span>Filtros salvos:</span>${salvos.map((s) => `<button type="button" class="botao pequeno" data-filtro-salvo="${esc(s.id)}">${esc(s.nome)}</button>`).join('')}</div>` : ''}
+        <div class="linha-filtros">${ui.filtros({ id: 'bens', defs: filtrosBens(), valores: v, placeholder: 'Buscar por código (ex.: 1,2,6-10), plaqueta, nome, local, responsável, placa…', aoMudar: (_v, origem) => { atualizar(origem); } })}
+          <button type="button" class="botao pequeno" data-salvar-filtro>Salvar filtro</button></div>
+        <div id="barra-lote" class="barra-lote" hidden></div>
+        ${ui.tabela({ id: 'bens', colunas: colunasBens(), linhas: bens, selecao: true, aoClicar: (b) => VP.app.ir('#bem/' + b.id), nomePlanilha: 'bens', vazio: 'Nenhum bem com estes filtros.' })}`;
+    };
+    const atualizar = (origem) => {
+      const area = document.getElementById('area-bens');
+      const foco = origem === 'busca' ? document.activeElement?.selectionStart : null;
+      area.innerHTML = desenhar();
+      ligar();
+      if (origem === 'busca') { const b = area.querySelector('.busca'); b.focus(); if (foco != null) b.setSelectionRange(foco, foco); }
+    };
+    const ligar = () => {
+      ui.ligarTabela('bens', (sel) => barraLote(sel));
+      barraLote(ui.tabelas.bens.selecionados);
+      const area = document.getElementById('area-bens');
+      area.querySelectorAll('[data-filtro-salvo]').forEach((b) => b.addEventListener('click', () => {
+        const s = VP.db.pega('filtrosSalvos', b.dataset.filtroSalvo);
+        for (const k of Object.keys(v)) delete v[k];
+        Object.assign(v, s.valores);
+        atualizar();
+      }));
+      area.querySelector('[data-salvar-filtro]').addEventListener('click', () => ui.formulario({
+        titulo: 'Salvar filtro', largura: 'pequena', campos: [{ chave: 'nome', rotulo: 'Nome do filtro', obrigatorio: true, placeholder: 'Ex.: Computadores das escolas' }],
+        salvar: async (x) => { await VP.db.gravar('filtrosSalvos', { nome: x.nome, valores: ui.limparValores(v) }); ui.aviso('Filtro salvo.'); atualizar(); }
+      }));
+    };
+    const barraLote = (sel) => {
+      const el = document.getElementById('barra-lote');
+      if (!el) return;
+      el.hidden = !sel.size;
+      if (!sel.size) return;
+      el.innerHTML = `<b>${u.inteiro(sel.size)} marcado(s):</b>
+        <button class="botao pequeno" data-lote="transferir">Transferir</button>
+        <button class="botao pequeno" data-lote="desuso">Desuso</button>
+        <button class="botao pequeno" data-lote="retorno">Volta ao uso</button>
+        <button class="botao pequeno" data-lote="baixa">Baixa</button>
+        <button class="botao pequeno" data-lote="reavaliar">Reavaliar</button>
+        <button class="botao pequeno" data-lote="complementares">Dados complementares</button>
+        <button class="botao pequeno" data-lote="seguro">Seguro e garantia</button>
+        <button class="botao pequeno" data-lote="vistoria">Vistoria</button>
+        <button class="botao pequeno" data-lote="etiquetas">Etiquetas</button>
+        <button class="botao pequeno" data-lote="termo">Termo de responsabilidade</button>
+        <button class="botao pequeno perigo" data-lote="excluir">Excluir</button>`;
+      el.querySelectorAll('[data-lote]').forEach((b) => b.addEventListener('click', () => {
+        const bens = [...sel].map((id) => VP.db.pega('bens', id)).filter(Boolean);
+        A.lote(b.dataset.lote, bens, () => { sel.clear(); atualizar(); });
+      }));
+    };
+    return {
+      titulo: 'Bens',
+      acoes: '<a class="botao primario" href="#novo-bem">+ Novo bem</a> <a class="botao" href="#entradas">Itens a incorporar</a>',
+      html: `<div id="area-bens">${desenhar()}</div>`,
+      ligar
+    };
+  };
+
+  // Ações em lote (também usadas pela ficha com 1 bem)
+  A.lote = (acao, bens, depois) => {
+    const mapa = {
+      transferir: () => A.transferir(bens, depois), desuso: () => A.desuso(bens, depois), retorno: () => A.retorno(bens, depois),
+      baixa: () => A.baixa(bens, depois), reavaliar: () => { VP.estado.reavaliarIds = bens.map((b) => b.id); VP.app.ir('#financeiro/reavaliacao'); },
+      complementares: () => A.complementares(bens, depois), seguro: () => A.seguroGarantia(bens, depois), vistoria: () => A.vistoria(bens, depois),
+      etiquetas: () => { VP.estado.etiquetasIds = bens.map((b) => b.id); VP.app.ir('#relatorio/etiquetas'); },
+      termo: () => VP.documentos.termoResponsabilidade(bens), excluir: () => A.excluir(bens, depois)
+    };
+    mapa[acao]();
+  };
+
+  // ======================================================== FICHA DO BEM (uma página)
+  T.bem = (id) => {
+    const b = VP.db.pega('bens', id);
+    if (!b) return { titulo: 'Bem não encontrado', html: '<p>Este bem não existe ou foi excluído. Veja a <a href="#lixeira">Lixeira</a>.</p>' };
+    const s = VP.saldo(b);
+    const sc = VP.score(b);
+    const tx = VP.taxas(b);
+    const lista = VP.estado.listaAtual || [];
+    const pos = lista.indexOf(id);
+    const ant = pos > 0 ? lista[pos - 1] : null, prox = pos >= 0 && pos < lista.length - 1 ? lista[pos + 1] : null;
+    const evs = VP.eventosDoBem(id);
+    const custos = evs.filter((e) => e.tipo === 'manutencao' || e.tipo === 'despesa' || e.tipo === 'abastecimento');
+    const inicial = evs.filter((e) => e.tipo === 'depreciacao' && e.dados.saldoInicial).reduce((t, e) => t + e.valor, 0);
+    const manual = evs.filter((e) => e.tipo === 'depreciacao' && !e.loteId && !e.dados.saldoInicial).reduce((t, e) => t + e.valor, 0);
+    const umAno = u.somaDias(VP.Plataforma.hoje(), -365);
+    const automatica = evs.filter((e) => e.tipo === 'depreciacao' && e.loteId).reduce((t, e) => t + e.valor, 0);
+    const cartao = (titulo, chave, linhas, extra = '') => `<section class="cartao secao" id="sec-${chave}"><header><h3>${esc(titulo)}</h3>${chave && b.status !== 'baixado' ? `<button class="botao pequeno" data-editar="${chave}">Editar</button>` : ''}</header>${linhas.length ? `<dl class="dados">${linhas.filter(Boolean).map(([k, v]) => `<dt>${esc(k)}</dt><dd>${v === '' || v == null ? '<span class="vazio">—</span>' : esc(v)}</dd>`).join('')}</dl>` : ''}${extra}</section>`;
+    const foto = b.fotos?.[0] ? `<img src="${b.fotos[0].dataURL}" alt="Foto do bem">` : `<div class="sem-foto-grande">${miniatura(b)}<small>Sem foto</small></div>`;
+    const proj = VP.projecao(b);
+    const abast = evs.filter((e) => e.tipo === 'abastecimento');
+    const litros = abast.reduce((t, e) => t + (e.dados.litros || 0), 0);
+    const html = `
+      <div class="ficha-topo cartao">
+        <div class="ficha-foto">${foto}<label class="botao pequeno">Trocar foto<input type="file" accept="image/*" data-foto hidden></label></div>
+        <div class="ficha-principal">
+          <div class="ficha-titulo"><h2>${esc(b.descricao)}</h2>${etiquetaStatus(b)}</div>
+          <p class="ficha-sub">Código <b>${esc(b.codigo)}</b> · Plaqueta <b>${esc(b.plaqueta)}</b> · ${esc(L.tiposBem[b.tipo])} · ${esc(VP.nome('classificacoes', b.classificacaoId))}</p>
+          <div class="resumo-linha">
+            ${G.numero('Valor contábil', u.moeda(s.liquido), b.status === 'baixado' ? 'Bem baixado' : `Aquisição ${u.moeda(VP.eventosDoBem(id).find((e) => e.tipo === 'incorporacao')?.valor || 0)}`)}
+            ${G.numero('Depreciação acumulada', u.moeda(s.acumulada), VP.naoDeprecia(b) ? 'Não deprecia' : `${u.moeda(tx.mensal)} por mês`)}
+            ${G.numero('Estado', estadoTxt(b.estado), sc ? `Score ${sc.valor} · ${sc.faixa}` : '')}
+            ${G.numero('Responsável', b.responsavelId ? VP.nome('responsaveis', b.responsavelId) : 'Sem responsável', VP.nome('unidades', b.unidadeId))}
+          </div>
+          ${VP.naoDeprecia(b) ? '' : `<div class="ficha-vida"><span>Vida útil usada</span>${G.medidor(s.consumido, `${u.pct(s.consumido)} de ${s.vidaUtilMeses} meses`)}</div>`}
+        </div>
+        <div class="ficha-qr" title="QR Code da plaqueta">${G.qr(b.plaqueta, 3)}<small>${esc(b.plaqueta)}</small></div>
+      </div>
+      <div class="barra-acoes">
+        ${b.status === 'baixado' ? '<span class="aviso-inline">Bem baixado: só consulta e impressão.</span>' : `
+        <button class="botao" data-acao="transferir">Transferir</button>
+        ${b.status === 'desuso' || b.status === 'cedido' || b.status === 'manutencao' ? '<button class="botao" data-acao="retorno">Volta ao uso</button>' : '<button class="botao" data-acao="desuso">Desuso</button>'}
+        <button class="botao" data-acao="manutencao">Manutenção / despesa</button>
+        <button class="botao" data-acao="vistoria">Vistoria</button>
+        <button class="botao" data-acao="observacao">Observação</button>
+        <button class="botao" data-acao="anexar">Anexar arquivo</button>
+        <button class="botao" data-acao="melhoria">Melhoria</button>
+        <button class="botao" data-acao="reavaliar">Reavaliar</button>
+        ${b.depreciacao?.metodo === 'unidades' ? '<button class="botao" data-acao="unidades">Unidades produzidas</button>' : ''}
+        <button class="botao" data-acao="replicar">Replicar</button>
+        <button class="botao" data-acao="baixa">Baixa</button>`}
+        <button class="botao" data-acao="imprimir">Imprimir ficha</button>
+        <button class="botao" data-acao="etiqueta">Etiqueta</button>
+        ${b.status !== 'baixado' ? '<button class="botao perigo" data-acao="excluir">Excluir</button>' : ''}
+      </div>
+      <div class="grade-secoes">
+        ${cartao('Identificação', 'identificacao', [['Produto', VP.nome('produtos', b.produtoId)], ['Complemento', b.complemento], ['Tombamento', b.detalhes?.tombamento], ['Data do tombamento', u.data(b.detalhes?.dataTombamento)], ['Plaqueta anterior', b.plaquetaAnterior], ['Como entrou', b.situacaoAquisicao], ['Data de aquisição', u.data(b.dataAquisicao)], ['Data de incorporação', u.data(b.dataIncorporacao)], ['Comissão', b.comissaoId ? VP.nome('comissoes', b.comissaoId) : ''], ['Exercícios anteriores', b.exerciciosAnteriores ? 'Sim' : 'Não'], ['Entidade', VP.nome('entidades', b.entidadeId)], ['Criticidade de uso', ['', 'Baixa', 'Média', 'Alta'][b.criticidade || 2]]])}
+        ${cartao('Local e responsáveis', 'local', [['Unidade', VP.nome('unidades', b.unidadeId)], ['Localização', b.localizacao], ['Responsável', b.responsavelId ? VP.nome('responsaveis', b.responsavelId) : ''], ['Responsáveis adicionais', (b.responsaveisAdicionais || []).map((r) => VP.nome('responsaveis', r)).join(', ')], b.endereco ? ['Endereço', [b.endereco.logradouro, b.endereco.bairro, b.endereco.cidade].filter(Boolean).join(', ')] : null])}
+        ${cartao('Origem e compra', 'origem', [['Fornecedor', VP.nome('fornecedores', b.fornecedorId)], ['Empenho', b.origem?.empenho], ['Item do empenho', b.origem?.item], ['Quantidade', b.origem?.quantidade], ['Valor unitário', b.origem?.valorUnitario != null ? u.moeda(b.origem.valorUnitario) : ''], ['Nota fiscal', [b.nf?.numero, b.nf?.serie].filter(Boolean).join(' / série ')], ['Emissão da nota', u.data(b.nf?.emissao)], ['Licitação', [b.origem?.licitacao?.modalidade, b.origem?.licitacao?.processo && 'processo ' + b.origem.licitacao.processo, b.origem?.licitacao?.numero && 'nº ' + b.origem.licitacao.numero].filter(Boolean).join(' · ')]])}
+        ${cartao('Detalhes', 'detalhes', [['Marca', b.detalhes?.marca], ['Modelo', b.detalhes?.modelo], ['Cor', b.detalhes?.cor], ['Número de série', b.detalhes?.serie], ['RFID', b.detalhes?.rfid], ['Texto jurídico', [b.detalhes?.textoJuridico?.categoria, b.detalhes?.textoJuridico?.numeroAno].filter(Boolean).join(' · ')]], (b.medidas || []).length ? `<h4>Medidas</h4><dl class="dados">${b.medidas.map((m) => `<dt>${esc(m.nome)}</dt><dd>${esc(m.valor)}</dd>`).join('')}</dl>` : '')}
+        ${b.tipo === 'imovel' || b.imovel ? cartao('Imóvel: documentos e uso', 'imovel', [['Matrícula', b.imovel?.matricula], ['Cartório', b.imovel?.cartorio], ['Situação do registro', b.imovel?.situacaoRegistro], ['Classificação de uso', b.imovel?.uso]]) : ''}
+        ${b.tipo === 'veiculo' ? cartao('Veículo', 'veiculo', [['Placa', b.veiculo?.placa], ['RENAVAM', b.veiculo?.renavam], ['Chassi', b.veiculo?.chassi], ['Combustível', b.veiculo?.combustivel], ['Ano/modelo', b.veiculo?.anoModelo], ['Tanque (litros)', b.veiculo?.capacidadeTanque], ['Abastecimentos registrados', abast.length ? `${abast.length} · ${u.inteiro(litros)} L · ${u.moeda(abast.reduce((t, e) => t + e.valor, 0))}` : '']]) : ''}
+        ${cartao('Seguro e garantia', 'seguro', [['Seguradora', b.seguro?.seguradoraId ? VP.nome('seguradoras', b.seguro.seguradoraId) : ''], ['Corretora', b.seguro?.corretoraId ? VP.nome('seguradoras', b.seguro.corretoraId) : ''], ['Apólice', b.seguro?.apolice], ['Vigência', b.seguro?.inicio ? `${u.data(b.seguro.inicio)} a ${u.data(b.seguro.termino)}` : ''], ['Valor do seguro', b.seguro?.valor ? u.moeda(b.seguro.valor) : ''], ['Franquia', b.seguro?.franquia ? u.moeda(b.seguro.franquia) : ''], ['Garantia', b.garantia?.termino ? `${VP.nome('tiposGarantia', b.garantia.tipoId)} até ${u.data(b.garantia.termino)}` : ''], ['Fornecedor da garantia', b.garantia?.fornecedorId ? VP.nome('fornecedores', b.garantia.fornecedorId) : '']])}
+        ${cartao('Valores e contas', 'valores', [['Conta contábil', VP.nome('contas', b.contaId)], ['Valor base (aquisição, reavaliação e melhorias)', u.moeda(s.base)], ['Melhorias somadas', u.moeda(s.agregado)], ['Valor residual', u.moeda(s.residual)], ['Depreciação acumulada', u.moeda(s.acumulada)], ['Valor contábil (líquido)', u.moeda(s.liquido)]])}
+        ${cartao('Depreciação', 'depreciacao', VP.naoDeprecia(b) ? [['Situação', b.depreciacao?.automatica === false ? 'Não deprecia automaticamente' : 'Classificação não deprecia (ex.: terreno)']] : [['Depreciar automaticamente', b.depreciacao?.automatica ? 'Sim' : 'Não'], ['Método', L.metodos[b.depreciacao?.metodo] || ''], ['Início', s.inicio ? u.mesExtenso(s.inicio) : ''], ['Vida útil', s.vidaUtilMeses ? `${s.vidaUtilMeses} meses` : ''], ['Residual', b.depreciacao?.residualTipo === 'percentual' ? `${b.depreciacao.residual}% (${u.moeda(s.residual)})` : u.moeda(s.residual)], ['Valor a depreciar', u.moeda(s.depreciavel)], ['Taxa mensal / anual', `${u.moeda(tx.mensal)} / ${u.moeda(tx.anual)} (${u.pct(tx.percentualAnual)} ao ano)`], inicial ? ['Acumulado até a implantação do sistema', u.moeda(inicial)] : null, ['Acumulado manual', u.moeda(manual)], ['Acumulado automático (fechamentos)', u.moeda(automatica)], ['Acumulado total', u.moeda(inicial + manual + automatica)], ['Conta de débito', VP.nome('contas', b.depreciacao?.contaDebito)], ['Conta de crédito', VP.nome('contas', b.depreciacao?.contaCredito)]], proj.length ? `<h4>Valor ao longo da vida útil</h4>${G.linha(proj, { largura: 330, altura: 190, formato: u.moeda, formatoEixo: u.moedaCurta, rotuloX: u.mesNome, marcaX: VP.Plataforma.hoje().slice(0, 7), titulo: 'Valor do bem ao longo da vida útil' })}` : '')}
+        <section class="cartao secao"><header><h3>Despesas e manutenções</h3></header>
+          ${custos.length ? `<div class="resumo-linha">${G.numero('Últimos 12 meses', u.moeda(custos.filter((e) => e.data >= umAno).reduce((t, e) => t + (e.valor || 0), 0)))}${G.numero('Total registrado', u.moeda(custos.reduce((t, e) => t + (e.valor || 0), 0)))}</div>` : '<p class="vazio">Nenhuma despesa registrada.</p>'}
+        </section>
+        <section class="cartao secao"><header><h3>Anexos</h3><button class="botao pequeno" data-acao="anexar">Anexar</button></header>
+          ${(b.anexos || []).length ? `<ul class="anexos">${b.anexos.map((a) => `<li>${a.tipo?.startsWith('image/') ? `<img src="${a.dataURL}" alt="">` : '<span class="icone-arquivo">📄</span>'}<a href="${a.dataURL}" download="${esc(a.nome)}">${esc(a.nome)}</a><small>${u.data(a.data)}</small></li>`).join('')}</ul>` : '<p class="vazio">Nenhum anexo.</p>'}
+        </section>
+      </div>
+      <section class="cartao secao linha-do-tempo-cartao">
+        <header><h3>Linha do tempo</h3>
+          <div class="segmentos" role="group" aria-label="Filtrar linha do tempo">
+            <button class="ativo" data-grupo="">Tudo</button><button data-grupo="financeiro">Financeiro</button><button data-grupo="fisico">Físico</button><button data-grupo="registro">Registros</button>
+          </div></header>
+        <div id="linha-tempo">${linhaDoTempo(b, '')}</div>
+      </section>`;
+    return {
+      titulo: `Bem ${b.codigo}`,
+      acoes: `<a class="botao" href="#bens">‹ Lista</a> ${ant ? `<a class="botao" href="#bem/${esc(ant)}" title="Bem anterior">‹ Anterior</a>` : ''} ${prox ? `<a class="botao" href="#bem/${esc(prox)}" title="Próximo bem">Próximo ›</a>` : ''}`,
+      html,
+      ligar() {
+        const area = document.getElementById('conteudo');
+        const recarrega = () => VP.app.render();
+        area.querySelectorAll('[data-editar]').forEach((el) => el.addEventListener('click', () => A.editarSecao(b, el.dataset.editar, recarrega)));
+        area.querySelectorAll('[data-acao]').forEach((el) => el.addEventListener('click', () => {
+          const a = el.dataset.acao;
+          const um = [b];
+          if (a === 'imprimir') return VP.documentos.fichaBem(b);
+          if (a === 'etiqueta') return A.lote('etiquetas', um);
+          if (a === 'excluir') return A.excluir(um, () => VP.app.ir('#bens'));
+          if (a === 'manutencao') return A.manutencao(b, recarrega);
+          if (a === 'observacao') return A.observacao(b, recarrega);
+          if (a === 'anexar') return A.anexar(b, recarrega);
+          if (a === 'melhoria') return A.melhoria(b, recarrega);
+          if (a === 'replicar') return A.replicar(b, recarrega);
+          if (a === 'unidades') return A.unidadesProduzidas(b, recarrega);
+          return A.lote(a === 'reavaliar' ? 'reavaliar' : a, um, recarrega);
+        }));
+        area.querySelector('[data-foto]')?.addEventListener('change', async (e) => {
+          const fotos = await ui.lerArquivos(e.target.files);
+          if (!fotos.length) return;
+          b.fotos = [fotos[0], ...(b.fotos || [])].slice(0, 6);
+          await VP.db.gravar('bens', b);
+          ui.aviso('Foto atualizada.');
+          recarrega();
+        });
+        area.querySelectorAll('[data-grupo]').forEach((el) => el.addEventListener('click', () => {
+          area.querySelectorAll('[data-grupo]').forEach((x) => x.classList.toggle('ativo', x === el));
+          document.getElementById('linha-tempo').innerHTML = linhaDoTempo(b, el.dataset.grupo);
+          ligarEstorno(b);
+        }));
+        ligarEstorno(b);
+      }
+    };
+  };
+
+  const linhaDoTempo = (b, grupo) => {
+    const evs = VP.db.lista('eventos').filter((e) => e.bemId === b.id && (!grupo || L.eventos[e.tipo]?.grupo === grupo))
+      .sort((x, y) => (y.data + y.criadoEm).localeCompare(x.data + x.criadoEm));
+    if (!evs.length) return '<p class="vazio">Nada registrado.</p>';
+    return `<ol class="linha-do-tempo">${evs.map((e) => {
+      const tp = L.eventos[e.tipo] || { nome: e.tipo, grupo: 'registro' };
+      const pode = !e.cancelado && ['agregacao', 'reavaliacao', 'manutencao', 'despesa'].includes(e.tipo) || (!e.cancelado && e.tipo === 'depreciacao' && !e.loteId && !e.dados.saldoInicial);
+      return `<li class="ev g-${tp.grupo} ${e.cancelado ? 'cancelado' : ''}">
+        <span class="ev-data">${u.data(e.data)}</span>
+        <span class="ev-corpo"><b>${esc(tp.nome)}</b>${e.valor != null ? ` · ${u.moeda(e.valor)}` : ''}${e.tipo === 'reavaliacao' && e.dados.valorNovo != null ? ` · novo valor ${u.moeda(e.dados.valorNovo)}` : ''}<br><small>${esc(e.descricao)}${e.dados.motivo ? ' · ' + esc(e.dados.motivo) : ''}${e.cancelado ? ` · <b>desfeito/estornado</b>${e.motivoCancelamento ? ' (' + esc(e.motivoCancelamento) + ')' : ''}` : ''} · por ${esc(e.usuario)}</small></span>
+        ${pode && b.status !== 'baixado' ? `<button class="botao pequeno" data-estornar="${esc(e.id)}">Estornar</button>` : ''}
+      </li>`;
+    }).join('')}</ol>`;
+  };
+  const ligarEstorno = (b) => document.querySelectorAll('[data-estornar]').forEach((el) => el.addEventListener('click', async () => {
+    const e = VP.db.pega('eventos', el.dataset.estornar);
+    if (!await ui.confirmar(`Estornar "${L.eventos[e.tipo].nome}" de ${u.data(e.data)}? O lançamento fica no histórico como estornado e é criado um estorno.`, { sim: 'Estornar', classe: 'perigo' })) return;
+    e.cancelado = true; e.motivoCancelamento = 'Estornado'; e.canceladoEm = VP.Plataforma.agoraISO();
+    const est = VP.novoEvento(b.id, 'estorno', { valor: e.valor, descricao: `Estorno de ${L.eventos[e.tipo].nome} de ${u.data(e.data)}`, extra: { eventoId: e.id } });
+    await VP.db.gravarVarias({ eventos: [e, est] });
+    ui.aviso('Estornado.');
+    VP.app.render();
+  }));
+
+  // ======================================================== EDITAR POR SEÇÃO (com registro do que mudou)
+  const pegaCaminho = (o, c) => c.split('.').reduce((x, k) => (x == null ? undefined : x[k]), o);
+  const poeCaminho = (o, c, v) => { const p = c.split('.'); let x = o; while (p.length > 1) { const k = p.shift(); x[k] = x[k] || {}; x = x[k]; } x[p[0]] = v; };
+  const secoes = (b) => ({
+    identificacao: { titulo: 'Identificação', campos: [
+      { chave: 'descricao', rotulo: 'Descrição', obrigatorio: true },
+      { chave: 'produtoId', rotulo: 'Produto', tipo: 'select', opcoes: opc('produtos') },
+      { chave: 'complemento', rotulo: 'Complemento', tipo: 'area' },
+      { chave: 'classificacaoId', rotulo: 'Classificação', tipo: 'select', opcoes: opcClassificacoes(), obrigatorio: true },
+      { chave: 'plaqueta', rotulo: 'Plaqueta', largura: 'meia' }, { chave: 'plaquetaAnterior', rotulo: 'Plaqueta anterior', largura: 'meia' },
+      { chave: 'detalhes.tombamento', rotulo: 'Número de tombamento', largura: 'meia' }, { chave: 'detalhes.dataTombamento', rotulo: 'Data do tombamento', tipo: 'data', largura: 'meia' },
+      { chave: 'situacaoAquisicao', rotulo: 'Como entrou', tipo: 'select', opcoes: L.situacoesAquisicao.map((x) => [x, x]) },
+      { chave: 'dataAquisicao', rotulo: 'Data de aquisição', tipo: 'data', largura: 'meia' }, { chave: 'dataIncorporacao', rotulo: 'Data de incorporação', tipo: 'data', largura: 'meia' },
+      { chave: 'comissaoId', rotulo: 'Comissão', tipo: 'select', opcoes: opc('comissoes') },
+      { chave: 'exerciciosAnteriores', rotulo: 'Bem de exercícios anteriores', tipo: 'bool' },
+      { chave: 'entidadeId', rotulo: 'Entidade', tipo: 'select', opcoes: opc('entidades') },
+      { chave: 'criticidade', rotulo: 'Criticidade de uso', tipo: 'select', opcoes: [[1, 'Baixa'], [2, 'Média'], [3, 'Alta']], ajuda: 'Bem essencial (ex.: geladeira de vacinas) = alta. Entra no score.' }] },
+    local: { titulo: 'Local e responsáveis', aviso: 'Para mudar de unidade, use “Transferir” (fica registrado e gera termo).', campos: [
+      { chave: 'localizacao', rotulo: 'Localização dentro da unidade', placeholder: 'Ex.: Sala 12' },
+      { chave: 'responsavelId', rotulo: 'Responsável', tipo: 'select', opcoes: opc('responsaveis') },
+      { chave: 'responsaveisAdicionais', rotulo: 'Responsáveis adicionais (segure Ctrl para marcar vários)', tipo: 'multi', opcoes: opc('responsaveis') },
+      { chave: 'endereco.logradouro', rotulo: 'Logradouro (imóveis e infraestrutura)' }, { chave: 'endereco.bairro', rotulo: 'Bairro', largura: 'meia' }, { chave: 'endereco.cidade', rotulo: 'Cidade', largura: 'meia' }] },
+    origem: { titulo: 'Origem e compra', campos: [
+      { chave: 'fornecedorId', rotulo: 'Fornecedor', tipo: 'select', opcoes: opc('fornecedores') },
+      { chave: 'origem.empenho', rotulo: 'Empenho (ano/número)', largura: 'meia' }, { chave: 'origem.item', rotulo: 'Item do empenho', largura: 'meia' },
+      { chave: 'origem.quantidade', rotulo: 'Quantidade', tipo: 'numero', largura: 'meia' }, { chave: 'origem.valorUnitario', rotulo: 'Valor unitário', tipo: 'moeda', largura: 'meia' },
+      { chave: 'nf.numero', rotulo: 'Nota fiscal', largura: 'meia' }, { chave: 'nf.serie', rotulo: 'Série', largura: 'meia' }, { chave: 'nf.emissao', rotulo: 'Emissão da nota', tipo: 'data' },
+      { chave: 'origem.licitacao.modalidade', rotulo: 'Licitação: modalidade', largura: 'meia' }, { chave: 'origem.licitacao.processo', rotulo: 'Processo', largura: 'meia' }, { chave: 'origem.licitacao.numero', rotulo: 'Número da licitação', largura: 'meia' }] },
+    detalhes: { titulo: 'Detalhes', campos: [
+      { chave: 'estado', rotulo: 'Estado de conservação', tipo: 'select', opcoes: Object.entries(L.estados).reverse() },
+      { chave: 'detalhes.marca', rotulo: 'Marca', largura: 'meia' }, { chave: 'detalhes.modelo', rotulo: 'Modelo', largura: 'meia' },
+      { chave: 'detalhes.cor', rotulo: 'Cor', largura: 'meia' }, { chave: 'detalhes.serie', rotulo: 'Número de série', largura: 'meia' },
+      { chave: 'detalhes.rfid', rotulo: 'RFID' },
+      { chave: 'detalhes.textoJuridico.categoria', rotulo: 'Texto jurídico: categoria', largura: 'meia' }, { chave: 'detalhes.textoJuridico.numeroAno', rotulo: 'Número/ano', largura: 'meia' },
+      { chave: '_medidas', rotulo: 'Medidas (uma por linha: nome = valor)', tipo: 'area', ajuda: 'Ex.: Área construída (m²) = 850' }] },
+    imovel: { titulo: 'Imóvel: documentos e uso', campos: [
+      { chave: 'imovel.matricula', rotulo: 'Matrícula', largura: 'meia' }, { chave: 'imovel.cartorio', rotulo: 'Cartório', largura: 'meia' },
+      { chave: 'imovel.situacaoRegistro', rotulo: 'Situação do registro', tipo: 'select', opcoes: ['Registrado', 'Em regularização', 'Sem registro', 'Posse'].map((x) => [x, x]) },
+      { chave: 'imovel.uso', rotulo: 'Classificação de uso', tipo: 'select', opcoes: ['Uso comum do povo', 'Uso especial', 'Dominical'].map((x) => [x, x]), ajuda: 'Uso comum e uso especial não podem ser vendidos enquanto afetados (Código Civil, arts. 98–103).' }] },
+    veiculo: { titulo: 'Veículo', campos: [
+      { chave: 'veiculo.placa', rotulo: 'Placa', largura: 'meia' }, { chave: 'veiculo.renavam', rotulo: 'RENAVAM', largura: 'meia' }, { chave: 'veiculo.chassi', rotulo: 'Chassi' },
+      { chave: 'veiculo.combustivel', rotulo: 'Combustível', tipo: 'select', opcoes: ['Gasolina', 'Etanol', 'Flex', 'Diesel', 'Elétrico', 'GNV'].map((x) => [x, x]), largura: 'meia' },
+      { chave: 'veiculo.anoModelo', rotulo: 'Ano/modelo', largura: 'meia' }, { chave: 'veiculo.capacidadeTanque', rotulo: 'Tanque (litros)', tipo: 'numero', largura: 'meia' }] },
+    seguro: { titulo: 'Seguro e garantia', campos: camposSeguro() },
+    valores: { titulo: 'Valores e contas', aviso: 'O valor do bem só muda por reavaliação, melhoria ou baixa (para ficar registrado). Aqui muda só a conta.', campos: [
+      { chave: 'contaId', rotulo: 'Conta contábil', tipo: 'select', opcoes: opc('contas', (c) => c.tipo === 'ativo'), obrigatorio: VP.config().obrigaContas }] },
+    depreciacao: { titulo: 'Depreciação', aviso: 'Mudar vida útil ou residual vale daqui para frente (não recalcula o passado). Exige justificativa.', campos: [
+      { chave: 'depreciacao.automatica', rotulo: 'Depreciar automaticamente no fechamento do mês', tipo: 'bool' },
+      { chave: 'depreciacao.metodo', rotulo: 'Método', tipo: 'select', opcoes: Object.entries(L.metodos), vazio: false },
+      { chave: 'depreciacao.inicio', rotulo: 'Início da depreciação', tipo: 'data', largura: 'meia' }, { chave: 'depreciacao.vidaUtilMeses', rotulo: 'Vida útil (meses)', tipo: 'numero', largura: 'meia' },
+      { chave: 'depreciacao.residualTipo', rotulo: 'Residual em', tipo: 'select', opcoes: [['percentual', 'Percentual (%)'], ['valor', 'Valor (R$)']], vazio: false, largura: 'meia' }, { chave: 'depreciacao.residual', rotulo: 'Residual', tipo: 'numero', largura: 'meia' },
+      { chave: 'depreciacao.producaoTotal', rotulo: 'Produção total estimada (método por unidades)', tipo: 'numero' },
+      { chave: 'depreciacao.contaDebito', rotulo: 'Conta de débito', tipo: 'select', opcoes: opc('contas'), largura: 'meia' }, { chave: 'depreciacao.contaCredito', rotulo: 'Conta de crédito', tipo: 'select', opcoes: opc('contas'), largura: 'meia' },
+      { chave: '_justificativa', rotulo: 'Justificativa da mudança', tipo: 'area', obrigatorio: true }] }
+  });
+  function camposSeguro() {
+    return [
+      { chave: 'seguro.seguradoraId', rotulo: 'Seguradora', tipo: 'select', opcoes: opc('seguradoras', (s) => !s.corretora), largura: 'meia' }, { chave: 'seguro.corretoraId', rotulo: 'Corretora', tipo: 'select', opcoes: opc('seguradoras', (s) => s.corretora), largura: 'meia' },
+      { chave: 'seguro.apolice', rotulo: 'Apólice', largura: 'meia' }, { chave: 'seguro.adesao', rotulo: 'Data de adesão', tipo: 'data', largura: 'meia' },
+      { chave: 'seguro.inicio', rotulo: 'Início do seguro', tipo: 'data', largura: 'meia' }, { chave: 'seguro.termino', rotulo: 'Término do seguro', tipo: 'data', largura: 'meia' },
+      { chave: 'seguro.valor', rotulo: 'Valor do seguro', tipo: 'moeda', largura: 'meia' }, { chave: 'seguro.franquia', rotulo: 'Valor da franquia', tipo: 'moeda', largura: 'meia' },
+      { chave: 'garantia.fornecedorId', rotulo: 'Garantia: fornecedor', tipo: 'select', opcoes: opc('fornecedores'), largura: 'meia' }, { chave: 'garantia.tipoId', rotulo: 'Tipo de garantia', tipo: 'select', opcoes: opc('tiposGarantia'), largura: 'meia' },
+      { chave: 'garantia.inicio', rotulo: 'Início da garantia', tipo: 'data', largura: 'meia' }, { chave: 'garantia.termino', rotulo: 'Término da garantia', tipo: 'data', largura: 'meia' },
+      { chave: 'garantia.observacao', rotulo: 'Observação da garantia', tipo: 'area' }];
+  }
+
+  A.editarSecao = (b, chave, depois) => {
+    const sec = secoes(b)[chave];
+    const valores = {};
+    for (const c of sec.campos) valores[c.chave] = pegaCaminho(b, c.chave);
+    valores._medidas = (b.medidas || []).map((m) => `${m.nome} = ${m.valor}`).join('\n');
+    const campos = sec.campos.map((c) => (c.tipo === 'multi' ? Object.assign({}, c, { tipo: 'select' }) : c));
+    const d = ui.formulario({
+      titulo: 'Editar: ' + sec.titulo, campos, valores, largura: 'grande',
+      intro: sec.aviso ? `<p class="aviso-inline">${esc(sec.aviso)}</p>` : '',
+      salvar: async (v, dlg) => {
+        const mudou = [];
+        for (const c of sec.campos) {
+          if (c.chave.startsWith('_')) continue;
+          let novo = pegaCaminho(v, c.chave);
+          if (c.tipo === 'multi') novo = [...dlg.querySelector(`[name="${CSS.escape(c.chave)}"]`).selectedOptions].map((o) => o.value).filter(Boolean);
+          if (c.tipo === 'numero' || c.tipo === 'moeda') novo = novo ?? null;
+          if (c.chave === 'criticidade' || c.chave === 'estado') novo = novo === '' ? null : Number(novo);
+          const antigo = pegaCaminho(b, c.chave);
+          if (JSON.stringify(antigo ?? '') !== JSON.stringify(novo ?? '')) { mudou.push({ campo: c.rotulo, antes: antigo ?? '', depois: novo ?? '' }); poeCaminho(b, c.chave, novo); }
+        }
+        if (chave === 'detalhes') {
+          const medidas = String(v._medidas || '').split('\n').map((l) => l.split('=')).filter((p) => p[0]?.trim()).map(([n, ...r]) => ({ nome: n.trim(), valor: r.join('=').trim() }));
+          if (JSON.stringify(medidas) !== JSON.stringify(b.medidas || [])) { mudou.push({ campo: 'Medidas', antes: (b.medidas || []).length + ' itens', depois: medidas.length + ' itens' }); b.medidas = medidas; }
+        }
+        if (chave === 'local' && VP.config().obrigaUnidade && !b.unidadeId) return 'A configuração exige unidade para todo bem.';
+        if (!mudou.length) return null;
+        const ev = VP.novoEvento(b.id, 'alteracao', { descricao: `Alterado: ${mudou.map((m) => m.campo).join(', ')}`, extra: { mudancas: mudou, justificativa: v._justificativa || '' } });
+        await VP.db.gravarVarias({ bens: [b], eventos: [ev] });
+        ui.aviso('Alterações salvas e registradas no histórico.');
+        depois();
+      }
+    });
+    // seleção múltipla para responsáveis adicionais
+    const multi = sec.campos.find((c) => c.tipo === 'multi');
+    if (multi) {
+      const sel = d.el.querySelector(`[name="${CSS.escape(multi.chave)}"]`);
+      sel.multiple = true; sel.size = 5;
+      [...sel.options].forEach((o) => { o.selected = (b.responsaveisAdicionais || []).includes(o.value); });
+    }
+  };
+
+  // ======================================================== NOVO BEM (curto; o resto vem do produto e da classificação)
+  T['novo-bem'] = () => {
+    const cfg = VP.config();
+    const campos = [
+      { chave: 'produtoId', rotulo: 'Produto (preenche descrição e classificação)', tipo: 'select', opcoes: opc('produtos') },
+      { chave: 'descricao', rotulo: 'Descrição', obrigatorio: true },
+      { chave: 'classificacaoId', rotulo: 'Classificação', tipo: 'select', opcoes: opcClassificacoes(), obrigatorio: true },
+      { chave: 'unidadeId', rotulo: 'Unidade', tipo: 'select', opcoes: opc('unidades'), obrigatorio: cfg.obrigaUnidade, largura: 'meia' },
+      { chave: 'responsavelId', rotulo: 'Responsável (vem da unidade)', tipo: 'select', opcoes: opc('responsaveis'), largura: 'meia' },
+      { chave: 'dataAquisicao', rotulo: 'Data de aquisição', tipo: 'data', obrigatorio: true, largura: 'meia', padrao: VP.Plataforma.hoje() },
+      { chave: 'valor', rotulo: 'Valor de aquisição (R$)', tipo: 'moeda', obrigatorio: true, largura: 'meia' },
+      { chave: 'quantidade', rotulo: 'Quantidade (gera um bem para cada)', tipo: 'numero', padrao: 1, largura: 'meia' },
+      { chave: 'situacaoAquisicao', rotulo: 'Como entrou', tipo: 'select', opcoes: L.situacoesAquisicao.map((x) => [x, x]), padrao: 'Compra', vazio: false, largura: 'meia' },
+      { chave: 'fornecedorId', rotulo: 'Fornecedor', tipo: 'select', opcoes: opc('fornecedores'), largura: 'meia' },
+      { chave: 'estado', rotulo: 'Estado', tipo: 'select', opcoes: Object.entries(L.estados).reverse(), padrao: 5, vazio: false, largura: 'meia' }
+    ];
+    if (cfg.codigoManual) campos.splice(0, 0, { chave: 'codigo', rotulo: 'Código do bem', tipo: 'numero', obrigatorio: true });
+    if (!cfg.tombamentoAutomatico) campos.push({ chave: 'plaqueta', rotulo: 'Plaqueta (primeira, as próximas seguem a sequência)' });
+    const mais = [
+      { chave: 'nf.numero', rotulo: 'Nota fiscal', largura: 'meia' }, { chave: 'nf.emissao', rotulo: 'Emissão da nota', tipo: 'data', largura: 'meia' },
+      { chave: 'origem.empenho', rotulo: 'Empenho (ano/número)', largura: 'meia' }, { chave: 'detalhes.marca', rotulo: 'Marca', largura: 'meia' },
+      { chave: 'detalhes.modelo', rotulo: 'Modelo', largura: 'meia' }, { chave: 'detalhes.serie', rotulo: 'Número de série (um bem)', largura: 'meia' },
+      { chave: 'localizacao', rotulo: 'Localização na unidade' }, { chave: 'complemento', rotulo: 'Complemento', tipo: 'area' }];
+    return {
+      titulo: 'Novo bem',
+      acoes: '<a class="botao" href="#bens">Cancelar</a>',
+      html: `<form class="cartao form-novo" id="form-novo">
+          <p class="ajuda">Só o essencial. Vida útil, valor residual e contas vêm da classificação; o código e a plaqueta são automáticos.</p>
+          ${ui.campos(campos)}
+          <details><summary>Mais detalhes (opcional)</summary>${ui.campos(mais)}</details>
+          <div id="previa-novo" class="previa"></div>
+          <p class="erro-form" role="alert"></p>
+          <button class="botao primario grande" type="submit">Incluir</button>
+        </form>`,
+      ligar() {
+        const f = document.getElementById('form-novo');
+        const previa = () => {
+          const { valores: v } = ui.lerCampos(f, campos);
+          const dc = VP.dadosDaClassificacao(v.classificacaoId);
+          const qtd = Math.max(1, Math.floor(v.quantidade || 1));
+          document.getElementById('previa-novo').innerHTML = v.classificacaoId ? `<b>Prévia:</b> ${qtd} bem(ns) a partir do código ${cfg.codigoManual ? (v.codigo || '?') : VP.proximoCodigo()} · conta ${esc(VP.nome('contas', dc.contaId))} · ${dc.naoDeprecia ? 'não deprecia' : `vida útil ${dc.vidaUtilMeses || '?'} meses, residual ${dc.residualPct ?? 0}%`}${v.valor ? ` · total ${u.moeda(v.valor * qtd)}` : ''}` : '';
+        };
+        f.addEventListener('change', (e) => {
+          if (e.target.name === 'produtoId') {
+            const p = VP.db.pega('produtos', e.target.value);
+            if (p) { f.elements.descricao.value = p.nome; f.elements.classificacaoId.value = p.classificacaoId; }
+          }
+          if (e.target.name === 'unidadeId') {
+            const un = VP.db.pega('unidades', e.target.value);
+            if (un?.responsavelId) f.elements.responsavelId.value = un.responsavelId;
+          }
+          previa();
+        });
+        f.addEventListener('input', previa);
+        f.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const lidos = ui.lerCampos(f, campos.concat(mais));
+          const v = lidos.valores;
+          const erro = f.querySelector('.erro-form');
+          if (lidos.faltando.length) { erro.textContent = 'Preencha: ' + lidos.faltando.join(', '); return; }
+          const dc = VP.dadosDaClassificacao(v.classificacaoId);
+          if (cfg.obrigaContas && !dc.contaId) { erro.textContent = 'Esta classificação não tem conta contábil. Ajuste em Cadastros → Classificações.'; return; }
+          if (cfg.codigoManual && VP.db.lista('bens', true).some((x) => x.codigo === v.codigo)) { erro.textContent = 'Já existe bem com este código.'; return; }
+          const criados = await VP.criarBens(Object.assign({}, v, { quantidade: Math.max(1, Math.floor(v.quantidade || 1)) }));
+          ui.resultado({ titulo: 'Bens incluídos', sucesso: criados.map((b) => `${b.codigo} · plaqueta ${b.plaqueta} · ${b.descricao}`) });
+          VP.estado.listaAtual = criados.map((b) => b.id);
+          VP.app.ir('#bem/' + criados[0].id);
+        });
+      }
+    };
+  };
+
+  // Cria N bens + incorporação (usado em Novo bem, Replicar e Itens a incorporar)
+  VP.criarBens = async (v) => {
+    const cfg = VP.config();
+    const dc = VP.dadosDaClassificacao(v.classificacaoId);
+    const grupo = VP.grupoDe(v.classificacaoId);
+    const unidade = VP.db.pega('unidades', v.unidadeId);
+    let codigo = cfg.codigoManual && v.codigo ? v.codigo : VP.proximoCodigo();
+    let plaqueta = v.plaqueta ? Number(v.plaqueta) : null;
+    const bens = [], eventos = [];
+    for (let i = 0; i < (v.quantidade || 1); i++) {
+      const pl = plaqueta ? String(plaqueta + i) : String(1000 + codigo);
+      const b = {
+        id: u.id(), codigo, plaqueta: pl, plaquetaAnterior: '', tipo: dc.tipoBem || grupo?.tipoBem || 'movel', status: 'ativo', estado: Number(v.estado || 5),
+        descricao: v.descricao, complemento: v.complemento || v.descricao, produtoId: v.produtoId || '', classificacaoId: v.classificacaoId,
+        unidadeId: v.unidadeId || '', localizacao: v.localizacao || '', responsavelId: v.responsavelId || unidade?.responsavelId || '', responsaveisAdicionais: [],
+        dataAquisicao: v.dataAquisicao, dataIncorporacao: v.dataIncorporacao || VP.Plataforma.hoje(), situacaoAquisicao: v.situacaoAquisicao || 'Compra',
+        comissaoId: '', exerciciosAnteriores: false, entidadeId: v.entidadeId || 'E1', fornecedorId: v.fornecedorId || '', contaId: dc.contaId || '',
+        origem: Object.assign({ quantidade: v.quantidade || 1, valorUnitario: v.valor }, v.origem || {}), nf: v.nf || {},
+        detalhes: Object.assign({ tombamento: cfg.tombamentoAutomatico ? String(codigo) : '', dataTombamento: cfg.tombamentoAutomatico ? VP.Plataforma.hoje() : '', textoJuridico: {} }, v.detalhes || {}, i > 0 ? { serie: '' } : {}),
+        endereco: null, medidas: [], veiculo: dc.tipoBem === 'veiculo' || grupo?.tipoBem === 'veiculo' ? {} : null, seguro: null, garantia: null, fotos: [], anexos: [], criticidade: 2,
+        depreciacao: { automatica: !dc.naoDeprecia, metodo: 'linear', inicio: u.somaMeses(v.dataIncorporacao || VP.Plataforma.hoje(), 1) + '-01', vidaUtilMeses: dc.vidaUtilMeses || 0, residualTipo: 'percentual', residual: dc.residualPct ?? 0, producaoTotal: 0, contaDebito: 'C_VPD', contaCredito: dc.contaDepreciacaoId || '' }
+      };
+      bens.push(b);
+      eventos.push(VP.novoEvento(b.id, 'incorporacao', { data: b.dataIncorporacao, valor: v.valor, descricao: `Incorporação — ${b.situacaoAquisicao}${v.origemTexto ? ' · ' + v.origemTexto : ''}`, extra: { contaDebito: b.contaId } }));
+      codigo++;
+    }
+    await VP.db.gravarVarias({ bens, eventos });
+    return bens;
+  };
+
+  // ======================================================== AÇÕES
+  const ultimaDataFisica = (b) => VP.eventosDoBem(b.id).filter((e) => L.eventos[e.tipo]?.grupo === 'fisico').map((e) => e.data).sort().pop() || '';
+  const separarBaixados = (bens) => ({ ok: bens.filter((b) => b.status !== 'baixado'), falhas: bens.filter((b) => b.status === 'baixado').map((b) => ({ item: `${b.codigo} · ${b.descricao}`, motivo: 'Bem já baixado' })) });
+
+  A.transferir = (bens, depois) => {
+    const cfg = VP.config();
+    const campos = [
+      { chave: 'tipo', rotulo: 'Tipo', tipo: 'select', opcoes: Object.entries(L.tiposTransferencia), vazio: false },
+      { chave: 'destinoUnidadeId', rotulo: 'Unidade de destino (interna)', tipo: 'select', opcoes: opc('unidades') },
+      { chave: 'responsavelDestinoId', rotulo: 'Responsável no destino', tipo: 'select', opcoes: opc('responsaveis') },
+      { chave: 'destinoExterno', rotulo: 'Para onde vai (externa)', placeholder: 'Ex.: Oficina Exemplo, Associação X' },
+      { chave: 'retornoPrevisto', rotulo: 'Volta prevista (externa)', tipo: 'data', largura: 'meia' },
+      { chave: 'entidadeDestinoId', rotulo: 'Entidade de destino (entre entidades)', tipo: 'select', opcoes: opc('entidades'), largura: 'meia' },
+      { chave: 'motivo', rotulo: 'Motivo', tipo: 'select', opcoes: VP.db.lista('motivos').filter((m) => m.tipo === 'transferencia').map((m) => [m.nome, m.nome]) },
+      { chave: 'data', rotulo: 'Data', tipo: 'data', padrao: VP.Plataforma.hoje(), obrigatorio: true, largura: 'meia' },
+      { chave: 'observacao', rotulo: 'Observação', tipo: 'area' }];
+    ui.formulario({
+      titulo: `Transferir ${bens.length} bem(ns)`, campos, largura: 'media',
+      intro: cfg.exigeAceiteTransferencia ? '<p class="aviso-inline">Transferência interna fica <b>aguardando aceite</b> de quem recebe (configuração). Externa e entre entidades valem na hora.</p>' : '',
+      textoSalvar: 'Transferir',
+      salvar: async (v) => {
+        if (v.tipo === 'interna' && !v.destinoUnidadeId) return 'Escolha a unidade de destino.';
+        if (v.tipo === 'externa' && !v.destinoExterno) return 'Diga para onde o bem vai.';
+        if (v.tipo === 'entidade' && !v.entidadeDestinoId) return 'Escolha a entidade de destino.';
+        const { ok, falhas } = separarBaixados(bens);
+        const validos = [];
+        for (const b of ok) {
+          if (cfg.validaTransferenciaRetroativa && v.data < ultimaDataFisica(b)) falhas.push({ item: `${b.codigo} · ${b.descricao}`, motivo: `Data anterior à última movimentação (${u.data(ultimaDataFisica(b))})` });
+          else if (v.tipo === 'interna' && b.unidadeId === v.destinoUnidadeId) falhas.push({ item: `${b.codigo} · ${b.descricao}`, motivo: 'Já está nesta unidade' });
+          else validos.push(b);
+        }
+        if (!validos.length) { ui.resultado({ titulo: 'Transferência', falhas }); return null; }
+        const t = { id: u.id(), tipo: v.tipo, bens: validos.map((b) => b.id), origens: Object.fromEntries(validos.map((b) => [b.id, b.unidadeId])), origemUnidadeId: validos[0].unidadeId, destinoUnidadeId: v.destinoUnidadeId, responsavelDestinoId: v.responsavelDestinoId, destinoExterno: v.destinoExterno, retornoPrevisto: v.retornoPrevisto, entidadeDestinoId: v.entidadeDestinoId, motivo: v.motivo, data: v.data, observacao: v.observacao, situacao: 'pendente' };
+        await VP.db.gravar('transferencias', t);
+        if (!(cfg.exigeAceiteTransferencia && v.tipo === 'interna')) await A.efetivarTransferencia(t);
+        ui.resultado({
+          titulo: t.situacao === 'pendente' ? 'Transferência enviada para aceite' : 'Transferência feita', sucesso: validos.map((b) => `${b.codigo} · ${b.descricao}`), falhas,
+          extra: `<p><button type="button" class="botao" onclick="VP.documentos.termoTransferencia(VP.db.pega('transferencias','${t.id}'))">Imprimir termo de transferência</button></p>`
+        });
+        depois && depois();
+      }
+    });
+  };
+  A.efetivarTransferencia = async (t) => {
+    const bens = t.bens.map((id) => VP.db.pega('bens', id)).filter(Boolean);
+    const evs = [];
+    for (const b of bens) {
+      if (t.tipo === 'interna') {
+        evs.push(VP.novoEvento(b.id, 'transferencia', { data: t.data, descricao: `Transferência interna: ${VP.nome('unidades', b.unidadeId)} → ${VP.nome('unidades', t.destinoUnidadeId)}`, extra: { de: b.unidadeId, para: t.destinoUnidadeId, transferenciaId: t.id, motivo: t.motivo } }));
+        b.unidadeId = t.destinoUnidadeId;
+        if (t.responsavelDestinoId) b.responsavelId = t.responsavelDestinoId;
+        else b.responsavelId = VP.db.pega('unidades', t.destinoUnidadeId)?.responsavelId || b.responsavelId;
+      } else if (t.tipo === 'externa') {
+        evs.push(VP.novoEvento(b.id, 'saida_externa', { data: t.data, descricao: `Saída externa para ${t.destinoExterno}${t.retornoPrevisto ? ' · volta prevista ' + u.data(t.retornoPrevisto) : ''}`, extra: { transferenciaId: t.id, motivo: t.motivo } }));
+        b.status = 'cedido';
+      } else {
+        evs.push(VP.novoEvento(b.id, 'transferencia', { data: t.data, descricao: `Transferência entre entidades: ${VP.nome('entidades', b.entidadeId)} → ${VP.nome('entidades', t.entidadeDestinoId)}`, extra: { deEntidade: b.entidadeId, paraEntidade: t.entidadeDestinoId, transferenciaId: t.id, motivo: t.motivo } }));
+        b.entidadeId = t.entidadeDestinoId;
+      }
+    }
+    t.situacao = 'aceita';
+    t.dataResposta = VP.Plataforma.hoje();
+    await VP.db.gravarVarias({ bens, eventos: evs, transferencias: [t] });
+  };
+
+  const acaoSimples = (titulo, campos, aplicar, { filtro = () => null } = {}) => (bens, depois) => ui.formulario({
+    titulo: `${titulo} — ${bens.length} bem(ns)`, campos, largura: 'media', textoSalvar: titulo,
+    salvar: async (v) => {
+      const { ok, falhas } = separarBaixados(bens);
+      const feitos = [], bensGravar = [], evs = [];
+      for (const b of ok) {
+        const motivo = filtro(b);
+        if (motivo) { falhas.push({ item: `${b.codigo} · ${b.descricao}`, motivo }); continue; }
+        const ev = aplicar(b, v);
+        if (ev) evs.push(...[].concat(ev));
+        bensGravar.push(b);
+        feitos.push(`${b.codigo} · ${b.descricao}`);
+      }
+      await VP.db.gravarVarias({ bens: bensGravar, eventos: evs });
+      ui.resultado({ titulo, sucesso: feitos, falhas });
+      depois && depois();
+    }
+  });
+
+  // as opções de motivo dependem dos cadastros, por isso a janela é montada na hora
+  A.desuso = (bens, depois) => {
+    const f = acaoSimples('Desuso', [
+      { chave: 'motivo', rotulo: 'Motivo', tipo: 'select', opcoes: VP.db.lista('motivos').filter((m) => m.tipo === 'desuso').map((m) => [m.nome, m.nome]), obrigatorio: true },
+      { chave: 'data', rotulo: 'Data', tipo: 'data', padrao: VP.Plataforma.hoje(), obrigatorio: true },
+      { chave: 'observacao', rotulo: 'Observação', tipo: 'area' }],
+    (b, v) => { b.status = 'desuso'; return VP.novoEvento(b.id, 'desuso', { data: v.data, descricao: v.observacao || 'Bem colocado em desuso', extra: { motivo: v.motivo } }); },
+    { filtro: (b) => (b.status === 'desuso' ? 'Já está em desuso' : null) });
+    return f(bens, depois);
+  };
+  A.retorno = acaoSimples('Volta ao uso', [
+    { chave: 'data', rotulo: 'Data', tipo: 'data', padrao: VP.Plataforma.hoje(), obrigatorio: true },
+    { chave: 'observacao', rotulo: 'Observação', tipo: 'area' }],
+  (b, v) => { const antes = b.status; b.status = 'ativo'; return VP.novoEvento(b.id, 'retorno', { data: v.data, descricao: (v.observacao || 'Bem voltou ao uso') + ` (estava: ${L.status[antes]})` }); },
+  { filtro: (b) => (b.status === 'ativo' ? 'Já está em uso' : null) });
+  A.vistoria = acaoSimples('Vistoria', [
+    { chave: 'estado', rotulo: 'Estado encontrado', tipo: 'select', opcoes: Object.entries(L.estados).reverse(), obrigatorio: true },
+    { chave: 'data', rotulo: 'Data', tipo: 'data', padrao: VP.Plataforma.hoje(), obrigatorio: true },
+    { chave: 'observacao', rotulo: 'Observação', tipo: 'area' }],
+  (b, v) => { b.estado = Number(v.estado); return VP.novoEvento(b.id, 'vistoria', { data: v.data, descricao: v.observacao || 'Vistoria', extra: { estado: Number(v.estado) } }); });
+
+  A.complementares = (bens, depois) => ui.formulario({
+    titulo: `Dados complementares — ${bens.length} bem(ns)`, largura: 'media', textoSalvar: 'Aplicar',
+    intro: '<p class="ajuda">Só os campos preenchidos são aplicados. Os vazios ficam como estão em cada bem.</p>',
+    campos: [
+      { chave: 'detalhes.marca', rotulo: 'Marca', largura: 'meia' }, { chave: 'detalhes.modelo', rotulo: 'Modelo', largura: 'meia' },
+      { chave: 'detalhes.cor', rotulo: 'Cor', largura: 'meia' }, { chave: 'estado', rotulo: 'Estado', tipo: 'select', opcoes: Object.entries(L.estados).reverse(), largura: 'meia' },
+      { chave: 'localizacao', rotulo: 'Localização na unidade' }, { chave: 'criticidade', rotulo: 'Criticidade', tipo: 'select', opcoes: [[1, 'Baixa'], [2, 'Média'], [3, 'Alta']] },
+      { chave: 'detalhes.textoJuridico.categoria', rotulo: 'Texto jurídico: categoria', largura: 'meia' }, { chave: 'detalhes.textoJuridico.numeroAno', rotulo: 'Número/ano', largura: 'meia' }],
+    salvar: async (v) => {
+      const pares = [];
+      const junta = (o, pre = '') => { for (const [k, x] of Object.entries(o)) { if (x && typeof x === 'object') junta(x, pre + k + '.'); else if (x !== '' && x != null) pares.push([pre + k, x]); } };
+      junta(v);
+      if (!pares.length) return 'Preencha pelo menos um campo.';
+      const { ok, falhas } = separarBaixados(bens);
+      const evs = ok.map((b) => {
+        const mud = pares.map(([c, x]) => ({ campo: c, antes: pegaCaminho(b, c) ?? '', depois: x }));
+        for (const [c, x] of pares) poeCaminho(b, c, c === 'estado' || c === 'criticidade' ? Number(x) : x);
+        return VP.novoEvento(b.id, 'alteracao', { descricao: 'Dados complementares em lote', extra: { mudancas: mud } });
+      });
+      await VP.db.gravarVarias({ bens: ok, eventos: evs });
+      ui.resultado({ titulo: 'Dados complementares', sucesso: ok.map((b) => `${b.codigo} · ${b.descricao}`), falhas });
+      depois && depois();
+    }
+  });
+  A.seguroGarantia = (bens, depois) => ui.formulario({
+    titulo: `Seguro e garantia — ${bens.length} bem(ns)`, largura: 'grande', textoSalvar: 'Aplicar', campos: camposSeguro(),
+    intro: '<p class="ajuda">Só os campos preenchidos são aplicados.</p>',
+    salvar: async (v) => {
+      const { ok, falhas } = separarBaixados(bens);
+      for (const b of ok) {
+        for (const g of ['seguro', 'garantia']) for (const [k, x] of Object.entries(v[g] || {})) if (x !== '' && x != null) { b[g] = b[g] || {}; b[g][k] = x; }
+      }
+      await VP.db.gravarVarias({ bens: ok, eventos: ok.map((b) => VP.novoEvento(b.id, 'alteracao', { descricao: 'Seguro/garantia atualizados em lote' })) });
+      ui.resultado({ titulo: 'Seguro e garantia', sucesso: ok.map((b) => `${b.codigo} · ${b.descricao}`), falhas });
+      depois && depois();
+    }
+  });
+
+  A.baixa = (bens, depois) => {
+    const cfg = VP.config();
+    ui.formulario({
+      titulo: `Baixa — ${bens.length} bem(ns)`, largura: 'media', textoSalvar: 'Dar baixa',
+      intro: `<p class="aviso-inline">A baixa tira o bem do patrimônio (valor contábil vai a zero). Venda e doação exigem interesse público justificado e avaliação prévia; imóveis exigem também lei autorizativa (Lei 14.133/2021, art. 76).</p><p>Valor contábil que sai: <b>${u.moeda(bens.reduce((t, b) => t + VP.saldo(b).liquido, 0))}</b></p>`,
+      campos: [
+        { chave: 'tipoBaixa', rotulo: 'Tipo de baixa', tipo: 'select', opcoes: L.tiposBaixa.map((x) => [x, x]), obrigatorio: true },
+        { chave: 'motivo', rotulo: 'Motivo', tipo: 'select', opcoes: VP.db.lista('motivos').filter((m) => m.tipo === 'baixa').map((m) => [m.nome, m.nome]), obrigatorio: true },
+        { chave: 'data', rotulo: 'Data', tipo: 'data', padrao: VP.Plataforma.hoje(), obrigatorio: true, largura: 'meia' },
+        { chave: 'documento', rotulo: 'Processo / laudo / boletim de ocorrência', largura: 'meia' },
+        { chave: 'leiAutorizativa', rotulo: 'Lei autorizativa (imóveis)', largura: 'meia' },
+        { chave: 'avaliacao', rotulo: 'Avaliação prévia (laudo nº)', largura: 'meia' },
+        { chave: 'justificativa', rotulo: 'Justificativa de interesse público', tipo: 'area' }],
+      salvar: async (v) => {
+        const precisaDoc = ['Alienação (leilão)', 'Doação', 'Permuta'].includes(v.tipoBaixa);
+        if (precisaDoc && (!v.avaliacao || !v.justificativa)) return 'Venda, doação e permuta exigem avaliação prévia e justificativa (Lei 14.133, art. 76).';
+        if (['Furto / roubo', 'Extravio'].includes(v.tipoBaixa) && !v.documento) return 'Informe o boletim de ocorrência ou o processo.';
+        const { ok, falhas } = separarBaixados(bens);
+        const validos = [];
+        for (const b of ok) {
+          if (v.data < (b.dataIncorporacao || '')) falhas.push({ item: `${b.codigo} · ${b.descricao}`, motivo: `Data da baixa antes da incorporação (${u.data(b.dataIncorporacao)})` });
+          else if (b.tipo === 'imovel' && precisaDoc && !v.leiAutorizativa) falhas.push({ item: `${b.codigo} · ${b.descricao}`, motivo: 'Imóvel: falta a lei autorizativa' });
+          else if (b.imovel && ['Uso comum do povo', 'Uso especial'].includes(b.imovel.uso) && precisaDoc) falhas.push({ item: `${b.codigo} · ${b.descricao}`, motivo: `Imóvel de ${b.imovel.uso.toLowerCase()} precisa ser desafetado antes` });
+          else validos.push(b);
+        }
+        const evs = validos.map((b) => { const s = VP.saldo(b, v.data); b.status = 'baixado'; return VP.novoEvento(b.id, 'baixa', { data: v.data, valor: s.liquido, descricao: `Baixa — ${v.tipoBaixa}`, extra: Object.assign({}, v) }); });
+        await VP.db.gravarVarias({ bens: validos, eventos: evs });
+        ui.resultado({
+          titulo: 'Baixa', sucesso: validos.map((b) => `${b.codigo} · ${b.descricao}`), falhas,
+          extra: validos.length && cfg.termoDeBaixa ? `<p><button type="button" class="botao" data-termo-baixa>Imprimir termo de baixa</button></p>` : ''
+        });
+        setTimeout(() => document.querySelector('[data-termo-baixa]')?.addEventListener('click', () => VP.documentos.termoBaixa(validos, v)), 50);
+        depois && depois();
+      }
+    });
+  };
+
+  A.excluir = async (bens, depois) => {
+    const comMov = bens.filter((b) => VP.eventosDoBem(b.id).some((e) => e.tipo !== 'incorporacao' && e.tipo !== 'alteracao'));
+    const texto = `Mover ${bens.length} bem(ns) para a Lixeira? Use só para cadastro feito por engano — para tirar um bem do patrimônio, use <b>Baixa</b>.${comMov.length ? `<br><br><b>Atenção:</b> ${comMov.length} deles já têm movimentações.` : ''} Pode ser restaurado depois.`;
+    if (!await ui.confirmar(texto, { titulo: 'Excluir (Lixeira)', sim: 'Mover para a Lixeira', classe: 'perigo' })) return;
+    for (const b of bens) { b.excluido = true; b.excluidoEm = VP.Plataforma.agoraISO(); }
+    await VP.db.gravarVarias({ bens, eventos: bens.map((b) => VP.novoEvento(b.id, 'alteracao', { descricao: 'Movido para a Lixeira' })) });
+    ui.aviso(`${bens.length} bem(ns) na Lixeira.`);
+    depois && depois();
+  };
+
+  A.manutencao = (b, depois) => ui.formulario({
+    titulo: 'Manutenção ou despesa', largura: 'media',
+    campos: [
+      { chave: 'tipo', rotulo: 'O que foi', tipo: 'select', opcoes: [['manutencao', 'Manutenção (conserto, revisão)'], ['despesa', 'Despesa (peças, licença, acessórios)'], ['abastecimento', 'Abastecimento (veículo)']], vazio: false },
+      { chave: 'motivo', rotulo: 'Tipo de manutenção', tipo: 'select', opcoes: VP.db.lista('motivos').filter((m) => m.tipo === 'manutencao').map((m) => [m.nome, m.nome]) },
+      { chave: 'data', rotulo: 'Data', tipo: 'data', padrao: VP.Plataforma.hoje(), obrigatorio: true, largura: 'meia' },
+      { chave: 'valor', rotulo: 'Valor (R$)', tipo: 'moeda', obrigatorio: true, largura: 'meia' },
+      { chave: 'fornecedorId', rotulo: 'Fornecedor / oficina', tipo: 'select', opcoes: opc('fornecedores') },
+      { chave: 'litros', rotulo: 'Litros (abastecimento)', tipo: 'numero', largura: 'meia' }, { chave: 'km', rotulo: 'Quilometragem', tipo: 'numero', largura: 'meia' },
+      { chave: 'descricao', rotulo: 'Descrição', tipo: 'area' },
+      { chave: 'emConserto', rotulo: 'O bem ficou fora, em conserto', tipo: 'bool' }],
+    salvar: async (v) => {
+      const ev = VP.novoEvento(b.id, v.tipo, { data: v.data, valor: v.valor, descricao: v.descricao || (v.tipo === 'abastecimento' ? `${v.litros || '?'} L` : 'Manutenção'), extra: { motivo: v.motivo, fornecedorId: v.fornecedorId, litros: v.litros, km: v.km } });
+      if (v.emConserto) b.status = 'manutencao';
+      await VP.db.gravarVarias({ eventos: [ev], bens: [b] });
+      ui.aviso('Registrado.');
+      depois();
+    }
+  });
+  A.observacao = (b, depois) => ui.formulario({
+    titulo: 'Observação', largura: 'pequena', campos: [{ chave: 'texto', rotulo: 'Observação', tipo: 'area', obrigatorio: true }, { chave: 'data', rotulo: 'Data', tipo: 'data', padrao: VP.Plataforma.hoje() }],
+    salvar: async (v) => { await VP.db.gravar('eventos', VP.novoEvento(b.id, 'observacao', { data: v.data, descricao: v.texto })); ui.aviso('Observação registrada.'); depois(); }
+  });
+  A.anexar = (b, depois) => ui.formulario({
+    titulo: 'Anexar arquivos', largura: 'pequena', campos: [{ chave: 'arquivos', rotulo: 'Arquivos (fotos, PDF, laudos)', tipo: 'arquivo', multiplo: true, obrigatorio: true }],
+    textoSalvar: 'Anexar',
+    salvar: async (v) => {
+      if (!v.arquivos?.length) return 'Escolha um arquivo.';
+      const arqs = await ui.lerArquivos(v.arquivos);
+      b.anexos = (b.anexos || []).concat(arqs);
+      await VP.db.gravarVarias({ bens: [b], eventos: [VP.novoEvento(b.id, 'alteracao', { descricao: `Anexado: ${arqs.map((a) => a.nome).join(', ')}` })] });
+      ui.aviso(`${arqs.length} arquivo(s) anexado(s).`);
+      depois();
+    }
+  });
+  A.replicar = (b, depois) => ui.formulario({
+    titulo: 'Replicar bem', largura: 'pequena', textoSalvar: 'Replicar',
+    intro: `<p>Cria cópias de <b>${esc(b.descricao)}</b> com códigos e plaquetas novos, mesmo valor de aquisição e mesma classificação.</p>`,
+    campos: [{ chave: 'quantidade', rotulo: 'Quantas cópias', tipo: 'numero', padrao: 1, obrigatorio: true }],
+    salvar: async (v) => {
+      const q = Math.floor(v.quantidade || 0);
+      if (q < 1 || q > 500) return 'Informe de 1 a 500.';
+      const inc = VP.eventosDoBem(b.id).find((e) => e.tipo === 'incorporacao');
+      const criados = await VP.criarBens({ descricao: b.descricao, complemento: b.complemento, produtoId: b.produtoId, classificacaoId: b.classificacaoId, unidadeId: b.unidadeId, responsavelId: b.responsavelId, dataAquisicao: b.dataAquisicao, dataIncorporacao: VP.Plataforma.hoje(), valor: inc?.valor || 0, quantidade: q, situacaoAquisicao: b.situacaoAquisicao, fornecedorId: b.fornecedorId, entidadeId: b.entidadeId, estado: b.estado, origem: b.origem, nf: b.nf, detalhes: Object.assign({}, b.detalhes, { serie: '' }), origemTexto: `réplica do bem ${b.codigo}` });
+      ui.resultado({ titulo: 'Cópias criadas', sucesso: criados.map((x) => `${x.codigo} · plaqueta ${x.plaqueta}`) });
+      depois();
+    }
+  });
+  A.unidadesProduzidas = (b, depois) => ui.formulario({
+    titulo: 'Unidades produzidas no mês', largura: 'pequena',
+    campos: [{ chave: 'mes', rotulo: 'Mês', tipo: 'data', padrao: VP.Plataforma.hoje(), obrigatorio: true }, { chave: 'quantidade', rotulo: 'Unidades (horas, km, peças…)', tipo: 'numero', obrigatorio: true }],
+    salvar: async (v) => { await VP.db.gravar('eventos', VP.novoEvento(b.id, 'unidades', { data: v.mes, descricao: `${v.quantidade} unidades`, extra: { quantidade: v.quantidade } })); ui.aviso('Registrado. Entra no próximo fechamento do mês.'); depois(); }
+  });
+  A.melhoria = (b, depois) => {
+    const s = VP.saldo(b);
+    ui.formulario({
+      titulo: 'Melhoria (agregação de valor)', largura: 'media', textoSalvar: 'Somar ao valor',
+      intro: `<p class="aviso-inline"><b>Melhoria</b> aumenta capacidade, vida útil ou serviço (ex.: ampliação, troca de toda a tubulação, recapeamento completo) e soma ao valor. <b>Manutenção</b> só mantém o bem (limpeza, conserto, <b>pintura comum</b>) e <b>não</b> aumenta o valor. Na dúvida, registre como manutenção.</p><p>Valor contábil hoje: <b>${u.moeda(s.liquido)}</b></p>`,
+      campos: [
+        { chave: 'tipoGasto', rotulo: 'Este gasto é', tipo: 'select', opcoes: [['melhoria', 'Melhoria — aumenta valor ou vida útil'], ['manutencao', 'Manutenção — só mantém (registrar como despesa)']], vazio: false },
+        { chave: 'valor', rotulo: 'Valor (R$)', tipo: 'moeda', obrigatorio: true, largura: 'meia' }, { chave: 'data', rotulo: 'Data', tipo: 'data', padrao: VP.Plataforma.hoje(), obrigatorio: true, largura: 'meia' },
+        { chave: 'vidaUtilMeses', rotulo: 'Nova vida útil restante (meses, opcional)', tipo: 'numero' },
+        { chave: 'descricao', rotulo: 'O que foi feito', tipo: 'area', obrigatorio: true },
+        { chave: 'documento', rotulo: 'Documento (nota, medição, contrato)' },
+        { chave: 'aprovado', rotulo: 'Setor contábil aprovou somar ao valor', tipo: 'bool' }],
+      salvar: async (v) => {
+        if (v.tipoGasto === 'manutencao') {
+          await VP.db.gravar('eventos', VP.novoEvento(b.id, 'manutencao', { data: v.data, valor: v.valor, descricao: v.descricao, extra: { documento: v.documento } }));
+          ui.aviso('Registrado como manutenção (não muda o valor).');
+          return depois();
+        }
+        if (!v.aprovado) return 'Melhoria só soma ao valor com aprovação do setor contábil.';
+        // nova vida útil = meses já passados no ciclo + meses que ainda faltam (informados)
+        if (v.vidaUtilMeses && s.inicio) b.depreciacao.vidaUtilMeses = Math.max(0, u.mesesEntre(s.inicio, v.data.slice(0, 7))) + Math.floor(v.vidaUtilMeses);
+        await VP.db.gravarVarias({ bens: [b], eventos: [VP.novoEvento(b.id, 'agregacao', { data: v.data, valor: v.valor, descricao: v.descricao, extra: { documento: v.documento, tipoGasto: 'melhoria' } })] });
+        ui.aviso('Melhoria somada ao valor do bem.');
+        depois();
+      }
+    });
+  };
+})();

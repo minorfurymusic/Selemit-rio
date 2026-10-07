@@ -25,6 +25,7 @@ A referência de público-alvo é a Prefeitura de Rio do Sul/SC.
 - (07/10/2026) O aplicativo de campo é HTML instalável (aplicativo web progressivo), funcionando sem internet, em celular e tablet. São dois, um por produto: `patrimonio/app-campo/` (VitalPat Patrimônio) e `cemiterio/app-campo/` (VitalPat Cemitério), cada um com armazenamento e cache próprios.
 - (07/10/2026) Entrada única com login (`index.html` na raiz): o tipo de usuário abre o sistema certo. Usuários de teste `patrimonio`/`123456` e `selemitério`/`123456`. É login **de demonstração** (só no navegador), não é segurança real.
 - (07/10/2026) Publicação e testes pelo Google AI Studio, sincronizado com o GitHub.
+- (07/10/2026) Sistema de gestão do patrimônio em `patrimonio/gestao/` (HTML/JS puros, dados no navegador). O login `patrimonio` abre a Gestão; o app de campo fica no botão do topo. Base: as 47 telas do concorrente, numa versão mais simples e visual, **sem cópia** (mapa em `DOSSIE.md` A5). As imagens do concorrente ficam fora do repositório (Google Drive, pasta Trabalho → "Manual de Utilização Sistema"), porque têm dados internos e nomes de servidores.
 - (07/10/2026) Modelo de importação do cemitério (planilha limpa, só quadra/aléia/sepultura): `cemiterio/modelos-importacao/`.
 
 ## Bloqueador legal (ler antes de qualquer coisa comercial)

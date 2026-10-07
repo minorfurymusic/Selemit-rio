@@ -12,7 +12,7 @@ Público-alvo de referência: Prefeitura Municipal de Rio do Sul/SC
 
 Requisitos • Metodologias • Base legal • Concorrentes e SWOT • Estratégia de licitação
 
-Versão 1.3 — 07/10/2026
+Versão 1.4 — 07/10/2026
 
 Documento interno — não distribuir a terceiros
 
@@ -34,6 +34,7 @@ Documento interno — não distribuir a terceiros
 | 1.1 | 26/09/2026 | **Reorganizado em 2 produtos principais, cada um vendido separadamente** (Parte A — Patrimônio; Parte B — Cemitério), com o mesmo nível de detalhe. **Pesquisa legal de bens móveis e imóveis aprofundada:** NBC TSP 37 (substitui a NBC TSP 07 a partir de 01/01/2027), prazos do PIPCP confirmados, IN TC-20/2015 do TCE/SC (demonstrativo de imóveis e frota), Nota Técnica CNM 23/2018, alienação e doação (Lei 14.133 art. 76), classificação dos bens públicos, áreas públicas de loteamentos. Novos requisitos: frota de veículos, regularização documental de imóveis, cessões/comodatos, avaliação para alienação. Roteiro em duas trilhas. Nenhum conteúdo da v1.0 foi retirado — só reorganizado ou ampliado. |
 | 1.2 | 07/10/2026 | **Decisões do usuário registradas** na seção 1 (impedimento legal resolvido; sistema independente da IPM; equipes de trabalho e treinamento intensivo; apresentação e projetos-piloto no lugar de atestado). **Novo: reavaliação em blocos** por unidade e por outros filtros (Módulo 9, seções A1.13 e A2.13). **Novo: gestão de frota de veículos** completa, com contratos de locação, combustível e quilometragem, tendo o GAX (3ia) como referência (Módulo 10, seções A1.14 e A2.14). **Novo: aplicativo de campo piloto** em HTML, instalável em celular e tablet e funcionando sem internet (seção A2.15, pasta `app-campo/`; na v1.3 separado em `patrimonio/app-campo/` e `cemiterio/app-campo/`). O texto original das seções alteradas foi mantido, e as atualizações aparecem marcadas como "Atualização v1.2". |
 | 1.3 | 07/10/2026 | **Nome provisório: VitalPat**, com logo (P sobre o V, T compartilhado entre VITAL e PAT, em outra cor e grande) — arquivo `app-campo/icones/logo-vitalpat.svg`. **Relatórios visuais** e **exportação em planilha simples com escolha de colunas** (PB-04, PB-18 e PB-19). **Estrutura da planilha "Lista de chãos do cemitério"** registrada como modelo de importação (seção B5), sem os dados pessoais. **Decisão do usuário: os 2 produtos ficam no mesmo repositório, em pastas independentes** (`patrimonio/` e `cemiterio/`), sem código compartilhado; o app de campo foi separado em dois. Planilha de chãos limpa (só quadra, aléia e sepultura) em `cemiterio/modelos-importacao/`. |
+| 1.4 | 07/10/2026 | **Seção A5:** as 47 telas do sistema concorrente (patrimônio) foram mapeadas função por função para uma versão VitalPat mais simples, visual e automática, sem excluir nenhuma função. Criado o sistema de gestão do patrimônio em `patrimonio/gestao/`. |
 
 # 1. Alertas críticos — ler antes de investir tempo e dinheiro
 
@@ -650,6 +651,105 @@ Dois campos: (1) patrimônio, inventário e vistorias; (2) pesquisa de preços. 
 - IPM pode não liberar integração
 - Habilitação técnica em licitação
 - Troca de gestão política
+
+## A5. Funções do sistema concorrente → versão VitalPat (novo na v1.4)
+
+Base: 47 telas do módulo de patrimônio de um sistema concorrente, enviadas pelo usuário em 07/10/2026. As imagens estão guardadas fora do repositório, porque contêm dados internos e nomes de servidores: Google Drive → Trabalho → "Manual de Utilização Sistema". **[C — lido das telas]** para "o que o concorrente tem"; **[D]** para a nossa proposta.
+
+**Regra pedida pelo usuário:** não excluir nenhuma função; criar as que faltam; não copiar; fazer uma versão **mais simples, mais visual, mais automática e com menos passos**, principalmente nos relatórios.
+
+### A5.1 Princípios da versão VitalPat
+
+| Concorrente | VitalPat |
+|---|---|
+| Menus com 5 níveis (Cadastros, Gerenciar, Consultas, Relatórios, Outros) | Menu lateral com **8 áreas**: Painel, Bens, Entradas, Movimentar, Inventário, Financeiro, Relatórios, Cadastros/Configurações. Cada função fica a no máximo 2 cliques |
+| 12 campos de filtro na consulta | **Uma busca única** (código, plaqueta, nome, local, responsável) + filtros em "etiquetas" clicáveis; filtros podem ser salvos |
+| Ficha do bem em 10 abas | **Ficha em uma página**: resumo no topo (foto, valor, barra de depreciação, situação, responsável, QR) e seções abaixo; histórico financeiro e físico juntos numa **linha do tempo** |
+| Ações uma de cada vez, menus suspensos | **Ações em lote**: marcar vários bens → transferir, desuso, baixa, reavaliar, dados complementares, seguro/garantia, etiquetas, termo, planilha |
+| Assistentes de 3 telas (selecionar → selecionados → informações) | **Uma tela com prévia**: filtro, lista marcada, valores antes × depois, confirmar; tudo pode ser desfeito |
+| "Virada mensal" manual (executar / retornar) | **Fechamento do mês** com prévia; o painel avisa quando o mês está pronto para fechar; **desfazer** o último fechamento |
+| Relatórios = formulário de filtros + espera em fila de impressão | **Relatório visual na hora**: números-resumo no topo, gráficos, tabela, filtros em etiquetas; botões **Imprimir/PDF** e **Baixar planilha** (com escolha de colunas) |
+| Configurações com dezenas de chaves | Mesmas opções, **agrupadas e explicadas em linguagem simples**, com valor padrão recomendado |
+| Alertas só de seguro | **Central de pendências** no painel: seguros e garantias vencendo, reavaliação vencida, itens a incorporar, transferências aguardando aceite, bens sem responsável, inventário aberto, mês a fechar, movimentos a contabilizar |
+
+### A5.2 Mapa função por função
+
+| # | Tela / função do concorrente | Onde fica no VitalPat | O que melhora |
+|---|---|---|---|
+| 1 | Consulta de Bem: filtros por classificação, tipo, status, estado, minha responsabilidade, totalizador/paginação, exibir baixados, cidade, bairro, logradouro (faixas "1,2,6-10,15"), campo + operador + valor | **Bens** | Busca única + etiquetas de filtro; faixas de código aceitas na busca ("1,2,6-10"); total de bens e de valor sempre visível; filtros salvos |
+| 2 | Colunas: código, tipo, complemento, aquisição, início depreciação, valor contábil, status, estado, centro de custo/classificação, características; layout "Padrão"; registros por página | **Bens** | Escolha de colunas lembrada; foto e barra de depreciação na lista |
+| 3 | Incluir / Alterar / Excluir / Visualizar | **Bens → Novo bem** e **Ficha** | Inclusão curta (só o essencial) com o resto preenchido pelo produto e pela classificação; código automático; excluir = Lixeira |
+| 4 | Transferência interna / externa / entidade | **Movimentar → Transferências** e ação em lote | Uma tela para os três tipos; aceite do recebedor; termo gerado na hora |
+| 5 | Movimentação financeira | **Ficha → Linha do tempo** e **Financeiro** | Lançamentos financeiros e físicos na mesma linha do tempo |
+| 6 | Desuso (incluir) | Ação na ficha e em lote | Motivo e retorno ao uso registrados |
+| 7 | Anexos (consultar / incluir) | **Ficha → Anexos** | Arrastar arquivo ou foto; prévia da imagem |
+| 8 | Outros → Replicar | Ficha → **Replicar** | Informa a quantidade e gera N bens iguais com códigos seguidos |
+| 9 | Outros → Vistoria | Ficha → **Vistoria** (e app de campo) | Estado, fotos e observação; vistoria do app de campo entra pela importação |
+| 10 | Outros → Dados depreciação | Ficha → **Depreciação** | Gráfico da depreciação ao longo da vida útil; valores calculados sozinhos |
+| 11 | Outros → Unidades produzidas | Ficha → **Depreciação** (método por unidades) | Lançamento mensal de unidades produzidas |
+| 12 | Outros → Despesas | Ficha → **Despesas e manutenções** | Custo acumulado aparece no resumo e no score |
+| 13 | Outros → Observações | Ficha → **Observação** (linha do tempo) | Datada e com autor |
+| 14 | Outros → Medidas | Ficha → **Medidas** | Campos livres (ex.: área, dimensões) |
+| 15 | Outros → Saldo contábil | Ficha → resumo do topo | Valor contábil, depreciação acumulada e valor líquido sempre visíveis |
+| 16 | Outros → Licitação | Ficha → **Origem** | Processo, modalidade e número ligados ao bem |
+| 17 | Veículo | Ficha → **Veículo** (placa, RENAVAM, chassi, combustível) | Liga ao Módulo 10 (frota) |
+| 18 | Imprimir | Ficha → **Imprimir ficha** | Ficha visual de 1 página com QR |
+| 19 | Aba Geral: tipo, código, situação de aquisição, data de aquisição e incorporação, comissão, exercícios anteriores | Ficha → **Identificação** | — |
+| 20 | Aba Empenhos: entidade, empenho, item, quantidade, valores | Ficha → **Origem** | Preenchido sozinho quando o bem vem de "Itens a incorporar" |
+| 21 | Aba Adicional: produto, complemento, fornecedor, conta débito, valor de aquisição e contábil | Ficha → **Identificação / Valores** | Conta sugerida pela classificação |
+| 22 | Aba Centro de Custo/Responsável: centro de custo, localização, responsável, responsáveis adicionais | Ficha → **Local e responsáveis** | — |
+| 23 | Aba Seguro/Garantia: seguradora, corretora, apólice, adesão, início/término, valor, franquia; garantia: fornecedor, tipo, início/término, observação | Ficha → **Seguro e garantia** | Alerta de vencimento no painel; também em lote |
+| 24 | Aba Dados complementares: marca, modelo, cor, série, estado, plaqueta anterior, tombamento, NF (número/série/emissão), RFID, texto jurídico (entidade, categoria, número/ano) | Ficha → **Detalhes** | Também em lote |
+| 25 | Aba Depreciação: automática, método, início, vida útil, tipo de residual (valor/%), valor base, residual, a depreciar, contas débito/crédito, acúmulos manual/automático/total, taxas mensal/anual | Ficha → **Depreciação** | Métodos: cotas constantes, soma dos dígitos, unidades produzidas; taxas calculadas; gráfico |
+| 26 | Aba Anexos | Ficha → **Anexos** | — |
+| 27 | Aba Mov. Financeira (data, tipo, ano, contas, valores, estornado) | Ficha → **Linha do tempo** (filtro "financeiro") | Estorno = lançamento contrário, nada apagado |
+| 28 | Aba Mov. Física (data, tipo, centro de custo, responsável, estado) | Ficha → **Linha do tempo** (filtro "físico") | — |
+| 29 | Anterior / Próximo | Ficha → setas | Navega dentro do resultado da busca |
+| 30 | Cadastros: produtos, gerais, motivos, tipos, centros de custo/localização, contábeis | **Cadastros** | Uma tela por cadastro, mesma aparência, busca e planilha |
+| 31 | Gerenciar → Itens a incorporar (itens de ordem de compra: entidade, incorpora patrimônio, situação; incluir bem, ativar, desativar, empenhos) | **Entradas → Itens a incorporar** | Quantidade 5 → gera 5 bens de uma vez, já com empenho, fornecedor e valor |
+| 32 | Gerenciar → Dados complementares (em lote) | Ação em lote | Uma tela |
+| 33 | Gerenciar → Desuso | Ação em lote | — |
+| 34 | Gerenciar → Inventário | **Inventário** | Ciclo com data de corte, progresso por unidade em barras, importação do app de campo, sobras × não localizados (A2.3) |
+| 35 | Financeiro → Movimentos para contabilizar | **Financeiro → Para a contabilidade** | Arquivo para o setor contábil lançar no sistema oficial; marca o que já foi enviado |
+| 36 | Financeiro → Agregação | **Financeiro → Melhorias (agregação)** | Pergunta "melhoria ou manutenção?" (A2.5) antes de somar ao valor |
+| 37 | Financeiro → Reavaliação (coletiva: bens disponíveis → selecionados → informações; "selecionar todos do filtro") | **Financeiro → Reavaliação** | Reavaliação em blocos (A2.13) com prévia, controle da classe inteira e desfazer |
+| 38 | Financeiro → Depreciação | **Financeiro → Fechar o mês** | Prévia, fechamento e desfazer |
+| 39 | Financeiro → Baixa | **Movimentar → Baixa** e ação em lote | Exige motivo e documentos conforme Lei 14.133 art. 76 (A2.12) |
+| 40 | Transferências → interna, externa, entidade, solicitação, termos de transferência | **Movimentar → Transferências** | Solicitação com aceite; termo automático |
+| 41 | Consultas → eventos patrimoniais, movimentação geral, observações do bem | **Histórico** (linha do tempo geral) | Uma busca para todos os eventos, com filtros por tipo e período |
+| 42 | Consultas → tipo do bem, tipo de movimentações financeiras | **Cadastros** | — |
+| 43 | Relatório: Balancete patrimonial (entidade, período, detalhar bens, tipo, bem, status, conta, centro de custo, cidade/bairro/logradouro) | **Relatórios → Balancete** | Saldo anterior, entradas, saídas, depreciação e saldo final por conta, com gráfico |
+| 44 | Relatório: Bem (datas de aquisição/incorporação/baixa, tipo, conta, estado, status, ordenação; relacionar dados complementares, empenhos, seguros, campos adicionais, responsáveis, mov. física e financeira, depreciação) | **Relatórios → Bens** | Escolha das seções por etiquetas; lista com fotos |
+| 45 | Relatório: Despesas do bem | **Relatórios → Despesas e manutenções** | Ranking dos bens mais caros de manter |
+| 46 | Relatório: Estatístico (incorporação, aquisição, situação, tipo, estado, status, conta, localização; relacionar bem, só baixados, consolidado, motivo de baixa, marca, receptor) | **Relatórios → Estatístico** | Gráficos por estado, classe, unidade, idade e ano de aquisição |
+| 47 | Impressão de etiquetas (grupo, classe, subclasse, produto, datas, centro de custo, localização, status, bens inexistentes, tipo, bem) | **Relatórios → Etiquetas** | Etiqueta com QR Code, pronta para impressora comum |
+| 48 | Relatório: Garantia do bem | **Relatórios → Seguros e garantias** | Linha do tempo de vencimentos |
+| 49 | Relatório: Manutenções (somente bens ausentes, tipo, motivo, fornecedor) | **Relatórios → Despesas e manutenções** | — |
+| 50 | Relatório: Baixa (tipo, motivo, conta, detalhar) | **Relatórios → Baixas** | Gráfico por motivo |
+| 51 | Relatório: Depreciação acumulada (ano, entidade, períodos, grupo/classe/subclasse, contas, centro de custo) | **Relatórios → Depreciação** | Gráfico mês a mês |
+| 52 | Relatório: Incorporação | **Relatórios → Incorporações** | Gráfico mês a mês por origem |
+| 53 | Relatório: Movimentações financeiras | **Relatórios → Movimentações financeiras** | — |
+| 54 | Relatório: Resumo patrimonial (grupo contábil, detalhar) | **Relatórios → Resumo patrimonial** | Cartões por grupo |
+| 55 | Relatório: Inventário (situação, período, centro de custo, localização, responsável; localizados, transferidos, não localizados) | **Relatórios → Inventário** | Progresso e pendências por unidade |
+| 56 | Termo de responsabilidade | **Relatórios → Termo de responsabilidade** | Gerado por responsável ou unidade, com assinatura |
+| 57 | Termo de conferência | **Relatórios → Termo de conferência** | Lista para conferir com caixas de marcação |
+| 58 | Documentos diversos: parecer técnico de avaliação de bens móveis; laudo de reavaliação de veículo | **Relatórios → Documentos** | Preenchidos com os dados do bem e da comissão |
+| 59 | Planilhas | **Baixar planilha** em toda lista e relatório | Escolha de colunas (PB-19) |
+| 60 | Outros → Virada mensal (executar / retornar) | **Financeiro → Fechar o mês** | Ver nº 38 |
+| 61 | Configurações gerais: obriga contas; permite bem por empenho/compra global; código de localização manual; controle de usuário por centro de custo; descrição completa do centro de custo; incorpora só empenhos liquidados; filtro por classificação; plaqueta anterior no relatório; fluxo de cálculo da reavaliação; valida transferência retroativa; notificação de transferência; depreciação anual; código de tombamento automático; obriga centro de custo/localização; taxa de depreciação por entidade | **Configurações → Geral** | Explicação de cada chave em linguagem simples |
+| 62 | Configurações: integrações (compras, contabilidade, importação de itens, arrecadação, extrato do cidadão, doação) | **Configurações → Integrações** | Sistema independente: integrações por arquivo (importar/exportar) |
+| 63 | Configurações: origens (termo de baixa) | **Configurações → Documentos** | — |
+| 64 | Configurações: bem (minha responsabilidade por padrão, código manual, aparência do bem) | **Configurações → Bens** | — |
+| 65 | Configurações: centro de custo (movimentação por centro de custo, centro do patrimônio, centro da solicitação de baixa, valida entidade × órgão) | **Configurações → Unidades** | — |
+| 66 | Agendamento: notificação de vencimento de seguro (período e intervalo) | **Configurações → Avisos** | Avisos de seguro, garantia, reavaliação, manutenção, inventário e fechamento do mês |
+
+### A5.3 Funções que o concorrente não mostrou e o VitalPat tem
+
+Estas funções já estavam no dossiê e foram ligadas ao sistema de gestão: painel com central de pendências; visão por unidade (UN-01); score do bem (A2.4); inventário com bens que mudam de lugar (A2.3); importação do app de campo; reavaliação em blocos com controle da classe (A2.13); melhoria × manutenção (A2.5); Lixeira em tudo (PB-11); trilha de auditoria (PB-10); relatórios visuais (PB-18); planilha com escolha de colunas (PB-19); frota (Módulo 10).
+
+### A5.4 Onde está no código
+
+`patrimonio/gestao/` — **VitalPat Patrimônio · Gestão**. É HTML/CSS/JS puros, com dados guardados no navegador. Os dados de exemplo são fictícios e o envio a servidor ainda não existe. Ao entrar com o usuário `patrimonio`, abre a Gestão, que tem um botão para o aplicativo de campo.
 
 # PARTE B — PRODUTO 2: GESTÃO DE CEMITÉRIO
 
