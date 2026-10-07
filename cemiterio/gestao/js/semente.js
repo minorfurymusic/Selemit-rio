@@ -35,6 +35,21 @@
         }
       }
     });
-    await VP.db.gravarVarias({ cemiterios: [cem], quadras, tumulos, meta: [{ id: 'config', valores: Object.assign({}, VP.CONFIG_PADRAO) }, { id: 'semente', ficticio: true, criadoEm: VP.Plataforma.agoraISO() }] });
+    // Vistorias e ordens de serviço fictícias (etapa 2): ~8% dos túmulos ocupados vistoriados
+    const hoje = VP.Plataforma.hoje();
+    const diasAntes = (n) => { const d = new Date(hoje + 'T12:00:00'); d.setDate(d.getDate() - n); return d.toISOString().slice(0, 10); };
+    const vistorias = [], ordensServico = [];
+    const nota = (ruim) => String(Math.min(4, Math.max(0, Math.round(ruim * 4 + (rnd() - 0.5) * 1.5))));
+    const vistoria = (t, data, ruim) => ({ id: u.id(), tumuloId: t.id, data, v1: nota(ruim * 0.8), v2: nota(ruim), v3: nota(ruim * 0.9), v4: nota(ruim * 0.7), v5: ruim > 0.6 ? 'nao' : rnd() < 0.5 ? 'sim' : 'nao', observacao: '', fotos: [], origem: 'gestao', usuario: 'demonstração', criadoEm: VP.Plataforma.agoraISO() });
+    let nOrdem = 0;
+    for (const t of tumulos) {
+      if (t.ocupacao !== 'ocupado' || rnd() > 0.08) continue;
+      const ruim = rnd();
+      vistorias.push(vistoria(t, diasAntes(entre(150, 300)), ruim));
+      if (ruim > 0.55 && rnd() < 0.7) vistorias.push(vistoria(t, diasAntes(entre(5, 40)), Math.min(1, ruim + 0.1)));
+      if (ruim > 0.7 && rnd() < 0.6) t.indicadores = [['D1', 'D2', 'D3', 'D4'][entre(0, 3)]];
+      if (ruim > 0.8 && rnd() < 0.5) ordensServico.push({ id: u.id(), numero: `${++nOrdem}/${hoje.slice(0, 4)}`, tumuloId: t.id, tipo: rnd() < 0.5 ? 'limpeza' : 'reparo', origem: rnd() < 0.5 ? 'funcionario' : 'familia', prioridade: 'normal', descricao: 'Exemplo fictício', solicitante: '', situacao: 'aberta', abertaEm: diasAntes(entre(1, 30)), prazo: diasAntes(entre(-10, 10)), historico: [], usuario: 'demonstração', criadoEm: VP.Plataforma.agoraISO() });
+    }
+    await VP.db.gravarVarias({ cemiterios: [cem], quadras, tumulos, vistorias, ordensServico, meta:[{ id: 'config', valores: Object.assign({}, VP.CONFIG_PADRAO) }, { id: 'semente', ficticio: true, criadoEm: VP.Plataforma.agoraISO() }] });
   };
 })();

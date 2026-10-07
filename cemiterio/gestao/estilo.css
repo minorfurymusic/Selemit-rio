@@ -351,3 +351,19 @@ body.papel-consulta [data-acao="editar"], body.papel-consulta [data-acao="exclui
 body.papel-campo [data-acao="editar"], body.papel-campo [data-acao="excluir"], body.papel-campo [data-acao="local"],
 body.papel-consulta [data-editar], body.papel-consulta [data-excluir], body.papel-consulta [data-restaurar], body.papel-consulta [data-salvar],
 body.papel-campo [data-editar], body.papel-campo [data-excluir], body.papel-campo [data-restaurar], body.papel-campo [data-salvar] { display: none !important; }
+
+/* ---------- etapa 2: situação do túmulo, vistorias e ordens de serviço */
+.s-regular { color: var(--ok-texto); } .s-atencao { color: #a35a00; } .s-indicio { color: var(--serie-2); } .s-apuracao { color: var(--critico); } .s-declarado { color: #7a1fa2; }
+.c-s-regular { --cor: #1baf7a; } .c-s-atencao { --cor: var(--atencao); } .c-s-indicio { --cor: var(--serie-2); } .c-s-apuracao { --cor: var(--critico); } .c-s-declarado { --cor: #7a1fa2; }
+.os-aberta { color: var(--serie-1); } .os-andamento { color: #a35a00; } .os-concluida { color: var(--ok-texto); } .os-cancelada { color: var(--suave); }
+.atrasada { color: var(--critico); font-weight: 700; }
+.notas-vistoria { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.miniaturas { display: flex; gap: 4px; flex-wrap: wrap; }
+.miniaturas img { width: 44px; height: 44px; object-fit: cover; border-radius: 4px; border: 1px solid var(--borda); }
+.requisitos { margin: 6px 0 0; padding-left: 18px; color: var(--texto-2); font-size: 13px; }
+.codigo-campo { width: 140px; font: inherit; padding: 4px 6px; border: 1px solid var(--borda); border-radius: 6px; background: var(--superficie); color: var(--texto); }
+.sugestao { font-size: 13px; color: var(--texto-2); }
+/* etapa 2: o que cada papel não vê (o banco também recusa) */
+body.papel-consulta [data-e2], body.papel-campo [data-e2="situacao"], body.papel-campo [data-e2="indicadores"], body.papel-campo [data-e2="ordem"],
+body.papel-consulta [data-arquivo-app], body.papel-campo [data-arquivo-app], body.papel-consulta [data-desfazer-rec], body.papel-campo [data-desfazer-rec] { display: none !important; }
+body.papel-campo [data-nova-vis] { display: inline-flex !important; }

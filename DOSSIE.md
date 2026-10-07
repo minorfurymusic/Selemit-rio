@@ -36,6 +36,7 @@ Documento interno — não distribuir a terceiros
 | 1.3 | 07/10/2026 | **Nome provisório: VitalPat**, com logo (P sobre o V, T compartilhado entre VITAL e PAT, em outra cor e grande) — arquivo `app-campo/icones/logo-vitalpat.svg`. *Atualização 07/10/2026: logo substituída pelo escudo VitalPat (marinho e dourado fosco), aprovado pelo usuário.* **Relatórios visuais** e **exportação em planilha simples com escolha de colunas** (PB-04, PB-18 e PB-19). **Estrutura da planilha "Lista de chãos do cemitério"** registrada como modelo de importação (seção B5), sem os dados pessoais. **Decisão do usuário: os 2 produtos ficam no mesmo repositório, em pastas independentes** (`patrimonio/` e `cemiterio/`), sem código compartilhado; o app de campo foi separado em dois. Planilha de chãos limpa (só quadra, aléia e sepultura) em `cemiterio/modelos-importacao/`. |
 | 1.4 | 07/10/2026 | **Seção A5:** as 47 telas do sistema concorrente (patrimônio) foram mapeadas função por função para uma versão VitalPat mais simples, visual e automática, sem excluir nenhuma função. Criado o sistema de gestão do patrimônio em `patrimonio/gestao/`. |
 | 1.5 | 07/10/2026 | **Decisões do usuário:** manter as telas adaptadas do concorrente e somar a elas tudo o que está no dossiê (imóveis, manutenção, chamados, fotos, georreferenciamento); **servidor: Supabase** (já usado pelo usuário em outro projeto); a localização exata de cada túmulo será medida por **empresa especializada** contratada, e o sistema precisa estar pronto para receber esse levantamento (seção B6). Criado o sistema de gestão do cemitério em `cemiterio/gestao/` (etapa 1: túmulos, importação da lista de chãos, mapa por posição, painel, recebimento do levantamento). |
+| 1.6 | 07/10/2026 | **Etapa 2 da Gestão do Cemitério construída:** vistorias (V1–V5), triagem de possível abandono pela seção B2 (o sistema só sugere; a pessoa decide; trava de segurança para "Abandono em apuração"), ordens de serviço e app de campo ampliado. Situação dos itens do B7 registrada logo abaixo da tabela do B7. |
 
 # 1. Alertas críticos — ler antes de investir tempo e dinheiro
 
@@ -1027,6 +1028,8 @@ Pesquisa de 07/10/2026 (PlotBox, Chronicle, CemSites, Cemify, CIMS e outros; fon
 | 8 | Painel de vagas e anos restantes | Sim, **melhorado** (ver abaixo), para planejamento e relatórios |
 | 9 | Digitalização de livros antigos com revisão humana | Sim |
 | 10 | Portal do titular da concessão (atualizar contato, fazer pedidos) | Sim. Integrar com o protocolo da prefeitura se a empresa que fornece o protocolo permitir; senão, protocolo próprio dentro do sistema |
+
+**Situação em 07/10/2026 (etapa 2 da Gestão do Cemitério):** item 2 feito (mapa colorido por situação e por vistoria; a cor "concessão vencida" depende das concessões, etapa 3); item 3 feito (vistorias, avisos de problema e ordens de serviço no app de campo, com foto e GPS, conferidos no escritório antes de entrar no túmulo); item 4 em parte (fotos na ficha, nas vistorias e nas ordens; documentos anexos ainda não); item 6 já existia (QR com o código do túmulo). Pedidos de limpeza e avisos de acidente (item 1) já entram como ordens de serviço com origem "família" ou "população"; notificações e dossiê do processo ficam para a etapa 4.
 
 Ficaram fora: venda de jazigo pela internet (concessão pública não é venda livre), memorial pago e genealogia aberta.
 

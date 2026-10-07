@@ -17,9 +17,17 @@ Abra o `index.html` da raiz e entre com `selemitério` / `123456` (login de demo
 - **Relatórios:** ocupação e folha de etiquetas com QR Code.
 - **Cadastros, Configurações** (precisão máxima da localização exata, cópia de segurança) e **Lixeira**.
 
+## Etapa 2: vistorias, triagem e ordens de serviço
+
+- **Vistorias:** notas de 0 a 4 para estrutura, limpeza, identificação e tampa, mais "sinais de visita recente" (DOSSIE.md B2). Feitas na ficha do túmulo ou recebidas do aplicativo de campo.
+- **Recebidos do aplicativo** (aba em Vistorias): os registros do campo só entram no túmulo depois que uma pessoa confere. Dá para corrigir o código na própria linha, confirmar em lote, descartar e desfazer. Sem servidor, importe a "cópia completa" baixada no aplicativo.
+- **Triagem:** o sistema sugere Regular, Atenção ou Indício de abandono a partir da última vistoria. **Nada muda sozinho:** a pessoa aceita a sugestão (em lote, com tela de resultado) ou decide na ficha. "Abandono em apuração" e "Abandono declarado" só pela ficha, com as exigências de segurança do dossiê.
+- **Ordens de serviço:** limpeza, conserto, acidente ou risco; pedido de funcionário, da família ou da população; prazo, responsável, andamento com histórico, conclusão com foto e lista para imprimir.
+- **Mapa** colorido por situação e por vistoria; **relatório** de triagem por quadra; limites em **Configurações**.
+
 ## O que ainda não faz
 
-Vistorias e túmulos possivelmente abandonados, concessões, sepultamentos, exumações, ossário, processo administrativo e mapa sobre imagem real. Estão nas próximas etapas do `checklist.md`. (Atualização: a ligação ao servidor já existe; veja abaixo.)
+Concessões, sepultamentos, exumações, ossário, processo administrativo e mapa sobre imagem real. Estão nas próximas etapas do `checklist.md`. (Atualização: a ligação ao servidor já existe; veja abaixo.)
 
 ## Com servidor (Supabase)
 

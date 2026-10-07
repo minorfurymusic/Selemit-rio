@@ -5,7 +5,7 @@
   const esc = VP.u.esc;
 
   const MENU = [
-    ['painel', 'Painel', '◧'], ['mapa', 'Mapa', '▦'], ['tumulos', 'Túmulos', '☰'], ['importar', 'Importar planilha', '⇩'],
+    ['painel', 'Painel', '◧'], ['mapa', 'Mapa', '▦'], ['tumulos', 'Túmulos', '☰'], ['vistorias', 'Vistorias', '✓'], ['triagem', 'Triagem', '⚑'], ['ordens', 'Ordens de serviço', '✎'], ['importar', 'Importar planilha', '⇩'],
     ['levantamento', 'Localização', '⌖'], ['relatorios', 'Relatórios', '▤'], ['cadastros', 'Cadastros', '☷'],
     ['configuracoes', 'Configurações', '⚙'], ['lixeira', 'Lixeira', '🗑']
   ];

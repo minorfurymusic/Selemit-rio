@@ -37,6 +37,7 @@
           </section>
           <section class="cartao"><h3>Ocupação por quadra</h3>${G.empilhadas(porQuadra, ['Ocupados', 'Vagos, reservados ou sem informação'])}</section>
           <section class="cartao"><h3>Por tipo</h3>${G.barrasH(Object.entries(L.tipos).map(([k, n]) => ({ rotulo: n, valor: VP.db.lista('tumulos').filter((t) => t.tipo === k).length })))}</section>
+          <section class="cartao"><h3>Situação dos túmulos</h3>${G.barrasH(Object.entries(L.situacoes).map(([k, n]) => ({ rotulo: n, valor: VP.db.lista('tumulos').filter((t) => VP.situacaoAtual(t) === k).length, link: '#tumulos?situacao=' + k })), { mostrarZeros: true })}<p class="ajuda">Situação gravada por decisão de uma pessoa. <a href="#triagem">Triagem</a> · <a href="#ordens">Ordens de serviço</a> (${u.inteiro(VP.db.lista('ordensServico').filter(VP.ordemAberta).length)} abertas)</p></section>
           <section class="cartao"><h3>Levantamento de campo</h3>${G.barrasH([{ rotulo: 'Com localização exata', valor: r.exata }, { rotulo: 'Com localização aproximada', valor: r.comCoordenada - r.exata }, { rotulo: 'Com foto', valor: r.comFoto }, { rotulo: 'Com plaqueta QR', valor: r.comQr }], { mostrarZeros: true })}<p class="ajuda">A localização exata vem do levantamento da empresa especializada (menu Localização).</p></section>
         </div>`
     };
@@ -48,6 +49,8 @@
     ocupacao: { nome: 'Ocupação', classe: (t) => 'c-' + t.ocupacao, legenda: [['c-ocupado', 'Ocupado'], ['c-vago', 'Vago'], ['c-reservado', 'Reservado'], ['c-nao-informado', 'Não informado']] },
     tipo: { nome: 'Tipo', classe: (t) => ({ sepultura: 'c-ocupado', jazigo: 'c-vago', gaveta: 'c-reservado' }[t.tipo] || 'c-nao-informado'), legenda: [['c-ocupado', 'Sepultura'], ['c-vago', 'Jazigo'], ['c-reservado', 'Gaveta'], ['c-nao-informado', 'Outro']] },
     levantamento: { nome: 'Localização', classe: (t) => (VP.coordenadaExata(t) ? 'c-ocupado' : VP.temCoordenada(t) ? 'c-vago' : 'c-nao-informado'), legenda: [['c-ocupado', 'Exata'], ['c-vago', 'Aproximada'], ['c-nao-informado', 'Aguardando levantamento']] },
+    situacao: { nome: 'Situação (abandono)', classe: (t) => 'c-s-' + VP.situacaoAtual(t), legenda: Object.entries(L.situacoes).map(([k, n]) => ['c-s-' + k, n]) },
+    vistoria: { nome: 'Vistoria', classe: (t) => { const v = VP.vistoriasDe(t.id)[0]; if (!v) return 'c-nao-informado'; return VP.temRisco(t) ? 'c-s-apuracao' : VP.notaVistoria(v) >= VP.config().notaAtencao ? 'c-s-atencao' : 'c-s-regular'; }, legenda: [['c-s-regular', 'Vistoriado, sem problema'], ['c-s-atencao', 'Vistoriado, com problemas'], ['c-s-apuracao', 'Com risco (estrutura ou tampa)'], ['c-nao-informado', 'Sem vistoria']] },
     campo: { nome: 'Foto e plaqueta', classe: (t) => ((t.fotos || []).length && t.qrAfixado ? 'c-ocupado' : (t.fotos || []).length || t.qrAfixado ? 'c-vago' : 'c-nao-informado'), legenda: [['c-ocupado', 'Foto e plaqueta'], ['c-vago', 'Só um dos dois'], ['c-nao-informado', 'Nenhum']] }
   };
   T.mapa = (_, query) => {
@@ -102,7 +105,10 @@
       { chave: 'semCoordenada', rotulo: 'Aguardando localização', tipo: 'bool' },
       { chave: 'comCoordenada', rotulo: 'Com localização', tipo: 'bool' },
       { chave: 'semFoto', rotulo: 'Sem foto', tipo: 'bool' },
-      { chave: 'semQr', rotulo: 'Sem plaqueta QR', tipo: 'bool' }];
+      { chave: 'semQr', rotulo: 'Sem plaqueta QR', tipo: 'bool' },
+      { chave: 'situacao', rotulo: 'Situação', tipo: 'select', opcoes: Object.entries(L.situacoes) },
+      { chave: 'risco', rotulo: 'Com risco (estrutura ou tampa)', tipo: 'bool' },
+      { chave: 'semVistoria', rotulo: 'Sem vistoria', tipo: 'bool' }];
     const colunas = [
       { chave: 'codigo', titulo: 'Código', valor: (t) => VP.codigoTumulo(t) },
       { chave: 'quadra', titulo: 'Quadra', valor: (t) => VP.nome('quadras', t.quadraId), ordenar: (t) => VP.db.pega('quadras', t.quadraId)?.ordem },
@@ -115,7 +121,9 @@
       { chave: 'lon', titulo: 'Longitude', valor: (t) => t.geo?.lon ?? '', oculta: true },
       { chave: 'medidas', titulo: 'Medidas (m)', valor: (t) => (t.comprimento ? `${String(t.comprimento).replace('.', ',')} × ${String(t.largura).replace('.', ',')}` : ''), oculta: true },
       { chave: 'foto', titulo: 'Foto', valor: (t) => ((t.fotos || []).length ? 'Sim' : 'Não') },
-      { chave: 'qr', titulo: 'Plaqueta QR', valor: (t) => (t.qrAfixado ? 'Sim' : 'Não') }];
+      { chave: 'qr', titulo: 'Plaqueta QR', valor: (t) => (t.qrAfixado ? 'Sim' : 'Não') },
+      { chave: 'situacao', titulo: 'Situação', html: (t) => VP.etapa2.seloSituacao(t), valor: (t) => L.situacoes[VP.situacaoAtual(t)] },
+      { chave: 'ultimaVistoria', titulo: 'Última vistoria', valor: (t) => u.data(VP.vistoriasDe(t.id)[0]?.data), ordenar: (t) => VP.vistoriasDe(t.id)[0]?.data || '', oculta: true }];
     const desenhar = () => {
       const lista = VP.filtrarTumulos(ui.limparValores(v));
       VP.estado.listaAtual = lista.map((t) => t.id);
@@ -232,12 +240,14 @@
           <section class="cartao secao"><header><h3>Dados</h3></header><dl class="dados"><dt>Cemitério</dt><dd>${esc(VP.nome('cemiterios', t.cemiterioId))}</dd><dt>Quadra</dt><dd>${esc(q?.nome || '')} (${esc(L.tiposQuadra[q?.tipo] || '')})</dd><dt>Aléia</dt><dd>${esc(t.aleia || '—')}</dd><dt>Número</dt><dd>${esc(t.numero)}</dd><dt>Tipo</dt><dd>${esc(L.tipos[t.tipo])}</dd><dt>Ocupação</dt><dd>${esc(L.ocupacao[t.ocupacao])}</dd><dt>Observação</dt><dd>${esc(t.observacao || '—')}</dd></dl></section>
           <section class="cartao secao"><header><h3>Fotos</h3></header>${(t.fotos || []).length ? `<div class="galeria-fotos">${t.fotos.map((f) => `<a href="${f.dataURL}" target="_blank" rel="noopener"><img src="${f.dataURL}" alt=""><small>${u.data(f.data)}</small></a>`).join('')}</div>` : '<p class="vazio">Nenhuma foto.</p>'}</section>
         </div>
+        ${VP.etapa2.secaoFicha(t)}
         <section class="cartao secao linha-do-tempo-cartao"><header><h3>Linha do tempo</h3></header>
           ${evs.length ? `<ol class="linha-do-tempo">${evs.map((e) => `<li class="ev"><span class="ev-data">${u.data(e.data)}</span><span class="ev-corpo"><b>${esc(L.eventos[e.tipo] || e.tipo)}</b><br><small>${esc(e.descricao)} · por ${esc(e.usuario)}</small></span><span></span></li>`).join('')}</ol>` : `<p class="vazio">Cadastrado em ${u.data(t.criadoEm)}. Nenhuma alteração ainda.</p>`}
         </section>`,
       ligar() {
         const c = document.getElementById('conteudo');
         const recarrega = () => VP.app.render();
+        VP.etapa2.ligarFicha(t, recarrega);
         c.querySelector('[data-foto]').addEventListener('change', async (e) => {
           const fotos = await ui.lerArquivos(e.target.files);
           if (!fotos.length) return;
@@ -568,11 +578,14 @@
     html: `<div class="galeria">
       <a class="cartao-relatorio" href="#relatorio/ocupacao"><b>Ocupação por quadra</b><span>Ocupados, vagos e reservados, por quadra e por tipo.</span></a>
       <a class="cartao-relatorio" href="#levantamento"><b>Localização exata</b><span>Andamento do levantamento por quadra e arquivo para o Google Earth.</span></a>
+      <a class="cartao-relatorio" href="#relatorio/triagem"><b>Triagem de abandono por quadra</b><span>Vistoriados, atenção, indício, em apuração e declarados.</span></a>
+      <a class="cartao-relatorio" href="#ordens"><b>Ordens de serviço</b><span>Abertas, atrasadas e pedidos da família, com lista para imprimir.</span></a>
       <a class="cartao-relatorio" href="#relatorio/etiquetas"><b>Etiquetas QR dos túmulos</b><span>Plaquetas prontas para imprimir, por quadra ou aléia.</span></a>
     </div>`
   });
   T.relatorio = (chave) => {
     if (chave === 'etiquetas') return etiquetas();
+    if (chave === 'triagem') return VP.etapa2.relatorioTriagem();
     const quadras = VP.db.lista('quadras').sort((a, b) => a.ordem - b.ordem);
     const linhas = quadras.map((q) => { const l = VP.db.lista('tumulos').filter((t) => t.quadraId === q.id); const r = VP.resumo(l); return Object.assign({ id: q.id, quadra: q.nome }, r, { taxa: r.total ? r.ocupado / r.total : 0 }); }).filter((x) => x.total);
     const r = VP.resumo();
@@ -667,7 +680,11 @@
   // ===================================================================== CONFIGURAÇÕES
   T.configuracoes = () => {
     const cfg = VP.config();
-    const campos = [{ chave: 'entidade', rotulo: 'Nome da prefeitura (sai nos documentos)' }, { chave: 'precisaoMaximaLevantamento', rotulo: 'Precisão máxima para considerar a localização exata (metros)', tipo: 'numero', ajuda: 'Combine com a empresa do levantamento. Covas ficam a cerca de 1,5 m uma da outra.' }];
+    const campos = [{ chave: 'entidade', rotulo: 'Nome da prefeitura (sai nos documentos)' }, { chave: 'precisaoMaximaLevantamento', rotulo: 'Precisão máxima para considerar a localização exata (metros)', tipo: 'numero', ajuda: 'Combine com a empresa do levantamento. Covas ficam a cerca de 1,5 m uma da outra.' },
+      { chave: 'notaAtencao', rotulo: 'Triagem: soma das notas da vistoria para sugerir "Atenção" (0 a 16)', tipo: 'numero', largura: 'meia' },
+      { chave: 'notaIndicio', rotulo: 'Triagem: soma das notas para sugerir "Indício de abandono" (0 a 16)', tipo: 'numero', largura: 'meia' },
+      { chave: 'intervaloVistoriasDias', rotulo: 'Dias mínimos entre a 1ª e a 2ª vistoria para "Abandono em apuração"', tipo: 'numero', largura: 'meia', ajuda: 'O dossiê sugere de 90 a 180 dias. Confira a lei do município.' },
+      { chave: 'prazoOrdemDias', rotulo: 'Prazo padrão das ordens de serviço (dias)', tipo: 'numero', largura: 'meia' }];
     return {
       titulo: 'Configurações',
       acoes: '<button class="botao primario" data-salvar>Salvar</button>',
@@ -675,7 +692,10 @@
         <section class="cartao"><h3>Cópia de segurança</h3>${VP.servidor.ativo ? '<p class="ajuda">Os dados ficam guardados no servidor da prefeitura, com histórico de cada alteração. Você pode baixar uma cópia completa para guardar.</p><div class="linha-botoes"><button class="botao" data-backup>Baixar cópia completa</button></div>' : `<p class="ajuda">Nesta demonstração os dados ficam neste navegador.</p>
           <div class="linha-botoes"><button class="botao" data-backup>Baixar cópia completa</button><label class="botao">Restaurar cópia<input type="file" accept=".json" data-restaurar hidden></label><button class="botao perigo" data-reset>Voltar aos dados de exemplo</button></div>`}</section>`,
       ligar() {
-        document.querySelector('[data-salvar]').addEventListener('click', async () => { const { valores } = ui.lerCampos(document.getElementById('form-cfg'), campos); await VP.salvarConfig(Object.assign({}, cfg, valores)); ui.aviso('Configurações salvas.'); });
+        document.querySelector('[data-salvar]').addEventListener('click', async () => { const { valores } = ui.lerCampos(document.getElementById('form-cfg'), campos);
+          for (const k of ['notaAtencao', 'notaIndicio', 'intervaloVistoriasDias', 'prazoOrdemDias']) if (valores[k] == null || valores[k] < 0) return ui.aviso('Preencha os números da triagem e das ordens.', 'erro');
+          if (valores.notaAtencao > valores.notaIndicio) return ui.aviso('A nota de "Atenção" precisa ser menor ou igual à de "Indício".', 'erro');
+          await VP.salvarConfig(Object.assign({}, cfg, valores)); ui.aviso('Configurações salvas.'); });
         document.querySelector('[data-backup]').addEventListener('click', () => ui.baixar(`vitalpat-cemiterio-copia-${VP.Plataforma.hoje()}.json`, JSON.stringify({ sistema: 'VitalPat Cemitério', versao: 1, geradoEm: VP.Plataforma.agoraISO(), dados: Object.fromEntries(VP.COLECOES.map((c) => [c, VP.db.lista(c, true)])) }), 'application/json'));
         document.querySelector('[data-restaurar]')?.addEventListener('change', async (e) => {
           try {
@@ -698,12 +718,12 @@
   // ===================================================================== LIXEIRA
   T.lixeira = () => {
     const itens = [];
-    for (const c of ['tumulos', 'quadras', 'cemiterios']) for (const x of VP.db.lista(c, true).filter((d) => d.excluido)) itens.push({ id: c + '|' + x.id, col: c, x });
+    for (const c of ['tumulos', 'quadras', 'cemiterios', 'vistorias', 'ordensServico']) for (const x of VP.db.lista(c, true).filter((d) => d.excluido)) itens.push({ id: c + '|' + x.id, col: c, x });
     return {
       titulo: 'Lixeira',
       html: `<div id="area-lix"><p class="ajuda">Nada é apagado de verdade. O que foi excluído fica aqui e pode voltar.</p>${ui.tabela({ id: 'lixeira', linhas: itens, vazio: 'A Lixeira está vazia.', nomePlanilha: 'lixeira', colunas: [
-        { chave: 'tipo', titulo: 'O que é', valor: (i) => ({ tumulos: 'Túmulo', quadras: 'Quadra', cemiterios: 'Cemitério' }[i.col]) },
-        { chave: 'nome', titulo: 'Nome', valor: (i) => (i.col === 'tumulos' ? VP.rotuloTumulo(i.x) : i.x.nome) },
+        { chave: 'tipo', titulo: 'O que é', valor: (i) => ({ tumulos: 'Túmulo', quadras: 'Quadra', cemiterios: 'Cemitério', vistorias: 'Vistoria', ordensServico: 'Ordem de serviço' }[i.col]) },
+        { chave: 'nome', titulo: 'Nome', valor: (i) => { const tu = VP.db.pega('tumulos', i.x.tumuloId); return i.col === 'tumulos' ? VP.rotuloTumulo(i.x) : i.col === 'vistorias' ? `${tu ? VP.codigoTumulo(tu) : '?'} · ${u.data(i.x.data)}` : i.col === 'ordensServico' ? `Ordem ${i.x.numero}${tu ? ' · ' + VP.codigoTumulo(tu) : ''}` : i.x.nome; } },
         { chave: 'quando', titulo: 'Excluído em', valor: (i) => u.data(i.x.excluidoEm) },
         { chave: 'a', titulo: '', html: (i) => `<button class="botao pequeno" data-restaurar="${esc(i.id)}">Restaurar</button>` }] })}</div>`,
       ligar() {

@@ -11,6 +11,8 @@ O aplicativo só abre depois do login na tela inicial do VitalPat (`index.html`,
 ## O que ele faz
 
 - **Vistoria de túmulo:** você lê o QR Code ou digita o código do túmulo e dá uma nota de 0 a 4 para estrutura, limpeza, identificação e tampa. Também registra se há sinais de visita recente e guarda as fotos. O aplicativo só registra o que foi visto e não toma nenhuma medida sobre o túmulo.
+- **Aviso de problema** (etapa 2): código do túmulo, o que precisa (limpeza, conserto, acidente ou risco, outro), descrição e fotos. O escritório confere e abre a ordem de serviço.
+- **Ordens de serviço** (etapa 2): lista das ordens abertas para a equipe. "Marcar como feita" pede o que foi feito e pelo menos uma foto. A ordem só fica concluída depois que o escritório confere.
 - **Registros:** mostra o que está guardado no aparelho. Daqui você baixa uma cópia completa (com fotos) ou uma planilha simples, marcando só as colunas que quiser. O aparelho lembra a última escolha.
 - **Lixeira:** o que você exclui vai para a Lixeira e pode ser restaurado. Nada é apagado de verdade.
 
@@ -21,7 +23,8 @@ Toda foto recebe a data, a hora e a localização gravadas na própria imagem.
 - (Atualização) **Com servidor configurado** (`cemiterio/config-servidor.js`): os registros são enviados sozinhos quando há internet, ou pelo botão **Enviar para o servidor** em Registros. Sem internet, ficam guardados no aparelho e vão quando a internet voltar. Se um envio falhar, o motivo aparece no próprio registro, que continua no aparelho. Sem servidor configurado, segue a demonstração abaixo.
 - Na demonstração (sem servidor): não envia; os dados saem pelos botões de baixar.
 - Sincronização entre aparelhos (cada aparelho envia o que fez; não recebe o dos outros).
-- Carregar a lista real de covas. O modelo da planilha está em `cemiterio/modelos-importacao/`; a importação será feita pelo sistema principal (De/Para), e não por este aplicativo.
+- (Atualização, etapa 2) **Com servidor**, o aplicativo baixa a lista de túmulos e as ordens abertas ao abrir com internet (ou pelo botão **Atualizar lista** na tela inicial) e confere o código mesmo sem internet. Na demonstração, usa a lista fictícia de `dados-exemplo.js`.
+- A importação da planilha de covas continua sendo feita pela Gestão (De/Para), e não por este aplicativo.
 
 Os túmulos de exemplo são fictícios e ficam no arquivo `dados-exemplo.js`.
 

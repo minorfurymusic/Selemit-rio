@@ -49,6 +49,10 @@
     if (f.comCoordenada) l = l.filter((t) => VP.temCoordenada(t));
     if (f.semFoto) l = l.filter((t) => !(t.fotos || []).length);
     if (f.semQr) l = l.filter((t) => !t.qrAfixado);
+    if (f.situacao) l = l.filter((t) => VP.situacaoAtual(t) === f.situacao);
+    if (f.sugestao) l = l.filter((t) => VP.sugestaoTriagem(t).nivel === f.sugestao);
+    if (f.risco) l = l.filter((t) => VP.temRisco(t));
+    if (f.semVistoria) l = l.filter((t) => !VP.vistoriasDe(t.id).length);
     if (f.busca) {
       const termos = u.normalizar(f.busca).split(/\s+/).filter(Boolean);
       l = l.filter((t) => { const x = VP.textoBusca(t); return termos.every((p) => x.includes(p)); });
@@ -88,10 +92,88 @@
     }
     return r;
   };
+  // ---------------------------------------------------------------- vistorias e triagem (DOSSIE.md B2)
+  // O sistema só SUGERE. A situação do túmulo muda apenas quando uma pessoa confirma.
+  let porTumulo = null; // tumuloId → vistorias (mais nova primeiro); refeito quando os dados mudam
+  const invalidarAntes = VP.invalidar;
+  VP.invalidar = () => { invalidarAntes(); porTumulo = null; };
+  VP.vistoriasDe = (tumuloId) => {
+    if (!porTumulo) {
+      porTumulo = new Map();
+      for (const v of VP.db.lista('vistorias')) { if (!porTumulo.has(v.tumuloId)) porTumulo.set(v.tumuloId, []); porTumulo.get(v.tumuloId).push(v); }
+      for (const l of porTumulo.values()) l.sort((a, b) => b.data.localeCompare(a.data) || String(b.criadoEm).localeCompare(String(a.criadoEm)));
+    }
+    return porTumulo.get(tumuloId) || [];
+  };
+  VP.ITENS_NOTA = ['v1', 'v2', 'v3', 'v4'];
+  VP.notaVistoria = (v) => VP.ITENS_NOTA.reduce((s, k) => s + (Number(v[k]) || 0), 0);
+  VP.situacaoAtual = (t) => t.situacao || 'regular';
+  VP.temRisco = (t) => { const v = VP.vistoriasDe(t.id)[0]; return !!v && (Number(v.v1) >= 3 || Number(v.v4) >= 3); };
+  VP.sugestaoTriagem = (t) => {
+    const v = VP.vistoriasDe(t.id)[0];
+    if (!v) return { nivel: 'regular', motivo: 'Sem vistoria' };
+    const cfg = VP.config();
+    const nota = VP.notaVistoria(v);
+    const visita = v.v5 === 'sim';
+    const maior = Math.max(...VP.ITENS_NOTA.map((k) => Number(v[k]) || 0));
+    if (nota >= cfg.notaIndicio && !visita) return { nivel: 'indicio', motivo: `Nota ${nota} de 16 e sem sinais de visita` };
+    if (nota >= cfg.notaIndicio) return { nivel: 'atencao', motivo: `Nota ${nota} de 16, mas com sinais de visita` };
+    if (nota >= cfg.notaAtencao) return { nivel: 'atencao', motivo: `Nota ${nota} de 16` };
+    if (maior >= 3) return { nivel: 'atencao', motivo: 'Um dos itens com nota 3 ou 4' };
+    return { nivel: 'regular', motivo: `Nota ${nota} de 16` };
+  };
+  // Há diferença entre o que o sistema sugere e a situação gravada? (só nos 3 primeiros níveis)
+  VP.sugestaoDiferente = (t) => {
+    const atual = VP.situacaoAtual(t);
+    if (atual === 'apuracao' || atual === 'declarado') return false;
+    return VP.sugestaoTriagem(t).nivel !== atual;
+  };
+  const dias = (a, b) => Math.round((Date.parse(b) - Date.parse(a)) / 86400000);
+  // Regra de segurança para "Abandono em apuração" (DOSSIE.md B2-C). Devolve o que falta.
+  VP.requisitosApuracao = (t) => {
+    const cfg = VP.config();
+    const vs = VP.vistoriasDe(t.id);
+    const faltas = [];
+    if (VP.situacaoAtual(t) !== 'indicio') faltas.push('A situação atual precisa ser "Indício de abandono".');
+    const datas = [...new Set(vs.map((v) => v.data))].sort();
+    if (datas.length < 2) faltas.push(`Precisa de pelo menos 2 vistorias em datas diferentes (tem ${datas.length}).`);
+    else if (dias(datas[0], datas[datas.length - 1]) < cfg.intervaloVistoriasDias) faltas.push(`Entre a primeira e a última vistoria precisa haver pelo menos ${cfg.intervaloVistoriasDias} dias (hoje há ${dias(datas[0], datas[datas.length - 1])}).`);
+    const docs = (t.indicadores || []).filter((k) => k !== 'D5');
+    if (!docs.length) faltas.push('Precisa de pelo menos 1 indicador documental (D1 a D4). D5 sozinho é regularização, não abandono.');
+    if (t.excecaoHistorica) faltas.push('Túmulo marcado como de valor histórico, artístico ou de personalidade: consulte antes o órgão de patrimônio cultural e retire a marcação.');
+    return faltas;
+  };
+
+  // ---------------------------------------------------------------- ordens de serviço
+  VP.ordemAberta = (o) => o.situacao === 'aberta' || o.situacao === 'andamento';
+  VP.ordemAtrasada = (o) => VP.ordemAberta(o) && !!o.prazo && o.prazo < VP.Plataforma.hoje();
+  VP.ordensDe = (tumuloId) => VP.db.lista('ordensServico').filter((o) => o.tumuloId === tumuloId).sort((a, b) => String(b.abertaEm).localeCompare(String(a.abertaEm)));
+  VP.proximoNumeroOrdem = () => {
+    const ano = VP.Plataforma.hoje().slice(0, 4);
+    const n = VP.db.lista('ordensServico', true).filter((o) => String(o.numero).endsWith('/' + ano)).length + 1;
+    return `${n}/${ano}`;
+  };
+  // Código lido no campo → túmulo (sem diferença de maiúsculas, espaços e zeros à esquerda)
+  VP.acharPorCodigo = (codigo) => {
+    const alvo = String(codigo || '').toUpperCase().replace(/\s+/g, '');
+    if (!alvo) return null;
+    const norm = (c) => c.replace(/(^|-)([A-Z]?)0*(\d)/g, '$1$2$3');
+    const de = (t) => VP.codigoTumulo(t).toUpperCase().replace(/\s+/g, '');
+    return VP.db.lista('tumulos').find((t) => de(t) === alvo || norm(de(t)) === norm(alvo)) || null;
+  };
+  VP.registrosParaConferir = () => VP.db.lista('registrosCampo').filter((r) => !r.conferido);
+
   VP.pendencias = () => {
     const r = VP.resumo();
     const p = [];
     const add = (nivel, titulo, qtd, link) => { if (qtd > 0) p.push({ nivel, titulo, qtd, link }); };
+    const tum = VP.db.lista('tumulos');
+    const ordens = VP.db.lista('ordensServico');
+    const comOrdemAberta = new Set(ordens.filter(VP.ordemAberta).map((o) => o.tumuloId));
+    add('critico', 'Túmulos com risco (estrutura ou tampa com nota 3 ou 4) sem ordem de serviço aberta', tum.filter((t) => VP.temRisco(t) && !comOrdemAberta.has(t.id)).length, '#tumulos?risco=1');
+    add('atencao', 'Ordens de serviço atrasadas', ordens.filter(VP.ordemAtrasada).length, '#ordens?atrasadas=1');
+    add('atencao', 'Registros do aplicativo de campo aguardando conferência', VP.registrosParaConferir().length, '#vistorias/recebidos');
+    add('atencao', 'Túmulos em que a sugestão da triagem difere da situação gravada', tum.filter(VP.sugestaoDiferente).length, '#triagem');
     add('atencao', 'Túmulos sem informação de ocupação', r['nao-informado'], '#tumulos?ocupacao=nao-informado');
     add('info', 'Túmulos aguardando a localização exata (levantamento da empresa)', r.total - r.exata, '#levantamento');
     add('info', 'Túmulos sem foto', r.total - r.comFoto, '#tumulos?semFoto=1');

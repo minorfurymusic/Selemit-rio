@@ -75,7 +75,7 @@ textarea { min-height: 80px; resize: vertical; }
 .botao.perigo { background: transparent; color: var(--perigo); border-color: var(--perigo); }
 .botao.largo { width: 100%; margin-top: 18px; }
 .botao:disabled { opacity: .5; cursor: not-allowed; }
-.escala { display: flex; gap: 6px; }
+.escala { display: flex; flex-wrap: wrap; gap: 6px; }
 .escala button {
   flex: 1; min-height: 48px; font: inherit; border-radius: 10px; border: 1px solid var(--borda);
   background: var(--cartao); color: var(--texto); cursor: pointer;

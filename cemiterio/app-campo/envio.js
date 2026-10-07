@@ -25,6 +25,43 @@
     return 'Falha no envio: ' + m.slice(0, 120);
   };
 
+  // Baixa do servidor a lista de túmulos e as ordens de serviço abertas, para conferir o código sem internet.
+  // O código é o mesmo da Gestão: Q<código da quadra>-A<aléia>-<número>, sem zeros à esquerda.
+  const normNumero = (n) => {
+    const t = String(n ?? '').toUpperCase().replace(/[–—]/g, '-').replace(/\s+/g, ' ').trim();
+    const m = t.match(/^0*(\d+)\s*(.*)$/);
+    return m ? (m[1] + (m[2] ? ' ' + m[2].replace(/^-\s*/, '').trim() : '')).trim() : t;
+  };
+  const normAleia = (a) => { const t = String(a ?? '').toUpperCase().replace(/\s+/g, ' ').trim(); const m = t.match(/^0*(\d+)$/); return m ? m[1] : t; };
+  Envio.baixarLista = async () => {
+    const { data: s } = await c.auth.getSession();
+    if (!s.session) return { semLogin: true };
+    const docs = { quadras: [], tumulos: [], ordensServico: [] };
+    const PAGINA = 1000;
+    for (const col of Object.keys(docs)) {
+      for (let de = 0; ; de += PAGINA) {
+        const { data, error } = await c.from('docs').select('id, dados').eq('colecao', col).eq('excluido', false).order('id').range(de, de + PAGINA - 1);
+        if (error) throw new Error(motivo(error));
+        docs[col].push(...data.map((r) => Object.assign(r.dados, { id: r.id })));
+        if (data.length < PAGINA) break;
+      }
+    }
+    const quadras = new Map(docs.quadras.map((q) => [q.id, q]));
+    const codigo = (t) => { const q = quadras.get(t.quadraId); return `Q${String(q?.codigo || '?').replace(/\s+/g, '')}-A${normAleia(t.aleia) || '0'}-${normNumero(t.numero).replace(/\s+/g, '')}`; };
+    const descricao = (t) => `${quadras.get(t.quadraId)?.nome || '?'} · Aléia ${t.aleia || '—'} · Nº ${t.numero}`;
+    const porId = new Map(docs.tumulos.map((t) => [t.id, t]));
+    const TIPOS = { limpeza: 'Limpeza', reparo: 'Conserto', acidente: 'Acidente ou risco', vistoria: 'Fazer vistoria', outro: 'Outro' };
+    const lista = {
+      quando: new Date().toISOString(),
+      tumulos: docs.tumulos.map((t) => ({ codigo: codigo(t), descricao: descricao(t) })),
+      ordens: docs.ordensServico.filter((o) => o.situacao === 'aberta' || o.situacao === 'andamento').map((o) => {
+        const t = porId.get(o.tumuloId);
+        return { id: o.id, numero: o.numero, codigo: t ? codigo(t) : '', descricao: t ? descricao(t) : (o.local || ''), tipo: o.tipo, tipoNome: TIPOS[o.tipo] || o.tipo, prioridade: o.prioridade, oQueFazer: o.descricao, prazo: o.prazo };
+      })
+    };
+    return { lista };
+  };
+
   // Envia todos os registros "aguardando". Devolve { enviados: [...], falhas: [{ id, motivo }] }.
   Envio.enviar = async (Banco, aoAvancar) => {
     if (Envio.enviando) return { enviados: [], falhas: [], ocupado: true };

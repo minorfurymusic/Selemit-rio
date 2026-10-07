@@ -73,7 +73,31 @@ function avisar(texto) {
   avisar._t = setTimeout(() => m.classList.add('oculto'), 3500);
 }
 
-const NOMES_TIPO = { tumulo: 'Vistoria de túmulo' };
+const NOMES_TIPO = { tumulo: 'Vistoria de túmulo', ocorrencia: 'Aviso de problema', conclusaoOS: 'Ordem de serviço feita' };
+
+// ---------------------------------------------------------------------------
+// Lista de túmulos e ordens abertas guardada no aparelho (para trabalhar sem internet).
+// Com servidor: baixada do servidor. Na demonstração: dados de exemplo fictícios.
+// ---------------------------------------------------------------------------
+const Catalogo = {
+  chave: 'vitalpat-cemiterio-lista',
+  ler() { try { return JSON.parse(localStorage.getItem(this.chave)); } catch (_) { return null; } },
+  gravar(l) { try { localStorage.setItem(this.chave, JSON.stringify(l)); return true; } catch (_) { return false; } },
+  servidor: () => !!window.Envio?.ativo,
+  tumulos() { return this.servidor() ? (this.ler()?.tumulos || []) : D.tumulos; },
+  ordens() { return this.servidor() ? (this.ler()?.ordens || []) : (D.ordens || []); },
+  // Sem diferença de maiúsculas, espaços e zeros à esquerda (Q01-A01-002 = Q1-A1-2)
+  norm: (c) => String(c || '').toUpperCase().replace(/\s+/g, '').replace(/(^|-)([A-Z]?)0*(\d)/g, '$1$2$3'),
+  achar(cod) { const n = this.norm(cod); return n ? this.tumulos().find((t) => this.norm(t.codigo) === n) || null : null; }
+};
+async function atualizarLista() {
+  if (!window.Envio?.ativo || !P().online()) return null;
+  try {
+    const r = await window.Envio.baixarLista();
+    if (r.lista) { Catalogo.gravar(r.lista); return r.lista; }
+  } catch (_) { /* fica a lista anterior */ }
+  return null;
+}
 
 // ---------------------------------------------------------------------------
 // Fotos: reduz o tamanho e grava data, hora e localização na própria imagem
@@ -189,15 +213,24 @@ Telas.inicio = async () => {
   const regs = await Banco.todos();
   const aguardando = regs.filter((r) => r.situacao === 'aguardando').length;
   const lixeira = regs.filter((r) => r.situacao === 'lixeira').length;
+  const lista = Catalogo.ler();
+  const nOrdens = Catalogo.ordens().length;
   return {
     titulo: 'VitalPat Cemitério',
     html: `
       ${window.Envio?.ativo ? `<p class="aviso-demo">Conectado ao servidor${window.Envio.municipio ? ' · ' + esc(window.Envio.municipio) : ''}. ${regs.filter((r) => r.situacao === 'enviado').length} registro(s) já enviado(s) deste aparelho.</p>` : '<p class="aviso-demo">Versão de demonstração. Os dados de exemplo são fictícios.</p>'}
       <div class="grade tres">
         <button class="cartao" data-ir="tumulo"><strong>Vistoria de túmulo</strong><span>Estrutura, limpeza, identificação, tampa e sinais de visita</span></button>
+        <button class="cartao" data-ir="ordens"><strong>Ordens de serviço</strong><span><span class="contador">${nOrdens}</span> aberta(s) para a equipe</span></button>
+        <button class="cartao" data-ir="ocorrencia"><strong>Aviso de problema</strong><span>Limpeza, conserto, acidente ou risco encontrado no túmulo</span></button>
         <button class="cartao" data-ir="registros"><strong>Registros</strong><span><span class="contador" id="qtd-aguardando">${aguardando}</span> aguardando envio</span></button>
         <button class="cartao" data-ir="lixeira"><strong>Lixeira</strong><span>${lixeira} registro(s) excluído(s), que podem ser restaurados</span></button>
       </div>
+      ${window.Envio?.ativo ? `<div class="cartao" style="margin-top:12px">
+        <h3 style="margin-top:0">Lista de túmulos no aparelho</h3>
+        <p class="ajuda" id="situacao-lista">${lista ? `${lista.tumulos.length} túmulos e ${lista.ordens.length} ordem(ns) aberta(s), atualizada em ${esc(dataHora(lista.quando))}.` : 'Ainda não baixada. Com internet, toque em “Atualizar lista” para conferir os códigos mesmo sem internet depois.'}</p>
+        <button class="botao secundario" id="atualizar-lista">Atualizar lista</button>
+      </div>` : ''}
       <div class="cartao" style="margin-top:12px">
         <h3 style="margin-top:0">Instalar no aparelho</h3>
         <button class="botao oculto" id="instalar">Instalar aplicativo</button>
@@ -207,6 +240,14 @@ Telas.inicio = async () => {
       </div>`,
     ligar() {
       document.querySelectorAll('[data-ir]').forEach((b) => b.addEventListener('click', () => ir(b.dataset.ir)));
+      $('#atualizar-lista')?.addEventListener('click', async () => {
+        const b = $('#atualizar-lista');
+        if (!P().online()) { avisar('Sem internet. A lista anterior continua no aparelho.'); return; }
+        b.disabled = true; b.textContent = 'Baixando…';
+        const l = await atualizarLista();
+        avisar(l ? `Lista atualizada: ${l.tumulos.length} túmulos.` : 'Não foi possível baixar a lista agora. Tente de novo.');
+        render();
+      });
       if (Instalacao.evento) {
         $('#instalar').classList.remove('oculto');
         $('#instalar').addEventListener('click', async () => {
@@ -244,9 +285,7 @@ Telas.tumulo = async () => {
       ['v1', 'v2', 'v3', 'v4', 'v5'].forEach(ligarEscala);
       ligarFotos(estado);
       const mostrar = (cod) => {
-        const t = D.tumulos.find((x) => x.codigo.toUpperCase() === String(cod).trim().toUpperCase());
-        $('#achado').innerHTML = t ? `<div class="sucesso">${esc(t.descricao)}</div>`
-          : (cod ? '<div class="alerta"><strong>Túmulo sem cadastro.</strong> Será registrado para conferência.</div>' : '');
+        $('#achado').innerHTML = mensagemTumulo(cod);
       };
       $('#codigo').addEventListener('change', (e) => mostrar(e.target.value));
       ligarLeitorQR(mostrar);
@@ -256,7 +295,7 @@ Telas.tumulo = async () => {
         const notas = ['v1', 'v2', 'v3', 'v4', 'v5'].map(valorEscala);
         if (notas.some((n) => n === null)) { avisar('Responda todos os itens da vistoria.'); return; }
         await salvarRegistro('tumulo', estado, {
-          codigo, cadastrado: !!D.tumulos.find((x) => x.codigo === codigo),
+          codigo, cadastrado: !!Catalogo.achar(codigo),
           estrutura: notas[0], limpeza: notas[1], identificacao: notas[2], tampa: notas[3],
           sinaisDeVisita: notas[4], observacao: $('#obs').value.trim()
         });
@@ -266,11 +305,100 @@ Telas.tumulo = async () => {
   };
 };
 
+function mensagemTumulo(cod) {
+  if (!cod) return '';
+  const t = Catalogo.achar(cod);
+  if (t) return `<div class="sucesso">${esc(t.descricao)}</div>`;
+  if (Catalogo.servidor() && !Catalogo.ler()) return '<div class="alerta">A lista de túmulos ainda não foi baixada neste aparelho. O registro será conferido no escritório.</div>';
+  return '<div class="alerta"><strong>Túmulo sem cadastro.</strong> Será registrado para conferência.</div>';
+}
+
+// --- Aviso de problema (vira ordem de serviço depois que o escritório confere) ---
+Telas.ocorrencia = async () => {
+  const estado = { fotos: [], gps: null };
+  return {
+    titulo: 'Aviso de problema',
+    html: `
+      ${campoCodigo('Código do túmulo', 'Ex.: Q01-A1-2')}
+      <div id="achado"></div>
+      <label>O que precisa</label>
+      ${escala('tipo-oc', ['Limpeza', 'Conserto', 'Acidente ou risco', 'Outro'])}
+      <label for="desc">Descrição</label>
+      <textarea id="desc" placeholder="Ex.: lápide caída, mato alto, tampa quebrada"></textarea>
+      ${campoFotos('Fotos do problema')}
+      <div class="alerta">O aviso vai para o escritório, que confere e abre a ordem de serviço.</div>
+      <button class="botao largo" id="salvar">Salvar aviso</button>`,
+    ligar() {
+      ligarEscala('tipo-oc');
+      ligarFotos(estado);
+      $('#codigo').addEventListener('change', (e) => { $('#achado').innerHTML = mensagemTumulo(e.target.value); });
+      ligarLeitorQR((c) => { $('#achado').innerHTML = mensagemTumulo(c); });
+      $('#salvar').addEventListener('click', async () => {
+        const codigo = $('#codigo').value.trim().toUpperCase();
+        const tipo = { Limpeza: 'limpeza', Conserto: 'reparo', 'Acidente ou risco': 'acidente', Outro: 'outro' }[valorEscala('tipo-oc')];
+        const descricao = $('#desc').value.trim();
+        if (!codigo) { avisar('Informe o código do túmulo.'); return; }
+        if (!tipo) { avisar('Escolha o que precisa.'); return; }
+        if (!descricao) { avisar('Descreva o problema.'); return; }
+        await salvarRegistro('ocorrencia', estado, { codigo, cadastrado: !!Catalogo.achar(codigo), tipoOrdem: tipo, descricao });
+        ir('inicio');
+      });
+    }
+  };
+};
+
+// --- Ordens de serviço abertas (marcar como feita, com foto) -------------------
+const Selecao = { ordemId: null };
+Telas.ordens = async () => {
+  const feitas = new Set((await Banco.todos()).filter((r) => r.tipo === 'conclusaoOS' && r.situacao !== 'lixeira').map((r) => r.dados.ordemId));
+  const ordens = Catalogo.ordens();
+  const o = ordens.find((x) => x.id === Selecao.ordemId);
+  if (o) {
+    const estado = { fotos: [], gps: null };
+    return {
+      titulo: 'Ordem ' + o.numero,
+      html: `
+        <div class="cartao"><strong>${esc(o.tipoNome)}${o.prioridade === 'urgente' ? ' · URGENTE' : ''}</strong><p>${esc(o.oQueFazer)}</p><p class="ajuda">${esc(o.codigo)} · ${esc(o.descricao)} · prazo ${esc(o.prazo ? o.prazo.split('-').reverse().join('/') : '—')}</p></div>
+        <label for="nota">O que foi feito</label>
+        <textarea id="nota" placeholder="Ex.: mato cortado e lápide limpa"></textarea>
+        ${campoFotos('Fotos do serviço feito')}
+        <button class="botao largo" id="salvar">Marcar como feita</button>
+        <button class="botao secundario largo" id="cancelar" style="margin-top:8px">Voltar à lista</button>`,
+      ligar() {
+        ligarFotos(estado);
+        $('#cancelar').addEventListener('click', () => { Selecao.ordemId = null; render(); });
+        $('#salvar').addEventListener('click', async () => {
+          const nota = $('#nota').value.trim();
+          if (!nota) { avisar('Conte o que foi feito.'); return; }
+          if (!estado.fotos.length) { avisar('Tire pelo menos uma foto do serviço feito.'); return; }
+          await salvarRegistro('conclusaoOS', estado, { ordemId: o.id, numeroOrdem: o.numero, codigo: o.codigo, nota });
+          Selecao.ordemId = null;
+          render();
+        });
+      }
+    };
+  }
+  return {
+    titulo: 'Ordens de serviço',
+    html: `
+      <p class="ajuda">${Catalogo.servidor() ? (Catalogo.ler() ? `Lista baixada em ${esc(dataHora(Catalogo.ler().quando))}. Para ver ordens novas, use “Atualizar lista” na tela inicial.` : 'Lista ainda não baixada. Use “Atualizar lista” na tela inicial, com internet.') : 'Exemplos fictícios da demonstração.'}</p>
+      ${ordens.length ? `<ul class="lista">${ordens.map((x) => `
+        <li><div class="topo"><strong>${esc(x.numero)} · ${esc(x.tipoNome)}${x.prioridade === 'urgente' ? ' · URGENTE' : ''}</strong><span class="data">prazo ${esc(x.prazo ? x.prazo.split('-').reverse().join('/') : '—')}</span></div>
+          <div>${esc(x.oQueFazer)}</div><div class="ajuda">${esc(x.codigo)} · ${esc(x.descricao)}</div>
+          <div class="topo" style="margin-top:8px">${feitas.has(x.id) ? '<span class="etiqueta">Marcada como feita neste aparelho</span>' : `<button class="botao" data-ordem="${esc(x.id)}">Marcar como feita</button>`}</div></li>`).join('')}</ul>` : '<p class="ajuda">Nenhuma ordem de serviço aberta.</p>'}`,
+    ligar() {
+      document.querySelectorAll('[data-ordem]').forEach((b) => b.addEventListener('click', () => { Selecao.ordemId = b.dataset.ordem; render(); }));
+    }
+  };
+};
+
 // --- Registros e Lixeira -------------------------------------------------------
 function resumo(r) {
   const d = r.dados;
   switch (r.tipo) {
     case 'tumulo': return `${d.codigo} · estrutura ${d.estrutura}, limpeza ${d.limpeza}, identificação ${d.identificacao}, tampa ${d.tampa} · visita recente: ${d.sinaisDeVisita}`;
+    case 'ocorrencia': return `${d.codigo} · ${d.descricao}`;
+    case 'conclusaoOS': return `Ordem ${d.numeroOrdem} (${d.codigo}) · ${d.nota}`;
     default: return '';
   }
 }
@@ -413,8 +541,9 @@ function baixar(nome, conteudo, tipo) {
 // Nomes das informações como aparecem na escolha de colunas e no cabeçalho da planilha
 const ROTULOS = {
   codigo: 'Código do túmulo', cadastrado: 'Túmulo cadastrado', estrutura: 'Estrutura', limpeza: 'Limpeza',
-  identificacao: 'Identificação', tampa: 'Tampa', sinaisDeVisita: 'Sinais de visita', observacao: 'Observação'
-}
+  identificacao: 'Identificação', tampa: 'Tampa', sinaisDeVisita: 'Sinais de visita', observacao: 'Observação',
+  tipoOrdem: 'O que precisa', descricao: 'Descrição', ordemId: 'Identificação da ordem', numeroOrdem: 'Número da ordem', nota: 'O que foi feito'
+};
 const COLUNAS_FIXAS = [
   { chave: '_id', rotulo: 'Número do registro', valor: (r) => r.id },
   { chave: '_tipo', rotulo: 'Tipo de registro', valor: (r) => NOMES_TIPO[r.tipo] },
@@ -474,7 +603,7 @@ function atualizarConexao() {
   $('#conexao').textContent = on ? 'Com internet' : 'Sem internet';
 }
 
-$('#voltar').addEventListener('click', () => { location.hash = 'inicio'; });
+$('#voltar').addEventListener('click', () => { Selecao.ordemId = null; location.hash = 'inicio'; });
 // Sair: volta para a tela de login. Os registros continuam guardados no aparelho.
 $('#sair').addEventListener('click', async () => {
   if (window.Envio?.ativo) await window.Envio.sair();
@@ -486,6 +615,8 @@ window.addEventListener('online', atualizarConexao);
 // Envio automático: ao abrir com internet e quando a internet volta
 async function envioAutomatico() {
   if (!window.Envio?.ativo || !P().online()) return;
+  // Ao abrir com internet, a lista do aparelho também é atualizada
+  if (await atualizarLista() && telaAtual() === 'inicio') render();
   const r = await window.Envio.enviar(Banco);
   if (r.enviados?.length) { avisar(`${r.enviados.length} registro(s) enviado(s) ao servidor.`); if (['inicio', 'registros'].includes(telaAtual())) render(); }
 }

@@ -70,18 +70,39 @@ VP.LISTAS = {
   fontesGeo: { levantamento: 'Levantamento da empresa especializada', 'gps-celular': 'GPS do celular (aproximado)', manual: 'Informado à mão' },
   eventos: {
     cadastro: 'Cadastro', alteracao: 'Alteração de dados', importacao: 'Importação de planilha', georreferenciamento: 'Localização exata',
-    foto: 'Foto', observacao: 'Observação', qr: 'Plaqueta QR afixada'
-  }
+    foto: 'Foto', observacao: 'Observação', qr: 'Plaqueta QR afixada',
+    vistoria: 'Vistoria', situacao: 'Mudança de situação', indicador: 'Indicador documental', ordem: 'Ordem de serviço'
+  },
+  // Classificação do DOSSIE.md B2-C. Só muda por decisão de uma pessoa; o sistema apenas sugere.
+  situacoes: { regular: 'Regular', atencao: 'Atenção', indicio: 'Indício de abandono', apuracao: 'Abandono em apuração', declarado: 'Abandono declarado (ato publicado)' },
+  // Indicadores documentais (DOSSIE.md B2-A). Marcados por uma pessoa.
+  indicadores: {
+    D1: 'Concessão temporária vencida',
+    D2: 'Taxas do cemitério em aberto',
+    D3: 'Titular sem cadastro válido, falecido sem sucessor ou carta devolvida',
+    D4: 'Sem nenhum movimento há muitos anos',
+    D5: 'Concessão sem documento que comprove o título (regularização, não é abandono sozinho)'
+  },
+  itensVistoria: { v1: 'Estrutura (rachaduras, desabamento, risco)', v2: 'Limpeza e mato', v3: 'Identificação (lápide ou placa legível)', v4: 'Tampa e vedação' },
+  tiposOrdem: { limpeza: 'Limpeza', reparo: 'Conserto', acidente: 'Acidente ou risco (quebra, desabamento)', vistoria: 'Fazer vistoria', outro: 'Outro' },
+  origensOrdem: { funcionario: 'Funcionário da prefeitura', familia: 'Pedido da família', populacao: 'Aviso da população', campo: 'Aplicativo de campo' },
+  situacoesOrdem: { aberta: 'Aberta', andamento: 'Em andamento', concluida: 'Concluída', cancelada: 'Cancelada' },
+  prioridades: { normal: 'Normal', alta: 'Alta', urgente: 'Urgente' }
 };
 
 VP.CONFIG_PADRAO = {
   entidade: 'Prefeitura Municipal de Exemplo',
   // Avisos e regras ficam configuráveis por município (lei municipal de cada um)
   precisaoMaximaLevantamento: 0.5, // metros: acima disso, a coordenada é marcada como "aproximada"
-  mostrarFotos: true
+  mostrarFotos: true,
+  // Triagem (DOSSIE.md B2): soma das notas V1 a V4 (0 a 16) da última vistoria
+  notaAtencao: 6,
+  notaIndicio: 10,
+  intervaloVistoriasDias: 90, // mínimo entre a 1ª e a 2ª vistoria para "Abandono em apuração"
+  prazoOrdemDias: 15
 };
 
-VP.COLECOES = ['cemiterios', 'quadras', 'tumulos', 'eventos', 'importacoes', 'filtrosSalvos', 'meta', 'registrosCampo'];
+VP.COLECOES = ['cemiterios', 'quadras', 'tumulos', 'eventos', 'importacoes', 'filtrosSalvos', 'meta', 'registrosCampo', 'vistorias', 'ordensServico'];
 
 // Armazenamento no navegador (IndexedDB). Tudo é carregado na memória ao abrir.
 // Preparado para trocar por servidor (Supabase) mantendo as mesmas funções: carregar, lista, pega, gravar, gravarVarias.
