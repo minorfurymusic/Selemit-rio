@@ -25,9 +25,17 @@ Abra o `index.html` da raiz e entre com `selemitério` / `123456` (login de demo
 - **Ordens de serviço:** limpeza, conserto, acidente ou risco; pedido de funcionário, da família ou da população; prazo, responsável, andamento com histórico, conclusão com foto e lista para imprimir.
 - **Mapa** colorido por situação e por vistoria; **relatório** de triagem por quadra; limites em **Configurações**.
 
+## Etapa 3: concessões, sepultamentos, exumações e vagas
+
+- **Sepultamentos:** agenda (a funerária pede, o cemitério agenda e confirma; o túmulo passa a "Ocupado") e lista de todos os sepultados com busca por nome. Sepultamento antigo é registrado pela ficha ou pelo botão da lista.
+- **Concessões:** perpétua ou temporária, titular (CPF sempre mascarado na tela), troca de titular com histórico, renovação e encerramento. Temporária vencida vira o indicador D1 da triagem sozinha.
+- **Exumações e ossário:** agendar exige motivo e nº do processo; o sistema barra o que a regra não permite (prazo mínimo, abandono não declarado). O registro da exumação feita exige 2 testemunhas e o destino; no ossário, os restos ficam ligados ao nicho e ao nome do falecido.
+- **Vagas:** livres por tipo e quadra, sepultamentos por mês, previsão em 3 cenários e vagas que podem voltar (cada uma depende de decisão e processo).
+- **Configurações:** prazos de permanência, exumação mínima, guarda no ossário e se a lei permite retomar concessão perpétua. Os valores padrão vêm de leis de referência; confira a do seu município.
+
 ## O que ainda não faz
 
-Concessões, sepultamentos, exumações, ossário, processo administrativo e mapa sobre imagem real. Estão nas próximas etapas do `checklist.md`. (Atualização: a ligação ao servidor já existe; veja abaixo.)
+Importação de titulares e sepultados das planilhas antigas, portal das funerárias e do titular, sepultamentos, exumações, ossário, processo administrativo e mapa sobre imagem real. Estão nas próximas etapas do `checklist.md`. (Atualização: a ligação ao servidor já existe; veja abaixo.)
 
 ## Com servidor (Supabase)
 

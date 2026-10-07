@@ -51,6 +51,7 @@
     levantamento: { nome: 'Localização', classe: (t) => (VP.coordenadaExata(t) ? 'c-ocupado' : VP.temCoordenada(t) ? 'c-vago' : 'c-nao-informado'), legenda: [['c-ocupado', 'Exata'], ['c-vago', 'Aproximada'], ['c-nao-informado', 'Aguardando levantamento']] },
     situacao: { nome: 'Situação (abandono)', classe: (t) => 'c-s-' + VP.situacaoAtual(t), legenda: Object.entries(L.situacoes).map(([k, n]) => ['c-s-' + k, n]) },
     vistoria: { nome: 'Vistoria', classe: (t) => { const v = VP.vistoriasDe(t.id)[0]; if (!v) return 'c-nao-informado'; return VP.temRisco(t) ? 'c-s-apuracao' : VP.notaVistoria(v) >= VP.config().notaAtencao ? 'c-s-atencao' : 'c-s-regular'; }, legenda: [['c-s-regular', 'Vistoriado, sem problema'], ['c-s-atencao', 'Vistoriado, com problemas'], ['c-s-apuracao', 'Com risco (estrutura ou tampa)'], ['c-nao-informado', 'Sem vistoria']] },
+    concessao: { nome: 'Concessão', classe: (t) => { const c = VP.concessaoAtual(t.id); return !c ? 'c-nao-informado' : VP.concessaoVencida(c) ? 'c-s-apuracao' : c.tipo === 'perpetua' ? 'c-s-declarado' : 'c-s-regular'; }, legenda: [['c-s-declarado', 'Perpétua'], ['c-s-regular', 'Temporária vigente'], ['c-s-apuracao', 'Concessão vencida'], ['c-nao-informado', 'Sem concessão']] },
     campo: { nome: 'Foto e plaqueta', classe: (t) => ((t.fotos || []).length && t.qrAfixado ? 'c-ocupado' : (t.fotos || []).length || t.qrAfixado ? 'c-vago' : 'c-nao-informado'), legenda: [['c-ocupado', 'Foto e plaqueta'], ['c-vago', 'Só um dos dois'], ['c-nao-informado', 'Nenhum']] }
   };
   T.mapa = (_, query) => {
@@ -108,7 +109,9 @@
       { chave: 'semQr', rotulo: 'Sem plaqueta QR', tipo: 'bool' },
       { chave: 'situacao', rotulo: 'Situação', tipo: 'select', opcoes: Object.entries(L.situacoes) },
       { chave: 'risco', rotulo: 'Com risco (estrutura ou tampa)', tipo: 'bool' },
-      { chave: 'semVistoria', rotulo: 'Sem vistoria', tipo: 'bool' }];
+      { chave: 'semVistoria', rotulo: 'Sem vistoria', tipo: 'bool' },
+      { chave: 'concessao', rotulo: 'Concessão', tipo: 'select', opcoes: [['perpetua', 'Perpétua'], ['temporaria', 'Temporária'], ['vencida', 'Temporária vencida'], ['sem', 'Sem concessão']] },
+      { chave: 'permanenciaVencida', rotulo: 'Gaveta com permanência vencida', tipo: 'bool' }];
     const colunas = [
       { chave: 'codigo', titulo: 'Código', valor: (t) => VP.codigoTumulo(t) },
       { chave: 'quadra', titulo: 'Quadra', valor: (t) => VP.nome('quadras', t.quadraId), ordenar: (t) => VP.db.pega('quadras', t.quadraId)?.ordem },
@@ -123,6 +126,8 @@
       { chave: 'foto', titulo: 'Foto', valor: (t) => ((t.fotos || []).length ? 'Sim' : 'Não') },
       { chave: 'qr', titulo: 'Plaqueta QR', valor: (t) => (t.qrAfixado ? 'Sim' : 'Não') },
       { chave: 'situacao', titulo: 'Situação', html: (t) => VP.etapa2.seloSituacao(t), valor: (t) => L.situacoes[VP.situacaoAtual(t)] },
+      { chave: 'concessao', titulo: 'Concessão', html: (t) => VP.etapa3.seloConcessao(VP.concessaoAtual(t.id)), valor: (t) => { const c = VP.concessaoAtual(t.id); return !c ? 'Sem concessão' : VP.concessaoVencida(c) ? 'Temporária vencida' : L.tiposConcessao[c.tipo]; }, oculta: true },
+      { chave: 'sepultados', titulo: 'Sepultados', valor: (t) => VP.sepultadosAtivos(t.id).map((x) => x.falecido).join('; '), oculta: true },
       { chave: 'ultimaVistoria', titulo: 'Última vistoria', valor: (t) => u.data(VP.vistoriasDe(t.id)[0]?.data), ordenar: (t) => VP.vistoriasDe(t.id)[0]?.data || '', oculta: true }];
     const desenhar = () => {
       const lista = VP.filtrarTumulos(ui.limparValores(v));
@@ -240,6 +245,7 @@
           <section class="cartao secao"><header><h3>Dados</h3></header><dl class="dados"><dt>Cemitério</dt><dd>${esc(VP.nome('cemiterios', t.cemiterioId))}</dd><dt>Quadra</dt><dd>${esc(q?.nome || '')} (${esc(L.tiposQuadra[q?.tipo] || '')})</dd><dt>Aléia</dt><dd>${esc(t.aleia || '—')}</dd><dt>Número</dt><dd>${esc(t.numero)}</dd><dt>Tipo</dt><dd>${esc(L.tipos[t.tipo])}</dd><dt>Ocupação</dt><dd>${esc(L.ocupacao[t.ocupacao])}</dd><dt>Observação</dt><dd>${esc(t.observacao || '—')}</dd></dl></section>
           <section class="cartao secao"><header><h3>Fotos</h3></header>${(t.fotos || []).length ? `<div class="galeria-fotos">${t.fotos.map((f) => `<a href="${f.dataURL}" target="_blank" rel="noopener"><img src="${f.dataURL}" alt=""><small>${u.data(f.data)}</small></a>`).join('')}</div>` : '<p class="vazio">Nenhuma foto.</p>'}</section>
         </div>
+        ${VP.etapa3.secaoFicha(t)}
         ${VP.etapa2.secaoFicha(t)}
         <section class="cartao secao linha-do-tempo-cartao"><header><h3>Linha do tempo</h3></header>
           ${evs.length ? `<ol class="linha-do-tempo">${evs.map((e) => `<li class="ev"><span class="ev-data">${u.data(e.data)}</span><span class="ev-corpo"><b>${esc(L.eventos[e.tipo] || e.tipo)}</b><br><small>${esc(e.descricao)} · por ${esc(e.usuario)}</small></span><span></span></li>`).join('')}</ol>` : `<p class="vazio">Cadastrado em ${u.data(t.criadoEm)}. Nenhuma alteração ainda.</p>`}
@@ -248,6 +254,7 @@
         const c = document.getElementById('conteudo');
         const recarrega = () => VP.app.render();
         VP.etapa2.ligarFicha(t, recarrega);
+        VP.etapa3.ligarFicha(t, recarrega);
         c.querySelector('[data-foto]').addEventListener('change', async (e) => {
           const fotos = await ui.lerArquivos(e.target.files);
           if (!fotos.length) return;
@@ -580,6 +587,8 @@
       <a class="cartao-relatorio" href="#levantamento"><b>Localização exata</b><span>Andamento do levantamento por quadra e arquivo para o Google Earth.</span></a>
       <a class="cartao-relatorio" href="#relatorio/triagem"><b>Triagem de abandono por quadra</b><span>Vistoriados, atenção, indício, em apuração e declarados.</span></a>
       <a class="cartao-relatorio" href="#ordens"><b>Ordens de serviço</b><span>Abertas, atrasadas e pedidos da família, com lista para imprimir.</span></a>
+      <a class="cartao-relatorio" href="#vagas"><b>Painel de vagas</b><span>Vagas por tipo e quadra, sepultamentos por mês, previsão em 3 cenários e vagas que podem voltar.</span></a>
+      <a class="cartao-relatorio" href="#sepultamentos"><b>Agenda de sepultamentos</b><span>Agendados por dia, para imprimir.</span></a>
       <a class="cartao-relatorio" href="#relatorio/etiquetas"><b>Etiquetas QR dos túmulos</b><span>Plaquetas prontas para imprimir, por quadra ou aléia.</span></a>
     </div>`
   });
@@ -632,6 +641,10 @@
       { chave: 'geo.ortofoto.sul', rotulo: 'Limite sul (latitude)', largura: 'meia' }, { chave: 'geo.ortofoto.norte', rotulo: 'Limite norte (latitude)', largura: 'meia' },
       { chave: 'geo.ortofoto.oeste', rotulo: 'Limite oeste (longitude)', largura: 'meia' }, { chave: 'geo.ortofoto.leste', rotulo: 'Limite leste (longitude)', largura: 'meia' }],
     colunas: [{ chave: 'nome', titulo: 'Nome' }, { chave: 'bairro', titulo: 'Bairro' }, { chave: 'tum', titulo: 'Túmulos', num: true, valor: (c) => VP.db.lista('tumulos').filter((t) => t.cemiterioId === c.id).length }, { chave: 'geo', titulo: 'Ponto central', valor: (c) => (c.geo?.lat ? `${c.geo.lat}, ${c.geo.lon}` : '—') }, { chave: 'orto', titulo: 'Foto aérea', valor: (c) => (c.geo?.ortofoto?.url ? 'Sim' : 'Não') }] },
+    funerarias: { titulo: 'Funerárias', campos: () => [
+      { chave: 'nome', rotulo: 'Nome', obrigatorio: true }, { chave: 'cnpj', rotulo: 'CNPJ', largura: 'meia' }, { chave: 'telefone', rotulo: 'Telefone', largura: 'meia' },
+      { chave: 'responsavel', rotulo: 'Responsável', largura: 'meia' }, { chave: 'email', rotulo: 'E-mail', largura: 'meia' }],
+    colunas: [{ chave: 'nome', titulo: 'Nome' }, { chave: 'cnpj', titulo: 'CNPJ' }, { chave: 'telefone', titulo: 'Telefone' }, { chave: 'responsavel', titulo: 'Responsável' }, { chave: 'sep', titulo: 'Sepultamentos', num: true, valor: (f) => VP.db.lista('sepultamentos').filter((x) => x.funerariaId === f.id).length }] },
     quadras: { titulo: 'Quadras', campos: () => [
       { chave: 'cemiterioId', rotulo: 'Cemitério', tipo: 'select', opcoes: opc('cemiterios'), obrigatorio: true }, { chave: 'nome', rotulo: 'Nome', obrigatorio: true, largura: 'meia' }, { chave: 'codigo', rotulo: 'Código (vai no QR)', obrigatorio: true, largura: 'meia' },
       { chave: 'tipo', rotulo: 'Tipo', tipo: 'select', opcoes: Object.entries(L.tiposQuadra), vazio: false, largura: 'meia' }, { chave: 'ordem', rotulo: 'Ordem no mapa', tipo: 'numero', largura: 'meia' }],
@@ -668,8 +681,8 @@
           const ed = e.target.closest('[data-editar]'); if (ed) return editar(VP.db.pega(qual, ed.dataset.editar));
           const ex = e.target.closest('[data-excluir]'); if (!ex) return;
           const x = VP.db.pega(qual, ex.dataset.excluir);
-          const uso = VP.db.lista('tumulos').filter((t) => (qual === 'quadras' ? t.quadraId : t.cemiterioId) === x.id).length;
-          if (uso) return ui.aviso(`Não dá para excluir: ${uso} túmulo(s) usam este cadastro.`, 'erro');
+          const uso = qual === 'funerarias' ? VP.db.lista('sepultamentos').filter((s) => s.funerariaId === x.id).length : VP.db.lista('tumulos').filter((t) => (qual === 'quadras' ? t.quadraId : t.cemiterioId) === x.id).length;
+          if (uso) return ui.aviso(`Não dá para excluir: ${uso} ${qual === 'funerarias' ? 'sepultamento(s)' : 'túmulo(s)'} usam este cadastro.`, 'erro');
           if (!await ui.confirmar(`Mover <b>${esc(x.nome)}</b> para a Lixeira?`, { sim: 'Mover para a Lixeira', classe: 'perigo' })) return;
           x.excluido = true; x.excluidoEm = VP.Plataforma.agoraISO(); await VP.db.gravar(qual, x); VP.app.render();
         };
@@ -684,7 +697,12 @@
       { chave: 'notaAtencao', rotulo: 'Triagem: soma das notas da vistoria para sugerir "Atenção" (0 a 16)', tipo: 'numero', largura: 'meia' },
       { chave: 'notaIndicio', rotulo: 'Triagem: soma das notas para sugerir "Indício de abandono" (0 a 16)', tipo: 'numero', largura: 'meia' },
       { chave: 'intervaloVistoriasDias', rotulo: 'Dias mínimos entre a 1ª e a 2ª vistoria para "Abandono em apuração"', tipo: 'numero', largura: 'meia', ajuda: 'O dossiê sugere de 90 a 180 dias. Confira a lei do município.' },
-      { chave: 'prazoOrdemDias', rotulo: 'Prazo padrão das ordens de serviço (dias)', tipo: 'numero', largura: 'meia' }];
+      { chave: 'prazoOrdemDias', rotulo: 'Prazo padrão das ordens de serviço (dias)', tipo: 'numero', largura: 'meia' },
+      { chave: 'permanenciaAdultoAnos', rotulo: 'Permanência em gaveta: adulto (anos)', tipo: 'numero', largura: 'meia', ajuda: 'Padrão 5 (Rio do Sul). Confira a lei do município.' },
+      { chave: 'permanenciaCriancaAnos', rotulo: 'Permanência em gaveta: criança (anos)', tipo: 'numero', largura: 'meia', ajuda: 'Padrão 3 (Rio do Sul).' },
+      { chave: 'exumacaoMinimaAnos', rotulo: 'Exumação: mínimo de anos depois do sepultamento', tipo: 'numero', largura: 'meia', ajuda: 'Padrão 5 (referência: Bom Retiro). Ordem judicial ou policial não tem mínimo.' },
+      { chave: 'guardaOssarioAnos', rotulo: 'Ossário: anos de guarda para a família retirar', tipo: 'numero', largura: 'meia', ajuda: 'Padrão 3 (referência: Joinville).' },
+      { chave: 'leiPermiteRetomadaPerpetua', rotulo: 'A lei municipal permite retomar concessão perpétua por abandono', tipo: 'bool', ajuda: 'Deixe desmarcado até conferir a lei. Desmarcado, túmulo com concessão perpétua não passa a "Abandono em apuração".' }];
     return {
       titulo: 'Configurações',
       acoes: '<button class="botao primario" data-salvar>Salvar</button>',
@@ -693,7 +711,7 @@
           <div class="linha-botoes"><button class="botao" data-backup>Baixar cópia completa</button><label class="botao">Restaurar cópia<input type="file" accept=".json" data-restaurar hidden></label><button class="botao perigo" data-reset>Voltar aos dados de exemplo</button></div>`}</section>`,
       ligar() {
         document.querySelector('[data-salvar]').addEventListener('click', async () => { const { valores } = ui.lerCampos(document.getElementById('form-cfg'), campos);
-          for (const k of ['notaAtencao', 'notaIndicio', 'intervaloVistoriasDias', 'prazoOrdemDias']) if (valores[k] == null || valores[k] < 0) return ui.aviso('Preencha os números da triagem e das ordens.', 'erro');
+          for (const k of ['notaAtencao', 'notaIndicio', 'intervaloVistoriasDias', 'prazoOrdemDias', 'permanenciaAdultoAnos', 'permanenciaCriancaAnos', 'exumacaoMinimaAnos', 'guardaOssarioAnos']) if (valores[k] == null || valores[k] < 0) return ui.aviso('Preencha todos os números das Configurações.', 'erro');
           if (valores.notaAtencao > valores.notaIndicio) return ui.aviso('A nota de "Atenção" precisa ser menor ou igual à de "Indício".', 'erro');
           await VP.salvarConfig(Object.assign({}, cfg, valores)); ui.aviso('Configurações salvas.'); });
         document.querySelector('[data-backup]').addEventListener('click', () => ui.baixar(`vitalpat-cemiterio-copia-${VP.Plataforma.hoje()}.json`, JSON.stringify({ sistema: 'VitalPat Cemitério', versao: 1, geradoEm: VP.Plataforma.agoraISO(), dados: Object.fromEntries(VP.COLECOES.map((c) => [c, VP.db.lista(c, true)])) }), 'application/json'));
@@ -718,12 +736,12 @@
   // ===================================================================== LIXEIRA
   T.lixeira = () => {
     const itens = [];
-    for (const c of ['tumulos', 'quadras', 'cemiterios', 'vistorias', 'ordensServico']) for (const x of VP.db.lista(c, true).filter((d) => d.excluido)) itens.push({ id: c + '|' + x.id, col: c, x });
+    for (const c of ['tumulos', 'quadras', 'cemiterios', 'vistorias', 'ordensServico', 'concessoes', 'sepultamentos', 'exumacoes', 'funerarias']) for (const x of VP.db.lista(c, true).filter((d) => d.excluido)) itens.push({ id: c + '|' + x.id, col: c, x });
     return {
       titulo: 'Lixeira',
       html: `<div id="area-lix"><p class="ajuda">Nada é apagado de verdade. O que foi excluído fica aqui e pode voltar.</p>${ui.tabela({ id: 'lixeira', linhas: itens, vazio: 'A Lixeira está vazia.', nomePlanilha: 'lixeira', colunas: [
-        { chave: 'tipo', titulo: 'O que é', valor: (i) => ({ tumulos: 'Túmulo', quadras: 'Quadra', cemiterios: 'Cemitério', vistorias: 'Vistoria', ordensServico: 'Ordem de serviço' }[i.col]) },
-        { chave: 'nome', titulo: 'Nome', valor: (i) => { const tu = VP.db.pega('tumulos', i.x.tumuloId); return i.col === 'tumulos' ? VP.rotuloTumulo(i.x) : i.col === 'vistorias' ? `${tu ? VP.codigoTumulo(tu) : '?'} · ${u.data(i.x.data)}` : i.col === 'ordensServico' ? `Ordem ${i.x.numero}${tu ? ' · ' + VP.codigoTumulo(tu) : ''}` : i.x.nome; } },
+        { chave: 'tipo', titulo: 'O que é', valor: (i) => ({ tumulos: 'Túmulo', quadras: 'Quadra', cemiterios: 'Cemitério', vistorias: 'Vistoria', ordensServico: 'Ordem de serviço', concessoes: 'Concessão', sepultamentos: 'Sepultamento', exumacoes: 'Exumação', funerarias: 'Funerária' }[i.col]) },
+        { chave: 'nome', titulo: 'Nome', valor: (i) => { const tu = VP.db.pega('tumulos', i.x.tumuloId); return i.col === 'tumulos' ? VP.rotuloTumulo(i.x) : i.col === 'vistorias' ? `${tu ? VP.codigoTumulo(tu) : '?'} · ${u.data(i.x.data)}` : i.col === 'ordensServico' ? `Ordem ${i.x.numero}${tu ? ' · ' + VP.codigoTumulo(tu) : ''}` : i.col === 'concessoes' ? `Concessão ${i.x.numero} · ${i.x.titular}` : i.col === 'sepultamentos' || i.col === 'exumacoes' ? `${i.x.falecido}${tu ? ' · ' + VP.codigoTumulo(tu) : ''}` : i.x.nome; } },
         { chave: 'quando', titulo: 'Excluído em', valor: (i) => u.data(i.x.excluidoEm) },
         { chave: 'a', titulo: '', html: (i) => `<button class="botao pequeno" data-restaurar="${esc(i.id)}">Restaurar</button>` }] })}</div>`,
       ligar() {

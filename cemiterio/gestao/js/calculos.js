@@ -53,9 +53,13 @@
     if (f.sugestao) l = l.filter((t) => VP.sugestaoTriagem(t).nivel === f.sugestao);
     if (f.risco) l = l.filter((t) => VP.temRisco(t));
     if (f.semVistoria) l = l.filter((t) => !VP.vistoriasDe(t.id).length);
+    if (f.concessao === 'sem') l = l.filter((t) => !VP.concessaoAtual(t.id));
+    else if (f.concessao === 'vencida') l = l.filter((t) => VP.concessaoVencida(VP.concessaoAtual(t.id)));
+    else if (f.concessao) l = l.filter((t) => VP.concessaoAtual(t.id)?.tipo === f.concessao);
+    if (f.permanenciaVencida) l = l.filter((t) => VP.sepultadosAtivos(t.id).some(VP.permanenciaVencida));
     if (f.busca) {
       const termos = u.normalizar(f.busca).split(/\s+/).filter(Boolean);
-      l = l.filter((t) => { const x = VP.textoBusca(t); return termos.every((p) => x.includes(p)); });
+      l = l.filter((t) => { const x = VP.textoBusca(t) + ' ' + u.normalizar(VP.nomesDoTumulo(t.id)); return termos.every((p) => x.includes(p)); });
     }
     return VP.ordenarTumulos(l);
   };
@@ -138,11 +142,71 @@
     const datas = [...new Set(vs.map((v) => v.data))].sort();
     if (datas.length < 2) faltas.push(`Precisa de pelo menos 2 vistorias em datas diferentes (tem ${datas.length}).`);
     else if (dias(datas[0], datas[datas.length - 1]) < cfg.intervaloVistoriasDias) faltas.push(`Entre a primeira e a última vistoria precisa haver pelo menos ${cfg.intervaloVistoriasDias} dias (hoje há ${dias(datas[0], datas[datas.length - 1])}).`);
-    const docs = (t.indicadores || []).filter((k) => k !== 'D5');
+    const docs = VP.indicadoresDe(t).filter((k) => k !== 'D5');
     if (!docs.length) faltas.push('Precisa de pelo menos 1 indicador documental (D1 a D4). D5 sozinho é regularização, não abandono.');
+    if (VP.concessaoAtual(t.id)?.tipo === 'perpetua' && !cfg.leiPermiteRetomadaPerpetua) faltas.push('Concessão perpétua: só pode ser retomada se a lei municipal previr (ajuste em Configurações depois de conferir a lei).');
     if (t.excecaoHistorica) faltas.push('Túmulo marcado como de valor histórico, artístico ou de personalidade: consulte antes o órgão de patrimônio cultural e retire a marcação.');
     return faltas;
   };
+
+  // ---------------------------------------------------------------- etapa 3: concessões, sepultamentos, exumações
+  let idx3 = null; // tumuloId → { concessoes, sepultamentos, exumacoes }; refeito quando os dados mudam
+  const invalidar2 = VP.invalidar;
+  VP.invalidar = () => { invalidar2(); idx3 = null; };
+  const indice3 = () => {
+    if (idx3) return idx3;
+    idx3 = new Map();
+    const pega = (id) => { if (!idx3.has(id)) idx3.set(id, { concessoes: [], sepultamentos: [], exumacoes: [], noOssario: [] }); return idx3.get(id); };
+    for (const c of VP.db.lista('concessoes')) pega(c.tumuloId).concessoes.push(c);
+    for (const x of VP.db.lista('sepultamentos')) { pega(x.tumuloId).sepultamentos.push(x); if (x.ossarioId) pega(x.ossarioId).noOssario.push(x); }
+    for (const e of VP.db.lista('exumacoes')) pega(e.tumuloId).exumacoes.push(e);
+    for (const v of idx3.values()) {
+      v.concessoes.sort((a, b) => String(b.inicio).localeCompare(String(a.inicio)));
+      v.sepultamentos.sort((a, b) => String(b.data).localeCompare(String(a.data)));
+      v.exumacoes.sort((a, b) => String(b.dataPrevista).localeCompare(String(a.dataPrevista)));
+    }
+    return idx3;
+  };
+  const VAZIO = { concessoes: [], sepultamentos: [], exumacoes: [], noOssario: [] };
+  VP.concessoesDe = (tid) => (indice3().get(tid) || VAZIO).concessoes;
+  VP.sepultamentosDe = (tid) => (indice3().get(tid) || VAZIO).sepultamentos;
+  VP.exumacoesDe = (tid) => (indice3().get(tid) || VAZIO).exumacoes;
+  VP.restosNoOssario = (nichoId) => (indice3().get(nichoId) || VAZIO).noOssario;
+  VP.sepultadosAtivos = (tid) => VP.sepultamentosDe(tid).filter((x) => x.situacao === 'sepultado');
+  VP.concessaoAtual = (tid) => VP.concessoesDe(tid).find((c) => c.situacao === 'vigente') || null;
+  VP.concessaoVencida = (c) => !!c && c.situacao === 'vigente' && c.tipo === 'temporaria' && !!c.fim && c.fim < VP.Plataforma.hoje();
+  VP.somaAnos = (iso, n) => { if (!iso) return ''; const [a, m, d] = iso.slice(0, 10).split('-').map(Number); const x = new Date(Date.UTC(a + n, m - 1, d)); if (x.getUTCDate() !== d) x.setUTCDate(0); return x.toISOString().slice(0, 10); };
+  VP.anosEntre = (de, ate) => { if (!de || !ate) return 0; const [a1, m1, d1] = de.split('-').map(Number), [a2, m2, d2] = ate.split('-').map(Number); return a2 - a1 - ((m2 < m1 || (m2 === m1 && d2 < d1)) ? 1 : 0); };
+  // Prazo de permanência em gaveta (só gavetas; sepultura e jazigo seguem a concessão)
+  VP.limitePermanencia = (sep) => {
+    const t = VP.db.pega('tumulos', sep.tumuloId);
+    if (!t || t.tipo !== 'gaveta' || sep.situacao !== 'sepultado' || !sep.data) return null;
+    const cfg = VP.config();
+    return VP.somaAnos(sep.data, sep.crianca ? cfg.permanenciaCriancaAnos : cfg.permanenciaAdultoAnos);
+  };
+  VP.permanenciaVencida = (sep) => { const l = VP.limitePermanencia(sep); return !!l && l < VP.Plataforma.hoje(); };
+  // Indicadores documentais: os marcados à mão + D1 automático (concessão temporária vencida)
+  VP.indicadoresDe = (t) => {
+    const l = new Set(t.indicadores || []);
+    if (VP.concessaoVencida(VP.concessaoAtual(t.id))) l.add('D1');
+    return [...l].sort();
+  };
+  // O que impede agendar uma exumação (lista vazia = pode). Nada é feito sozinho: isto só agenda; quem realiza registra.
+  VP.impedimentosExumacao = (sep, motivo) => {
+    const cfg = VP.config();
+    const t = VP.db.pega('tumulos', sep.tumuloId);
+    const f = [];
+    if (sep.situacao !== 'sepultado') f.push('Só dá para exumar quem está sepultado.');
+    if (VP.exumacoesDe(sep.tumuloId).some((e) => e.sepultamentoId === sep.id && e.situacao === 'agendada')) f.push('Já existe exumação agendada para esta pessoa.');
+    const anos = VP.anosEntre(sep.data, VP.Plataforma.hoje());
+    if (motivo !== 'judicial' && anos < cfg.exumacaoMinimaAnos) f.push(`Sepultado há ${anos} ano(s); o mínimo é ${cfg.exumacaoMinimaAnos} anos (salvo ordem judicial ou policial).`);
+    if (motivo === 'prazo' && !VP.permanenciaVencida(sep) && !VP.concessaoVencida(VP.concessaoAtual(sep.tumuloId))) f.push('O prazo de permanência (gaveta) ou a concessão temporária ainda não venceu.');
+    if (motivo === 'abandono' && VP.situacaoAtual(t || {}) !== 'declarado') f.push('O túmulo precisa estar em "Abandono declarado (ato publicado)".');
+    if (motivo === 'abandono' && t?.excecaoHistorica) f.push('Túmulo de valor histórico: consultar antes o órgão de patrimônio cultural.');
+    return f;
+  };
+  VP.nichosLivres = () => VP.db.lista('tumulos').filter((t) => t.tipo === 'ossario' && t.ocupacao !== 'ocupado' && t.ocupacao !== 'reservado' && !VP.restosNoOssario(t.id).length);
+  VP.nomesDoTumulo = (tid) => VP.sepultamentosDe(tid).map((x) => x.falecido).concat(VP.concessoesDe(tid).map((c) => c.titular)).filter(Boolean).join(' ');
 
   // ---------------------------------------------------------------- ordens de serviço
   VP.ordemAberta = (o) => o.situacao === 'aberta' || o.situacao === 'andamento';
@@ -173,6 +237,11 @@
     add('critico', 'Túmulos com risco (estrutura ou tampa com nota 3 ou 4) sem ordem de serviço aberta', tum.filter((t) => VP.temRisco(t) && !comOrdemAberta.has(t.id)).length, '#tumulos?risco=1');
     add('atencao', 'Ordens de serviço atrasadas', ordens.filter(VP.ordemAtrasada).length, '#ordens?atrasadas=1');
     add('atencao', 'Registros do aplicativo de campo aguardando conferência', VP.registrosParaConferir().length, '#vistorias/recebidos');
+    const hoje = VP.Plataforma.hoje();
+    add('atencao', 'Sepultamentos agendados com data passada (confirmar se aconteceram)', VP.db.lista('sepultamentos').filter((x) => x.situacao === 'agendado' && x.data < hoje).length, '#agenda');
+    add('atencao', 'Exumações agendadas com data passada', VP.db.lista('exumacoes').filter((e) => e.situacao === 'agendada' && e.dataPrevista < hoje).length, '#exumacoes');
+    add('info', 'Concessões temporárias vencidas', VP.db.lista('concessoes').filter(VP.concessaoVencida).length, '#concessoes?vencidas=1');
+    add('info', 'Gavetas com prazo de permanência vencido (exumação possível, decisão de uma pessoa)', VP.db.lista('sepultamentos').filter(VP.permanenciaVencida).length, '#tumulos?permanenciaVencida=1');
     add('atencao', 'Túmulos em que a sugestão da triagem difere da situação gravada', tum.filter(VP.sugestaoDiferente).length, '#triagem');
     add('atencao', 'Túmulos sem informação de ocupação', r['nao-informado'], '#tumulos?ocupacao=nao-informado');
     add('info', 'Túmulos aguardando a localização exata (levantamento da empresa)', r.total - r.exata, '#levantamento');

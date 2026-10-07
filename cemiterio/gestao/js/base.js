@@ -71,7 +71,8 @@ VP.LISTAS = {
   eventos: {
     cadastro: 'Cadastro', alteracao: 'Alteração de dados', importacao: 'Importação de planilha', georreferenciamento: 'Localização exata',
     foto: 'Foto', observacao: 'Observação', qr: 'Plaqueta QR afixada',
-    vistoria: 'Vistoria', situacao: 'Mudança de situação', indicador: 'Indicador documental', ordem: 'Ordem de serviço'
+    vistoria: 'Vistoria', situacao: 'Mudança de situação', indicador: 'Indicador documental', ordem: 'Ordem de serviço',
+    concessao: 'Concessão', sepultamento: 'Sepultamento', exumacao: 'Exumação', ossario: 'Ossário'
   },
   // Classificação do DOSSIE.md B2-C. Só muda por decisão de uma pessoa; o sistema apenas sugere.
   situacoes: { regular: 'Regular', atencao: 'Atenção', indicio: 'Indício de abandono', apuracao: 'Abandono em apuração', declarado: 'Abandono declarado (ato publicado)' },
@@ -87,7 +88,14 @@ VP.LISTAS = {
   tiposOrdem: { limpeza: 'Limpeza', reparo: 'Conserto', acidente: 'Acidente ou risco (quebra, desabamento)', vistoria: 'Fazer vistoria', outro: 'Outro' },
   origensOrdem: { funcionario: 'Funcionário da prefeitura', familia: 'Pedido da família', populacao: 'Aviso da população', campo: 'Aplicativo de campo' },
   situacoesOrdem: { aberta: 'Aberta', andamento: 'Em andamento', concluida: 'Concluída', cancelada: 'Cancelada' },
-  prioridades: { normal: 'Normal', alta: 'Alta', urgente: 'Urgente' }
+  prioridades: { normal: 'Normal', alta: 'Alta', urgente: 'Urgente' },
+  // Etapa 3
+  tiposConcessao: { perpetua: 'Perpétua', temporaria: 'Temporária' },
+  situacoesConcessao: { vigente: 'Vigente', encerrada: 'Encerrada' },
+  situacoesSepultamento: { agendado: 'Agendado', sepultado: 'Sepultado', exumado: 'Exumado', cancelado: 'Cancelado' },
+  motivosExumacao: { prazo: 'Prazo de permanência vencido', familia: 'Pedido da família (translado ou ossário)', judicial: 'Ordem judicial ou policial', abandono: 'Abandono declarado (ato publicado)' },
+  destinosExumacao: { ossario: 'Ossário do cemitério', translado: 'Translado para outro cemitério', familia: 'Entregue à família', cremacao: 'Cremação' },
+  situacoesExumacao: { agendada: 'Agendada', realizada: 'Realizada', cancelada: 'Cancelada' }
 };
 
 VP.CONFIG_PADRAO = {
@@ -99,10 +107,16 @@ VP.CONFIG_PADRAO = {
   notaAtencao: 6,
   notaIndicio: 10,
   intervaloVistoriasDias: 90, // mínimo entre a 1ª e a 2ª vistoria para "Abandono em apuração"
-  prazoOrdemDias: 15
+  prazoOrdemDias: 15,
+  // Etapa 3 — valores padrão vindos de leis de referência (DOSSIE.md B2/B3); cada município confere a sua lei
+  permanenciaAdultoAnos: 5,   // gaveta: Rio do Sul, Lei 4.100/2004 (editais) [C]
+  permanenciaCriancaAnos: 3,  // gaveta: Rio do Sul [C]
+  exumacaoMinimaAnos: 5,      // Bom Retiro, Lei 2.573/2024: não antes de 5 anos, salvo ordem judicial ou policial [C]
+  guardaOssarioAnos: 3,       // Joinville: a família pode retirar em 3 anos [C]
+  leiPermiteRetomadaPerpetua: false // só marque se a lei municipal prever retomada de concessão perpétua
 };
 
-VP.COLECOES = ['cemiterios', 'quadras', 'tumulos', 'eventos', 'importacoes', 'filtrosSalvos', 'meta', 'registrosCampo', 'vistorias', 'ordensServico'];
+VP.COLECOES = ['cemiterios', 'quadras', 'tumulos', 'eventos', 'importacoes', 'filtrosSalvos', 'meta', 'registrosCampo', 'vistorias', 'ordensServico', 'concessoes', 'sepultamentos', 'exumacoes', 'funerarias'];
 
 // Armazenamento no navegador (IndexedDB). Tudo é carregado na memória ao abrir.
 // Preparado para trocar por servidor (Supabase) mantendo as mesmas funções: carregar, lista, pega, gravar, gravarVarias.

@@ -37,6 +37,7 @@ Documento interno — não distribuir a terceiros
 | 1.4 | 07/10/2026 | **Seção A5:** as 47 telas do sistema concorrente (patrimônio) foram mapeadas função por função para uma versão VitalPat mais simples, visual e automática, sem excluir nenhuma função. Criado o sistema de gestão do patrimônio em `patrimonio/gestao/`. |
 | 1.5 | 07/10/2026 | **Decisões do usuário:** manter as telas adaptadas do concorrente e somar a elas tudo o que está no dossiê (imóveis, manutenção, chamados, fotos, georreferenciamento); **servidor: Supabase** (já usado pelo usuário em outro projeto); a localização exata de cada túmulo será medida por **empresa especializada** contratada, e o sistema precisa estar pronto para receber esse levantamento (seção B6). Criado o sistema de gestão do cemitério em `cemiterio/gestao/` (etapa 1: túmulos, importação da lista de chãos, mapa por posição, painel, recebimento do levantamento). |
 | 1.6 | 07/10/2026 | **Etapa 2 da Gestão do Cemitério construída:** vistorias (V1–V5), triagem de possível abandono pela seção B2 (o sistema só sugere; a pessoa decide; trava de segurança para "Abandono em apuração"), ordens de serviço e app de campo ampliado. Situação dos itens do B7 registrada logo abaixo da tabela do B7. |
+| 1.7 | 07/10/2026 | **Etapa 3 da Gestão do Cemitério construída:** concessões, sepultamentos com agenda e funerárias, exumações com travas (prazo mínimo, abandono declarado, 2 testemunhas), ossário e painel de vagas. Prazos ajustáveis por município; D1 automático. Situação dos itens 7 e 8 do B7 registrada abaixo da tabela do B7. |
 
 # 1. Alertas críticos — ler antes de investir tempo e dinheiro
 
@@ -1028,6 +1029,8 @@ Pesquisa de 07/10/2026 (PlotBox, Chronicle, CemSites, Cemify, CIMS e outros; fon
 | 8 | Painel de vagas e anos restantes | Sim, **melhorado** (ver abaixo), para planejamento e relatórios |
 | 9 | Digitalização de livros antigos com revisão humana | Sim |
 | 10 | Portal do titular da concessão (atualizar contato, fazer pedidos) | Sim. Integrar com o protocolo da prefeitura se a empresa que fornece o protocolo permitir; senão, protocolo próprio dentro do sistema |
+
+**Situação em 07/10/2026 (etapa 3):** item 7 em parte (agenda de sepultamentos com funerárias cadastradas; o pedido feito pela própria funerária, com acesso dela, fica para depois); item 8 feito (painel de vagas com tudo o que está listado acima).
 
 **Situação em 07/10/2026 (etapa 2 da Gestão do Cemitério):** item 2 feito (mapa colorido por situação e por vistoria; a cor "concessão vencida" depende das concessões, etapa 3); item 3 feito (vistorias, avisos de problema e ordens de serviço no app de campo, com foto e GPS, conferidos no escritório antes de entrar no túmulo); item 4 em parte (fotos na ficha, nas vistorias e nas ordens; documentos anexos ainda não); item 6 já existia (QR com o código do túmulo). Pedidos de limpeza e avisos de acidente (item 1) já entram como ordens de serviço com origem "família" ou "população"; notificações e dossiê do processo ficam para a etapa 4.
 

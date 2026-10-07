@@ -85,7 +85,7 @@
     valores.excecaoHistorica = !!t.excecaoHistorica;
     ui.formulario({
       titulo: 'Indicadores documentais — ' + VP.codigoTumulo(t), campos, valores, largura: 'media',
-      intro: '<p class="ajuda">Marque o que foi conferido em documento (DOSSIE.md B2-A). A concessão vencida (D1) passará a ser conferida sozinha quando as concessões forem cadastradas (etapa 3).</p>',
+      intro: '<p class="ajuda">Marque o que foi conferido em documento (DOSSIE.md B2-A). D1 também é marcado sozinho quando a concessão temporária cadastrada no túmulo está vencida.</p>',
       salvar: async (x) => {
         const antes = { indicadores: t.indicadores || [], excecaoHistorica: !!t.excecaoHistorica };
         t.indicadores = Object.keys(L.indicadores).filter((k) => x[k]);
@@ -243,12 +243,12 @@
     return `<section class="cartao secao"><header><h3>Situação e vistorias</h3>${E.seloSituacao(t)}</header>
         <p class="sugestao">Sugestão do sistema: <b>${esc(L.situacoes[sug.nivel])}</b> (${esc(sug.motivo)}). ${VP.sugestaoDiferente(t) ? '<b>Diferente da situação gravada — confira.</b>' : ''}</p>
         ${t.excecaoHistorica ? '<p class="aviso-inline">Marcado como túmulo de valor histórico, artístico ou de personalidade.</p>' : ''}
-        <p>Indicadores documentais: ${(t.indicadores || []).length ? (t.indicadores || []).map((k) => `<span class="selo-status" title="${esc(L.indicadores[k])}">${esc(k)}</span>`).join(' ') : 'nenhum'}</p>
+        <p>Indicadores documentais: ${VP.indicadoresDe(t).length ? VP.indicadoresDe(t).map((k) => `<span class="selo-status" title="${esc(L.indicadores[k])}">${esc(k)}</span>`).join(' ') : 'nenhum'}</p>
         ${t.processo ? `<p>Processo administrativo: <b>${esc(t.processo)}</b></p>` : ''}
         ${faltas ? (faltas.length ? `<p class="ajuda">Para passar a "Abandono em apuração" ainda falta:</p><ul class="requisitos">${faltas.map((f) => `<li>${esc(f)}</li>`).join('')}</ul>` : '<p class="ajuda">Requisitos para "Abandono em apuração" atendidos. A decisão continua sendo de uma pessoa.</p>') : ''}
         <div class="linha-botoes"><button class="botao" data-e2="vistoria">Nova vistoria</button><button class="botao" data-e2="situacao">Mudar situação</button><button class="botao" data-e2="indicadores">Indicadores documentais</button><button class="botao" data-e2="ordem">Nova ordem de serviço</button></div>
         <h4>Vistorias (${vs.length})</h4>
-        ${vs.length ? `<table class="tabela"><thead><tr><th>Data</th><th>Notas (estrutura · limpeza · identificação · tampa)</th><th>Visita recente</th><th>Origem</th><th>Fotos</th></tr></thead><tbody>${vs.map((v) => `<tr><td>${u.data(v.data)}</td><td>${E.notas(v)}</td><td>${v.v5 === 'sim' ? 'Sim' : 'Não'}</td><td>${v.origem === 'campo' ? 'Aplicativo de campo' : 'Gestão'}${v.observacao ? `<br><small>${esc(v.observacao)}</small>` : ''}</td><td>${miniaturas(v.fotos)}</td></tr>`).join('')}</tbody></table>` : '<p class="vazio">Nenhuma vistoria.</p>'}
+        ${vs.length ? `<div class="tabela-rolagem"><table class="tabela"><thead><tr><th>Data</th><th>Notas (estrutura · limpeza · identificação · tampa)</th><th>Visita recente</th><th>Origem</th><th>Fotos</th></tr></thead><tbody>${vs.map((v) => `<tr><td>${u.data(v.data)}</td><td>${E.notas(v)}</td><td>${v.v5 === 'sim' ? 'Sim' : 'Não'}</td><td>${v.origem === 'campo' ? 'Aplicativo de campo' : 'Gestão'}${v.observacao ? `<br><small>${esc(v.observacao)}</small>` : ''}</td><td>${miniaturas(v.fotos)}</td></tr>`).join('')}</tbody></table></div>` : '<p class="vazio">Nenhuma vistoria.</p>'}
         <h4>Ordens de serviço (${os.length})</h4>
         ${os.length ? `<ul class="lista-simples">${os.map((o) => `<li><button class="botao pequeno" data-ver-os="${esc(o.id)}">${esc(o.numero)}</button> ${esc(L.tiposOrdem[o.tipo])} — ${esc(o.descricao)} ${E.seloOrdem(o)} ${VP.ordemAtrasada(o) ? '<span class="atrasada">Atrasada</span>' : ''}</li>`).join('')}</ul>` : '<p class="vazio">Nenhuma.</p>'}
         ${(t.situacaoHist || []).length ? `<h4>Decisões sobre a situação</h4><ol class="lista-simples">${t.situacaoHist.map((h) => `<li>${u.data(h.data)} — ${esc(L.situacoes[h.de])} → <b>${esc(L.situacoes[h.para])}</b>: ${esc(h.motivo)}${h.processo ? ' · Processo ' + esc(h.processo) : ''}${h.revisor ? ' · Revisão: ' + esc(h.revisor) : ''}${h.ato ? ` · Ato ${esc(h.ato)} de ${u.data(h.dataAto)}` : ''} <small>(${esc(h.usuario)})</small></li>`).join('')}</ol>` : ''}
@@ -279,7 +279,7 @@
       const f = ui.limparValores(v);
       let l = VP.filtrarTumulos({ quadraId: f.quadraId, situacao: f.situacao, sugestao: f.sugestao, risco: f.risco, busca: f.busca });
       if (f.difere) l = l.filter(VP.sugestaoDiferente);
-      if (f.comIndicador) l = l.filter((t) => (t.indicadores || []).length);
+      if (f.comIndicador) l = l.filter((t) => VP.indicadoresDe(t).length);
       return l;
     };
     const colunas = [
@@ -289,7 +289,7 @@
       { chave: 'sugestao', titulo: 'Sugestão do sistema', html: (t) => { const s = VP.sugestaoTriagem(t); return `<span class="selo-status s-${s.nivel}">${esc(L.situacoes[s.nivel])}</span> <small>${esc(s.motivo)}</small>`; }, valor: (t) => L.situacoes[VP.sugestaoTriagem(t).nivel] },
       { chave: 'nv', titulo: 'Vistorias', num: true, valor: (t) => VP.vistoriasDe(t.id).length },
       { chave: 'ultima', titulo: 'Última vistoria', valor: (t) => u.data(VP.vistoriasDe(t.id)[0]?.data), ordenar: (t) => VP.vistoriasDe(t.id)[0]?.data || '' },
-      { chave: 'ind', titulo: 'Indicadores', valor: (t) => (t.indicadores || []).join(', ') },
+      { chave: 'ind', titulo: 'Indicadores', valor: (t) => VP.indicadoresDe(t).join(', ') },
       { chave: 'risco', titulo: 'Risco', valor: (t) => (VP.temRisco(t) ? 'Sim' : '') }];
     const desenhar = () => {
       const l = filtrar();

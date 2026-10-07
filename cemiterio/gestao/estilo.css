@@ -367,3 +367,8 @@ body.papel-campo [data-editar], body.papel-campo [data-excluir], body.papel-camp
 body.papel-consulta [data-e2], body.papel-campo [data-e2="situacao"], body.papel-campo [data-e2="indicadores"], body.papel-campo [data-e2="ordem"],
 body.papel-consulta [data-arquivo-app], body.papel-campo [data-arquivo-app], body.papel-consulta [data-desfazer-rec], body.papel-campo [data-desfazer-rec] { display: none !important; }
 body.papel-campo [data-nova-vis] { display: inline-flex !important; }
+/* etapa 3: o que cada papel não vê (o banco também recusa) */
+body.papel-consulta [data-e3], body.papel-campo [data-e3], body.papel-consulta [data-confirmar-sep], body.papel-campo [data-confirmar-sep],
+body.papel-consulta [data-cancelar-sep], body.papel-campo [data-cancelar-sep], body.papel-consulta [data-exumar], body.papel-campo [data-exumar],
+body.papel-consulta [data-realizar-ex], body.papel-campo [data-realizar-ex], body.papel-consulta [data-cancelar-ex], body.papel-campo [data-cancelar-ex],
+body.papel-consulta [data-registrar-sep], body.papel-campo [data-registrar-sep] { display: none !important; }
