@@ -1,12 +1,12 @@
 # CLAUDE.md: Patrimônio e Cemitério para prefeituras
 
-Contexto para o Claude Code. Este arquivo veio de uma conversa no Cowork (set–out/2026). O detalhe completo está em `DOSSIE.md` (v1.1). As pendências estão em `checklist.md`.
+Contexto para o Claude Code. Este arquivo veio de uma conversa no Cowork (set–out/2026). O detalhe completo está em `DOSSIE.md` (v1.2). As pendências estão em `checklist.md`.
 
 ## O que é o projeto
 
 Uma empresa nova, com 2 ou 3 pessoas, vai desenvolver **dois produtos para prefeituras, cada um vendido separadamente** (licitação própria ou lote próprio):
 
-1. **Produto 1: Gestão Patrimonial.** Cobre bens móveis, bens imóveis, inventário anual, vistorias, demandas das unidades, notas fiscais, pesquisa de preços e painéis por fundo e centro de custo.
+1. **Produto 1: Gestão Patrimonial.** Cobre bens móveis, bens imóveis, inventário anual, vistorias, demandas das unidades, notas fiscais, pesquisa de preços, painéis por fundo e centro de custo, **reavaliação em blocos** (por unidade e outros filtros) e **frota de veículos** (locação, combustível, km; referência: GAX da 3ia).
 2. **Produto 2: Gestão de Cemitério.** Cobre mais de 6.000 túmulos, concessões, sepultamentos, exumações e ossário, com uma metodologia legal para tratar cerca de 1.000 túmulos possivelmente abandonados.
 
 A referência de público-alvo é a Prefeitura de Rio do Sul/SC.
@@ -18,15 +18,22 @@ A referência de público-alvo é a Prefeitura de Rio do Sul/SC.
 - Nenhuma exumação ou retomada de túmulo acontece automaticamente. O sistema aponta indícios, e uma pessoa decide em processo administrativo.
 - "Excluir" significa mover para a Lixeira. O histórico nunca é apagado.
 - A importação usa De/Para com área de espera e prévia. O valor anterior vai para o histórico, sem duplicar o registro.
+- (07/10/2026) O sistema é **independente** da IPM. Mesmo assim, não faz lançamento contábil: entrega arquivo/relatório para o setor contábil.
+- (07/10/2026) Equipes de trabalho e treinamento intensivo; apresentação e projetos-piloto no lugar de atestado.
+- (07/10/2026) O aplicativo de campo é HTML instalável (aplicativo web progressivo), funcionando sem internet, em celular e tablet. O piloto está em `app-campo/`.
 
 ## Bloqueador legal (ler antes de qualquer coisa comercial)
+
+**Atualização 07/10/2026:** o usuário informou que o impedimento foi resolvido. Nenhum documento foi anexado. O texto abaixo foi mantido como histórico.
+
 
 A Lei 14.133/2021, art. 9º, §1º, impede servidor da prefeitura contratante de participar da licitação, direta ou indiretamente. Um dos sócios trabalha no Departamento de Patrimônio de Rio do Sul. Enquanto isso durar, **nenhum dos produtos pode ser vendido para Rio do Sul**. A estratégia é vender primeiro para outros municípios. O parecer jurídico está pendente.
 
 ## Decisões em aberto (são do usuário, perguntar antes)
 
 - Um repositório ou dois (um por produto)? Os produtos têm uma plataforma base em comum (usuários, perfis, importação De/Para, auditoria, backup, mapa).
-- Stack/tecnologia: o dossiê só sugere PostgreSQL + PostGIS como exemplo; isso não foi decidido.
+- Stack/tecnologia: o dossiê só sugere PostgreSQL + PostGIS como exemplo; isso não foi decidido. (O repositório já tem uma estrutura Django de julho/2026, que o usuário disse que será parcialmente substituída.)
+- Em que fase entra a frota de veículos.
 - As duas trilhas andam juntas, ou uma sai primeiro?
 - Qual produto ou fase começa a ser codificada.
 

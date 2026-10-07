@@ -2,7 +2,7 @@ DOSSIÊ DE PRODUTO E MERCADO
 
 Dois produtos para prefeituras, vendidos separadamente
 
-Produto 1 — Gestão Patrimonial: bens móveis, bens imóveis, inventário e vistorias
+Produto 1 — Gestão Patrimonial: bens móveis, bens imóveis, inventário, vistorias e frota de veículos
 
 Produto 2 — Gestão de Cemitério
 
@@ -10,7 +10,7 @@ Público-alvo de referência: Prefeitura Municipal de Rio do Sul/SC
 
 Requisitos • Metodologias • Base legal • Concorrentes e SWOT • Estratégia de licitação
 
-Versão 1.1 — 26/09/2026
+Versão 1.2 — 07/10/2026
 
 Documento interno — não distribuir a terceiros
 
@@ -30,6 +30,7 @@ Documento interno — não distribuir a terceiros
 |---|---|---|
 | 1.0 | 23/09/2026 | Primeira versão: requisitos organizados, metodologias, base legal, concorrentes, SWOT, estratégia. |
 | 1.1 | 26/09/2026 | **Reorganizado em 2 produtos principais, cada um vendido separadamente** (Parte A — Patrimônio; Parte B — Cemitério), com o mesmo nível de detalhe. **Pesquisa legal de bens móveis e imóveis aprofundada:** NBC TSP 37 (substitui a NBC TSP 07 a partir de 01/01/2027), prazos do PIPCP confirmados, IN TC-20/2015 do TCE/SC (demonstrativo de imóveis e frota), Nota Técnica CNM 23/2018, alienação e doação (Lei 14.133 art. 76), classificação dos bens públicos, áreas públicas de loteamentos. Novos requisitos: frota de veículos, regularização documental de imóveis, cessões/comodatos, avaliação para alienação. Roteiro em duas trilhas. Nenhum conteúdo da v1.0 foi retirado — só reorganizado ou ampliado. |
+| 1.2 | 07/10/2026 | **Decisões do usuário registradas** na seção 1 (impedimento legal resolvido; sistema independente da IPM; equipes de trabalho e treinamento intensivo; apresentação e projetos-piloto no lugar de atestado). **Novo: reavaliação em blocos** por unidade e por outros filtros (Módulo 9, seções A1.13 e A2.13). **Novo: gestão de frota de veículos** completa, com contratos de locação, combustível e quilometragem, tendo o GAX (3ia) como referência (Módulo 10, seções A1.14 e A2.14). **Novo: aplicativo de campo piloto** em HTML, instalável em celular e tablet e funcionando sem internet (seção A2.15, pasta `app-campo/`). O texto original das seções alteradas foi mantido, e as atualizações aparecem marcadas como "Atualização v1.2". |
 
 # 1. Alertas críticos — ler antes de investir tempo e dinheiro
 
@@ -40,16 +41,22 @@ Documento interno — não distribuir a terceiros
 > Os editais do cemitério de Rio do Sul (2025 e 2026) mandam as famílias ao **Departamento de Patrimônio / Divisão de Gestão Patrimonial** **[C]** — o mesmo setor que cuida dos bens. Enquanto algum sócio (ou parente, ou "sócio oculto") for servidor da Prefeitura de Rio do Sul, **a empresa não pode vender nenhum dos dois produtos para Rio do Sul** — nem por licitação, nem dispensa, nem subcontratação. Contornar (laranja, parente) leva a nulidade, sanções e improbidade (Lei 8.429/1992, alterada pela Lei 14.230/2021).
 >
 > **Na prática [D]:** o conhecimento interno serve para **desenhar o produto**, não para influenciar edital, termo de referência ou pesquisa de preços de Rio do Sul; vender **primeiro para outros municípios**; quem sair do cargo não deve ter participado de nada do processo; **consultar advogado de licitações antes de abrir CNPJ**. Isto não substitui parecer jurídico.
+>
+> **Atualização v1.2 (07/10/2026):** o usuário informou que o impedimento está **resolvido**. Nenhum documento (parecer, exoneração ou alteração societária) foi anexado a este dossiê. Recomendação: guardar o documento que comprova a solução junto com o projeto, porque ele pode ser pedido em impugnação de licitação.
 
 > **1.2 Já existe fornecedor instalado — e ele é da cidade.**
 >
 > Rio do Sul usa o **IPM Atende.Net** desde 2013 (contabilidade, financeiro, RH, compras e **patrimônio**) **[C]**. A IPM tem fábrica em Rio do Sul **[C]** e oferece **módulo de Cemitérios** **[C]**.
 >
 > **Consequência [D]:** o Decreto 10.540/2020 exige **SIAFIC único** por ente. Os dois produtos precisam ser **complementares e integrados** ao SIAFIC, e não um segundo sistema contábil. "Serfic" foi interpretado como **SIAFIC** — confirmar.
+>
+> **Atualização v1.2 (07/10/2026):** decisão do usuário: o sistema será **independente** (funciona sozinho, sem depender da IPM). Isso continua valendo: o sistema **não faz lançamento contábil** (Decreto 10.540/2020). Quando a prefeitura quiser os valores na contabilidade, a saída é um arquivo ou relatório para o setor contábil lançar no sistema oficial **[D]**.
 
 > **1.3 Escopo × equipe.**
 >
 > Dois produtos independentes, cada um vendido separado, é uma boa decisão comercial (licitações e clientes diferentes). Mas o Produto 1 sozinho equivale a vários módulos de ERP. Com 2–3 pessoas, **desenvolver os dois ao mesmo tempo dobra o prazo de cada um**. Recomendação **[D]**: cada produto com uma versão mínima vendável (seção C2) e um responsável por produto, ou lançar um e o outro em seguida — decisão de vocês.
+>
+> **Atualização v1.2 (07/10/2026):** decisão do usuário: montar **equipes de trabalho** e fazer **treinamento intensivo**.
 
 > **1.4 Itens que dependem de vocês.**
 >
@@ -63,7 +70,7 @@ Documento interno — não distribuir a terceiros
 
 |  | Produto 1 — Gestão Patrimonial | Produto 2 — Gestão de Cemitério |
 |---|---|---|
-| O que é | Plataforma web + app de campo para controlar, **por unidade**, bens móveis, imóveis, documentos, responsáveis, manutenções, demandas e custos; inventário anual assistido; vistorias; depreciação e reavaliação; captura de notas; pesquisa de preços; painéis por fundo e centro de custo | Cadastro georreferenciado de +6.000 túmulos, concessões, sepultamentos, exumações e ossário, com metodologia legal para identificar e tratar ~1.000 túmulos possivelmente abandonados |
+| O que é | Plataforma web + app de campo para controlar, **por unidade**, bens móveis, imóveis, documentos, responsáveis, manutenções, demandas e custos; inventário anual assistido; vistorias; depreciação e reavaliação; captura de notas; pesquisa de preços; painéis por fundo e centro de custo; **reavaliação em blocos**; **gestão de frota** (locação, combustível, km) | Cadastro georreferenciado de +6.000 túmulos, concessões, sepultamentos, exumações e ossário, com metodologia legal para identificar e tratar ~1.000 túmulos possivelmente abandonados |
 | Dor principal do comprador | Inventário anual, conciliação com a contabilidade, cumprimento da NBC TSP (nova NBC TSP 37 em 2027), bens "sumidos" entre unidades | Cemitério lotado, cadastro em papel/planilha, risco jurídico ao retomar túmulos |
 | Diferencial | Trabalho de campo (app offline, QR, foto+GPS), inventário que resolve bens que mudam de local, visão 360° por unidade, score de bens | Metodologia de abandono com processo administrativo completo (não encontrada nos concorrentes) |
 | Concorrentes | IPM, Betha, CPCON; preços: Banco de Preços, ATA360 | IPM (módulo Cemitérios), Betha |
@@ -123,7 +130,7 @@ Todos os itens do texto original foram mantidos. Itens repetidos foram unidos em
 | BM-03 | Score dos bens (móveis e imóveis) para amortização, depreciação, reformas e manutenção | Pedido | Metodologia A2.4 |
 | BM-04 | Depreciação e amortização | Pedido | A2.5 |
 | BM-05 | Valor residual conforme tabela nossa + alerta ao alterar, com explicação obrigatória | Pedido | A2.5 |
-| BM-06 | Alertas de reavaliação de móveis e imóveis com base na lei + reavaliação em massa | Pedido | A2.5 |
+| BM-06 | Alertas de reavaliação de móveis e imóveis com base na lei + reavaliação em massa | Pedido | A2.5; ampliado na v1.2 para **reavaliação em blocos** (Módulo 9, A1.13 e A2.13) |
 | BM-07 | Selecionar rua/escola/unidade e lançar investimento de obra que aumenta vida útil e valor contábil (pintura, recapeamento, tubulação) | Pedido | Atenção: nem todo gasto aumenta valor — A2.5 |
 | BM-08 | Controle por tempo das manutenções (limpeza de ar-condicionado, pintura etc.) | Pedido | Planos preventivos A2.6 |
 | BM-09 | Plaqueta com QR Code (opção RFID) por bem | Adicionado |  |
@@ -132,7 +139,7 @@ Todos os itens do texto original foram mantidos. Itens repetidos foram unidos em
 | BM-12 | Garantias, seguros e contratos de manutenção vinculados ao bem | Adicionado |  |
 | BM-13 | Bens de infraestrutura (ruas, redes, pontes) e intangíveis (softwares) como classes próprias | Adicionado | Exigência do MCASP / PIPCP |
 | BM-14 | Incorporação do bem a partir do item da nota fiscal (já com valor e fornecedor) | Adicionado | Liga módulo de NF ao patrimônio |
-| BM-15 | **Frota de veículos** como classe própria: custos (combustível, manutenção, seguro, IPVA/licenciamento), quilometragem, responsável | Adicionado | O TCE/SC pede demonstrativo da frota com custos no relatório de gestão (IN TC-20/2015, Anexo V) [C] |
+| BM-15 | **Frota de veículos** como classe própria: custos (combustível, manutenção, seguro, IPVA/licenciamento), quilometragem, responsável | Adicionado | O TCE/SC pede demonstrativo da frota com custos no relatório de gestão (IN TC-20/2015, Anexo V) [C]. Na v1.2 virou o **Módulo 10 — Frota** (A1.14 e A2.14) |
 | BM-16 | **Situação documental de cada imóvel**: matrícula, cartório, área, uso, pendências de registro; lista de imóveis "sem registro" | Adicionado | IN TC-20/2015 pede demonstrativo de imóveis e bens não registrados [C]; A2.12 |
 | BM-17 | Classificação do imóvel: uso comum do povo, uso especial ou dominical (afetado/desafetado) | Adicionado | Código Civil arts. 98–103; define se pode ser vendido [D] |
 | BM-18 | Áreas públicas recebidas de loteamentos (verdes, institucionais, sistema viário) cadastradas e mapeadas | Adicionado | Lei 6.766/1979 art. 22 [D]; A2.12 |
@@ -229,6 +236,45 @@ O texto pede que "restrições legais sejam um problema a ser superado" e cita i
 | "Depreciação/amortização" (aparece 2 vezes) | BM-04 |
 
 **Parecidos, mas mantidos separados:** demandas da equipe (VI-02) × demandas da unidade (DE-01); Financeiro (FI-01) × Financeiro e conformidade (FI-03); rastreabilidade de bens entre unidades (BM-02) × georreferenciamento geral (PB-07); workflow (VI-03) × criação de demandas pelo gestor (VI-02).
+
+### A1.13 Módulo 9 — Reavaliação em blocos (novo na v1.2)
+
+| ID | Requisito | Origem | Observação |
+|---|---|---|---|
+| RB-01 | Reavaliar bens **em bloco** escolhendo por **unidade** (uma ou várias) | Pedido (v1.2) | Amplia BM-06 |
+| RB-02 | Reavaliar em bloco por **outros filtros**, que podem ser combinados: classe/grupo de bem, conta contábil, centro de custo, fundo, secretaria, bairro/região (mapa), responsável, estado de conservação, faixa de score, faixa de valor contábil, data/ano de aquisição, % de vida útil consumida, bens totalmente depreciados ainda em uso, bens sem reavaliação há X anos, marcadores livres | Pedido (v1.2) | Os filtros podem ser salvos como modelo |
+| RB-03 | **Prévia antes de aplicar**: lista dos bens do bloco, valor atual × valor novo, diferença em R$ (total e por conta contábil), quantidade de bens | Adicionado | Mesma lógica da importação (A2.2) |
+| RB-04 | Forma de calcular o valor novo no bloco: valor informado bem a bem, percentual sobre o valor atual, tabela de referência (ex.: planta genérica do IPTU para imóveis) ou importação de planilha do laudo | Adicionado |  |
+| RB-05 | Ajuste item a item dentro do bloco (tirar bem, mudar valor, mudar vida útil restante) com justificativa | Adicionado |  |
+| RB-06 | Laudo da comissão anexado ao bloco; designação da comissão e assinaturas | Adicionado | Nota Técnica CNM 23/2018 [C] |
+| RB-07 | Aprovação em duas etapas (comissão → setor contábil) antes de valer | Adicionado |  |
+| RB-08 | **Controle da classe inteira:** se o bloco escolhido tem só parte de uma classe de bens, o sistema avisa e mostra quanto da classe falta reavaliar no ciclo | Adicionado | A reavaliação vale para a classe inteira, e não para itens escolhidos [C via fonte secundária]. Ver A2.13 |
+| RB-09 | Desfazer o bloco inteiro enquanto não houver lançamento posterior; o valor anterior vai para o histórico (sem apagar) | Adicionado | Mesma regra de PB-11 |
+| RB-10 | Relatório do bloco (PDF/Excel) com memória de cálculo, para o processo e para o setor contábil | Adicionado |  |
+
+### A1.14 Módulo 10 — Frota de veículos (novo na v1.2)
+
+Referência de mercado pedida pelo usuário: **GAX (3ia)** — ver A4. Os itens marcados "GAX" são funções que o GAX divulga publicamente; os demais foram acrescentados.
+
+| ID | Requisito | Origem | Observação |
+|---|---|---|---|
+| FR-01 | Cadastro do veículo: placa, RENAVAM, chassi, marca/modelo, ano, combustível, capacidade do tanque, tipo (próprio, **locado**, cedido), unidade e secretaria, responsável, fotos e documentos (CRLV, seguro) | Pedido (v1.2) | Veículo próprio também é bem patrimonial (BM-15); veículo locado **não** entra no patrimônio (BM-11) |
+| FR-02 | **Contratos de locação de veículos**: contrato e aditivos, empresa, vigência, valor mensal por veículo, franquia de km, valor do km excedente, veículo reserva, quem paga manutenção e combustível; alertas de vencimento e de saldo do contrato | Pedido (v1.2) |  |
+| FR-03 | Conferência mensal da locação: km rodado × franquia, dias parados, substituições → valor a pagar previsto, para conferir a fatura da locadora | Adicionado |  |
+| FR-04 | **Abastecimentos**: data/hora, veículo, motorista, posto, combustível, litros, valor, **km no painel**, foto do cupom e do painel | Pedido (v1.2) / GAX |  |
+| FR-05 | **Consumo médio** (km/l) por veículo, modelo e secretaria, com gráfico de 30 dias a 1 ano | Pedido (v1.2) / GAX | [C via resultado de busca] |
+| FR-06 | **Alertas de inconsistência**: km menor que o anterior, litros acima da capacidade do tanque, consumo fora da média, dois abastecimentos em pouco tempo, combustível diferente do veículo, abastecimento com veículo marcado como parado | Adicionado / GAX | O GAX divulga análise automática de inconsistências com alarme ao gestor [C via resultado de busca] |
+| FR-07 | **Controle de km**: diário de bordo (saída e retorno, km inicial e final, destino, motivo, motorista), com bloqueio de km regressivo | Pedido (v1.2) |  |
+| FR-08 | Manutenção preventiva por km **ou** por tempo (troca de óleo, revisão, pneus, filtros), e corretiva com orçamento e ordem de serviço | Adicionado / GAX | O GAX importa orçamentos de manutenção pelo sistema Audatex/Molicar [C via resultado de busca] — integração [A conferir] |
+| FR-09 | Motoristas: CNH (número, categoria, validade), curso obrigatório quando houver, bloqueio de motorista com CNH vencida ou de categoria incompatível | Adicionado |  |
+| FR-10 | Multas: registro, identificação do condutor, prazos de indicação e recurso | Adicionado |  |
+| FR-11 | Documentos e obrigações: licenciamento, seguro, tacógrafo (quando houver), com alerta de vencimento | Adicionado |  |
+| FR-12 | Pneus: controle por posição, rodízio, recapagem, km por pneu | Adicionado |  |
+| FR-13 | Agendamento/reserva de veículos por secretaria | Adicionado |  |
+| FR-14 | Painel da frota: veículos ativos, parados e em manutenção, consumo e custo do dia/mês, **custo por km** por veículo e por secretaria, próprio × locado | Pedido (v1.2) / GAX |  |
+| FR-15 | Integração com cartão-combustível e postos credenciados (arquivo ou API da administradora), quando a prefeitura tiver esse contrato | Adicionado | O GAX usa cartão magnético e terminal no posto [C via resultado de busca]. Para nós: importar o arquivo da administradora [D] |
+| FR-16 | **Demonstrativo da frota com custos** pronto para a prestação de contas ao TCE/SC | Adicionado | IN TC-20/2015 Anexo V [C]; já previsto em FI-06 |
+| FR-17 | Uso no **aplicativo de campo**: abastecimento, saída/retorno com km e checklist do veículo (pneus, luzes, avarias) com foto | Adicionado | Já no piloto (A2.15) |
 
 ## A2. Metodologias propostas — Produto 1
 
@@ -396,6 +442,37 @@ Imóvel público tem regras que bem móvel não tem. O Produto 1 trata imóveis 
 
 A Lei 14.133/2021, art. 76, exige para qualquer alienação: **interesse público justificado e avaliação prévia**; para imóveis, **autorização legislativa e leilão**, com exceções (ex.: doação só para outro órgão público); para móveis, **leilão**, com exceções (ex.: doação só para fins de interesse social) **[C]**. O sistema monta o dossiê do bem para cada caso (laudo, justificativa, lei autorizativa, edital, ata) e só permite a baixa com esses documentos anexados.
 
+### A2.13 Reavaliação em blocos (novo na v1.2)
+
+1. **Montar o bloco:** escolher uma ou mais unidades **ou** combinar filtros (RB-02). O filtro pode ser salvo ("Escolas da zona rural — mobiliário").
+2. **Conferir a classe:** o sistema mostra a que classes os bens do bloco pertencem e quanto de cada classe já foi reavaliado no ciclo. Se a classe ficar incompleta, aparece o aviso: *"Faltam 312 bens desta classe em outras unidades. Para fechar a reavaliação da classe, eles também precisam ser reavaliados neste ciclo."* Bloco por unidade serve para **organizar o trabalho da comissão** (uma escola por vez); o fechamento contábil é **por classe** **[D, baseado na regra C via fonte secundária]**.
+3. **Calcular o valor novo:** por bem, percentual, tabela de referência ou planilha do laudo (RB-04).
+4. **Prévia:** valor atual × novo, diferença em R$ por conta contábil, bens com diferença muito grande destacados.
+5. **Ajustes item a item** com justificativa.
+6. **Laudo e aprovação:** comissão anexa o laudo e assina; setor contábil aprova.
+7. **Aplicar:** cada bem recebe um evento de reavaliação (valor antes/depois, vida útil restante, laudo). Nada é apagado.
+8. **Desfazer** o bloco inteiro enquanto não houver lançamento posterior.
+9. **Relatório** do bloco e arquivo para o setor contábil lançar no sistema oficial.
+
+**Ponto de atenção:** reavaliar só parte de uma classe (ex.: só os computadores de uma escola) e lançar na contabilidade pode ser apontado pelo controle interno ou pelo TCE. Por isso o sistema deixa trabalhar por bloco, mas acompanha o fechamento da classe inteira. A periodicidade e os critérios ficam na política contábil do município.
+
+### A2.14 Frota de veículos (novo na v1.2)
+
+- **Um registro de abastecimento por evento**, sempre com km do painel. O consumo médio sai da diferença de km entre dois abastecimentos de tanque cheio ÷ litros **[D]**.
+- **Regras de alerta** (FR-06) configuráveis por modelo de veículo (ex.: faixa aceitável de km/l). O alerta não bloqueia nada: vai para o gestor conferir, com o registro e a foto do cupom.
+- **Locação:** o contrato é cadastrado uma vez; cada veículo locado aponta para o contrato. No fim do mês o sistema soma km, dias de uso e substituições e mostra o valor previsto para conferir a fatura (FR-03).
+- **Fonte dos dados:** digitação no aplicativo de campo pelo motorista/frentista **ou** importação do arquivo da administradora do cartão-combustível, pela importação De/Para (A2.2), sem duplicar.
+- **Custo por km** = (combustível + manutenção + locação ou depreciação + seguro/licenciamento) ÷ km rodado no período **[D]**.
+- **Referência GAX:** o GAX trabalha com cartão magnético e terminal no posto e oficina, captura em tempo real, gráfico de consumo de 30 dias a 1 ano e alarmes de inconsistência **[C via resultado de busca]**. Nosso diferencial proposto: frota dentro da mesma visão por unidade (UN-01), contratos de locação conferidos contra a fatura e o aplicativo de campo sem internet **[D]**.
+
+### A2.15 Aplicativo de campo — piloto em HTML (novo na v1.2)
+
+- **Formato:** página web instalável ("aplicativo web progressivo"). Abre no navegador do celular ou tablet e pode ser **adicionada à tela inicial**, aparecendo como um aplicativo. Não precisa de loja de aplicativos.
+- **Sem internet:** depois de aberto uma vez, funciona offline. Os registros ficam guardados no próprio aparelho até serem enviados.
+- **O que o piloto faz:** vistoria e inventário de bens (leitura de QR Code pela câmera, quando o aparelho permite, ou digitação do número), vistoria de túmulos (V1–V5 da seção B2), frota (abastecimento e saída/retorno com km e checklist), foto com data/hora e GPS, lista de pendentes de envio, Lixeira e exportação dos dados (planilha CSV e arquivo JSON).
+- **O que o piloto ainda não faz:** envio para um servidor (ainda não existe servidor), login de usuários e sincronização entre aparelhos. Os dados de exemplo são fictícios.
+- **Limitações reais conhecidas:** leitura de QR pela câmera depende do navegador (funciona no Chrome para Android; no iPhone o piloto oferece a digitação do número); a instalação no iPhone é feita pelo menu "Compartilhar → Adicionar à Tela de Início"; o funcionamento offline e a câmera exigem que o aplicativo seja aberto por endereço **https**.
+
 ## A3. Base legal de bens móveis e imóveis (mapa de conformidade)
 
 ### A3.1 Contabilidade e controle patrimonial
@@ -454,6 +531,7 @@ Dois campos: (1) patrimônio, inventário e vistorias; (2) pesquisa de preços. 
 | Patrimônio (especialista em campo) | **CPCON Brasil** | Serviço + software de inventário com RFID e avaliação conforme NBC TSP 07; 30+ anos | [C] CPCON |
 | Pesquisa de preços | **Banco de Preços (Grupo Negócios Públicos)** | Plataforma paga de pesquisa de preços para órgãos públicos | [C] site; detalhes [A conferir] |
 | Pesquisa de preços | **ATA360** | Pesquisa de preços com IA sobre PNCP, Compras.gov.br e notas fiscais, seguindo a IN 65/2021 | [C] ATA360 |
+| Frota (v1.2) | **GAX — 3ia** | Gestão de frota e custos para empresas e órgãos públicos: cartão magnético e terminal no posto/oficina, dados em tempo real, gráfico de consumo de 30 dias a 1 ano, alarmes de inconsistência, orçamentos de manutenção via Audatex/Molicar, app do condutor | [C via resultado de busca] — o site da 3ia não pôde ser aberto deste ambiente; detalhes [A conferir] |
 
 | Função | Nós (proposta) | IPM | Betha | Especialistas |
 |---|---|---|---|---|
@@ -781,6 +859,8 @@ Cada produto é contratado separadamente: pode ser uma licitação só para ele 
 1. Parceria com empresa que já tem atestado (subcontratação permitida no edital ou consórcio de empresas).
 1. CPSI, se a prefeitura aceitar essa via.
 
+**Atualização v1.2 (07/10/2026):** decisão do usuário: por ser empresa nova, pedir **apresentação do sistema** e **projetos-piloto**. O aplicativo de campo piloto (A2.15) serve para essa apresentação.
+
 ### Rio do Sul, especificamente
 
 > Só depois de nenhum sócio ter vínculo com a Prefeitura de Rio do Sul, e sem que nenhum sócio tenha participado da elaboração do termo de referência, da pesquisa de preços ou da comissão. Até lá, Rio do Sul é **caso de estudo interno**, não cliente — para os dois produtos. Validar com advogado.
@@ -792,26 +872,30 @@ Cada produto tem sua própria trilha e sua versão mínima vendável. Rodar as d
 | Fase | Trilha Produto 1 — Patrimônio | Trilha Produto 2 — Cemitério |
 |---|---|---|
 | 0 — Comum | Parecer jurídico sobre impedimento; CNPJ; modelo de contrato; política LGPD; plataforma base (usuários, perfis, importação De/Para, exportação, auditoria, backup, mapa) | (mesma fase 0) |
-| 1 — Versão mínima vendável | Unidades 360°, bens móveis e imóveis, transferências com aceite, inventário anual com conciliação (A2.3), app de campo, relatórios do TCE/SC | Cadastro, importação das 2 planilhas, mapa, QR, vistoria no app, indicadores de abandono, notificação/edital, painel |
-| 2 | Depreciação, valor residual, reavaliação em massa, componentes, NBC TSP 37, obras (melhoria × manutenção), exportação ao SIAFIC | Fluxo completo do processo de abandono, ossário, consulta pública, integração com tributário |
+| 1 — Versão mínima vendável | Unidades 360°, bens móveis e imóveis, transferências com aceite, inventário anual com conciliação (A2.3), app de campo (piloto em HTML já iniciado na v1.2 — A2.15), relatórios do TCE/SC | Cadastro, importação das 2 planilhas, mapa, QR, vistoria no app, indicadores de abandono, notificação/edital, painel |
+| 2 | Depreciação, valor residual, reavaliação em massa e **em blocos** (A2.13), componentes, NBC TSP 37, obras (melhoria × manutenção), exportação ao SIAFIC | Fluxo completo do processo de abandono, ossário, consulta pública, integração com tributário |
 | 3 | Vistorias e equipes, demandas, manutenção preventiva (PMOC etc.), score, imóveis: regularização documental | — |
 | 4 | Notas fiscais, pesquisa de preços, painéis por fundo, IA | — |
+| Frota (v1.2) | **Frota de veículos** (Módulo 10): fase a definir pelo usuário. Abastecimento, km e checklist já estão no piloto do app | — |
 
 ## C3. Pendências e perguntas abertas
 
 | # | Pendência | Produto | Quem resolve |
 |---|---|---|---|
 | 1 | Enviar as 2 planilhas do cemitério (cabeçalho completo) | 2 | Vocês |
-| 2 | Parecer de advogado sobre o impedimento (art. 9º §1º Lei 14.133) | 1 e 2 | Advogado |
+| 2 | Parecer de advogado sobre o impedimento (art. 9º §1º Lei 14.133) — **v1.2: resolvido, segundo o usuário (documento não anexado)** | 1 e 2 | Advogado |
 | 3 | Texto integral da Lei Municipal 4.100/2004 e decretos do cemitério (concessões perpétuas, taxas) | 2 | Pesquisa / Câmara |
 | 4 | Confirmar se "Serfic" = SIAFIC | 1 | Vocês |
 | 5 | Confirmar o que significa "emissão de notas fiscais" no pedido | 1 | Vocês |
 | 6 | Tabela oficial de vida útil e valor residual do município | 1 | Vocês / contabilidade |
-| 7 | Verificar se a IPM oferece API para integração com terceiros | 1 e 2 | Pesquisa / contato comercial |
+| 7 | Verificar se a IPM oferece API para integração com terceiros — **v1.2: sistema será independente; integração deixa de ser obrigatória** | 1 e 2 | Pesquisa / contato comercial |
 | 8 | Ler o texto integral da NBC TSP 37 e mapear cada item no sistema | 1 | Pesquisa |
 | 9 | Conferir: IN SEGES 65 (prazos das fontes), LC 182 (valores e habilitação), Lei 13.589 (PMOC), Portaria SES/SC 167/2018, regras de adesão a ata municipal | 1 e 2 | Pesquisa |
 | 10 | Escolher municípios piloto (sem vínculo com os sócios) — um por produto | 1 e 2 | Vocês |
-| 11 | Decidir se as duas trilhas andam juntas ou uma primeiro (1.3) | 1 e 2 | Vocês |
+| 11 | Decidir se as duas trilhas andam juntas ou uma primeiro (1.3) — **v1.2: equipes de trabalho e treinamento intensivo** | 1 e 2 | Vocês |
+| 12 | Em que fase entra a frota (Módulo 10) | 1 | Vocês |
+| 13 | Conferir as funções do GAX direto no site/manual da 3ia (o site não abriu deste ambiente) | 1 | Pesquisa |
+| 14 | Testar o app piloto em celulares e tablets reais (Android e iPhone), por endereço https | 1 e 2 | Vocês |
 
 ## C4. Fontes consultadas (v1.0 + v1.1)
 
@@ -849,4 +933,8 @@ Cada produto tem sua própria trilha e sua versão mínima vendável. Rodar as d
 - LegJur — Lei 14.133, art. 76 — https://www.legjur.com/legislacao/art/lei_00141332021-76
 - CFC — Circuito Técnico Imobilizado e Intangível 2025 — https://cfc.org.br/wp-content/uploads/2025/05/50o-Circuito-Tecnico-CFC-Imobilizado-e-Intangivel.pdf
 
-*Pesquisas realizadas em 23/09/2026 e 26/09/2026. Este dossiê não é parecer jurídico nem contábil.*
+- 3ia — GAX (gestão de frotas) — https://www.3ia.com.br/gax/ (conteúdo lido só pelo resultado de busca)
+- GAX — Wiki de fornecedores, Principais Funcionalidades — http://gax.3ia.com.br/wiki/index.php?title=P%C3%A1gina_principal (conteúdo lido só pelo resultado de busca)
+- Google Play — app Condutor Gax — https://play.google.com/store/apps/details?id=com.execucao.condutor_gax
+
+*Pesquisas realizadas em 23/09/2026, 26/09/2026 e 07/10/2026. Este dossiê não é parecer jurídico nem contábil.*
