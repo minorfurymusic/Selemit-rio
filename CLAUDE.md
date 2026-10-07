@@ -29,6 +29,7 @@ A referência de público-alvo é a Prefeitura de Rio do Sul/SC.
 - (07/10/2026) Manter as telas adaptadas do concorrente e **somar** a elas o que está no dossiê (imóveis, manutenção, chamados, fotos, georreferenciamento). Plano em etapas; cada etapa testada e commitada, push só com autorização.
 - (07/10/2026) **Servidor: Supabase**, com **um projeto por cidade e por produto** (ex.: `vitalpat-cemiterio-riodosul-sc` e `vitalpat-patrimonio-riodosul-sc`). Roteiros de instalação em `patrimonio/banco/` e `cemiterio/banco/`. Ainda não foi criado nenhum projeto. Por enquanto os dados ficam no navegador, com as mesmas funções de armazenamento para trocar depois.
 - (07/10/2026) A localização exata dos túmulos virá de **empresa especializada** (drone/GNSS). O sistema só recebe (CSV ou GeoJSON, com prévia) — formato no `DOSSIE.md` B6.
+- (07/10/2026) Atlas (atlas.co) **não** será usado; mapa = Leaflet no próprio sistema. Funções novas aprovadas no `DOSSIE.md` B7. Busca pública "chegar ao túmulo" só com código do túmulo ou nome completo, gratuita, com cadastro.
 - (07/10/2026) Gestão do cemitério em `cemiterio/gestao/`. O login `selemitério` abre a Gestão; o app de campo fica no botão do topo.
 - (07/10/2026) Modelo de importação do cemitério (planilha limpa, só quadra/aléia/sepultura): `cemiterio/modelos-importacao/`.
 

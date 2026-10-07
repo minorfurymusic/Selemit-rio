@@ -1000,7 +1000,42 @@ Arquivo recebido do usuário em 07/10/2026 (`LISTA_CHÃOS_DO_CEMITÉRIO.xlsx`). 
 
 **Servidor [decisão do usuário, 07/10/2026]: Supabase.** Hoje os dados ficam no navegador; o armazenamento foi escrito com as mesmas funções (carregar, listar, gravar) para trocar pelo Supabase depois. **[D]** Pela regra "cada projeto é independente", o VitalPat deve ter um projeto Supabase próprio, separado do outro projeto do usuário. A troca exige login de verdade e regras de acesso por usuário antes de colocar dados reais.
 
-**Atualização (07/10/2026, decisão do usuário):** um projeto Supabase **por cidade e por produto**; cada um roda separado. Roteiros de instalação: `patrimonio/banco/supabase-instalar.sql` e `cemiterio/banco/supabase-instalar.sql` (sem login ninguém acessa; nada é apagado; histórico de toda alteração; papéis admin, gestor, campo e consulta; fotos em armazenamento privado). **[A conferir]** custo: o plano gratuito do Supabase limita o número de projetos ativos e pausa projeto parado; com 2 projetos por cidade, o plano pago será necessário a partir da primeira cidade em produção. Conferir valores em supabase.com/pricing antes de fazer proposta.
+**Atualização (07/10/2026, decisão do usuário):** um projeto Supabase **por cidade e por produto**; cada um roda separado. Roteiros de instalação (ver também B7): `patrimonio/banco/supabase-instalar.sql` e `cemiterio/banco/supabase-instalar.sql` (sem login ninguém acessa; nada é apagado; histórico de toda alteração; papéis admin, gestor, campo e consulta; fotos em armazenamento privado). **[A conferir]** custo: o plano gratuito do Supabase limita o número de projetos ativos e pausa projeto parado; com 2 projetos por cidade, o plano pago será necessário a partir da primeira cidade em produção. Conferir valores em supabase.com/pricing antes de fazer proposta.
+
+## B7. Funções inspiradas em sistemas de cemitério de outros países (novo na v1.5)
+
+Pesquisa de 07/10/2026 (PlotBox, Chronicle, CemSites, Cemify, CIMS e outros; fontes no relatório entregue ao usuário). **Decisões do usuário em 07/10/2026:**
+
+- **Atlas (atlas.co): não será usado.** Motivos: duplica os dados, plano gratuito limitado, dados na Europa (LGPD) e termos que proíbem revenda. O mapa será o Leaflet no próprio sistema. O servidor público do OpenStreetMap proíbe uso sem internet, então o app de campo usa fundo próprio (ortofoto do levantamento ou croqui).
+- **Função pública "chegar ao túmulo":** só para quem informa o **código do túmulo** ou o **nome completo** do falecido. Não haverá lista aberta de sepultados.
+
+| # | Função | Decisão |
+|---|---|---|
+| 1 | Concessões vencendo, notificações, registro de cada tentativa de contato e dossiê do processo de abandono | Sim. Inclui **pedidos de limpeza do túmulo e avisos de acidente** (quebra, desabamento) feitos pela família ou pela população |
+| 2 | Mapa colorido por situação (inclui "concessão vencida" e "indícios de abandono") | Sim |
+| 3 | Ordens de serviço e vistorias no app de campo, com foto e GPS | Sim, para os funcionários da prefeitura |
+| 4 | Fotos e documentos por túmulo | Sim |
+| 5 | Busca pública e "como chegar ao túmulo" | Sim, **gratuita**, com cadastro do usuário e nome completo ou código do túmulo |
+| 6 | QR com o código do túmulo | Sim; útil quando a placa com nome ou foto se perde |
+| 7 | Agenda de sepultamentos e pedidos das funerárias | Sim |
+| 8 | Painel de vagas e anos restantes | Sim, **melhorado** (ver abaixo), para planejamento e relatórios |
+| 9 | Digitalização de livros antigos com revisão humana | Sim |
+| 10 | Portal do titular da concessão (atualizar contato, fazer pedidos) | Sim. Integrar com o protocolo da prefeitura se a empresa que fornece o protocolo permitir; senão, protocolo próprio dentro do sistema |
+
+Ficaram fora: venda de jazigo pela internet (concessão pública não é venda livre), memorial pago e genealogia aberta.
+
+**Painel de vagas melhorado [D]:**
+- vagas livres por tipo (chão, gaveta, jazigo, ossário) e por quadra;
+- sepultamentos por mês nos últimos anos, com sazonalidade;
+- previsão de quando cada tipo acaba, em 3 cenários (ritmo atual, alta e baixa);
+- vagas que podem voltar: concessões vencidas, gavetas com prazo de permanência vencido (exumação possível pela lei municipal) e processos de abandono em andamento, mostrando quanto tempo cada uma ganha;
+- capacidade do ossário;
+- relatório visual pronto para o prefeito e a câmara (ampliação, novo cemitério, ossário).
+
+**Cobrança da pessoa física (pergunta do usuário, 07/10/2026) — [A conferir] com advogado antes de qualquer proposta [D]:**
+- **Não dá para cobrar:** informação pública (onde a pessoa está sepultada) e pedidos à prefeitura (Lei 12.527/2011, de acesso à informação; CF art. 5º, XXXIV, direito de petição sem taxa). Isso inclui a busca, o "como chegar", os pedidos de limpeza e os avisos de acidente. O usuário já definiu a busca como gratuita.
+- **Talvez dê para cobrar:** um serviço **extra e opcional**, que não seja necessário para exercer nenhum direito. Exemplos: foto anual do túmulo, avisos automáticos de vencimento por WhatsApp, limpeza feita por empresa contratada. Mas isso exige uma de duas coisas: previsão no edital ou contrato com a prefeitura (tarifa definida pelo município, como concessão de serviço, Lei 8.987/1995), ou um serviço totalmente privado e separado, sem usar a marca nem os dados da prefeitura além do autorizado. Cobrar do cidadão por uma função de um sistema que a prefeitura já paga pode ser visto como cobrança indevida.
+- **Risco comercial [D]:** cobrança ao cidadão costuma pesar contra em licitação e na imagem do prefeito. A receita mais segura é o contrato com a prefeitura.
 
 # PARTE C — ESTRATÉGIA COMERCIAL E PRÓXIMOS PASSOS
 

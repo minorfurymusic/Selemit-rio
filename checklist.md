@@ -17,7 +17,9 @@ Atualizar este arquivo a cada entrega, sem apagar o histórico. Marcar `[x]` com
 - [ ] Supabase: criar projeto próprio do VitalPat e passar URL e chave pública (anon key). Nunca a chave secreta. — 07/10/2026: decisão do usuário: um projeto por cidade e por produto. Roteiros prontos em `patrimonio/banco/` e `cemiterio/banco/` (testados em PostgreSQL 16 local imitando o Supabase; não testados no Supabase de verdade, porque a rede deste ambiente bloqueia supabase.com).
 - [ ] Criar 1 projeto de teste de cada produto e passar URL + anon key, para ligar as telas ao banco (login de verdade).
 - [ ] Conferir preço do Supabase (plano gratuito limita projetos ativos; 2 projetos por cidade).
-- [ ] Atlas (atlas.co) no cemitério: avaliar plano gratuito (pesquisa em andamento).
+- [x] Atlas (atlas.co) no cemitério — 07/10/2026: não será usado (decisão do usuário; motivos no DOSSIE.md B7).
+- [ ] Cobrar valor simbólico da pessoa física (R$ 30–50/ano)? Parecer de advogado (DOSSIE.md B7: busca e pedidos não podem ser cobrados; extras opcionais talvez).
+- [ ] Saber se a empresa do protocolo da prefeitura permite integração (função 10 do B7).
 - [ ] Contratar a empresa do levantamento (localização exata dos túmulos); formato de entrega no DOSSIE.md B6.
 - [x] As duas trilhas andam juntas, ou uma sai primeiro? — 07/10/2026: decisão do usuário: equipes de trabalho e treinamento intensivo.
 - [ ] Em que fase entra a frota de veículos (Módulo 10).
@@ -64,7 +66,8 @@ Atualizar este arquivo a cada entrega, sem apagar o histórico. Marcar `[x]` com
 
 - [x] Etapa 1 — túmulos, importação da lista de chãos (De/Para, prévia, desfazer), mapa por posição, painel, ficha com QR, recebimento do levantamento (CSV/GeoJSON), KML, etiquetas, Lixeira. — 07/10/2026, 29 verificações passaram no navegador automático (commit no histórico do git).
 - [ ] Etapa 0 — conferir no AI Studio, rodando, se o estilo (.css) do cemitério é publicado (aparecia sem estilo).
-- [ ] Etapa 2 — vistorias, triagem de possível abandono, ordens de limpeza, app de campo ampliado.
+- [ ] Etapa 2 — vistorias, triagem de possível abandono, ordens de limpeza, app de campo ampliado. Inclui B7 itens 2, 3, 4 e 6.
+- [ ] Funções do B7 (decididas em 07/10/2026): 1 (concessões vencendo, notificações, pedidos de limpeza e avisos de acidente) com a etapa 4; 5 (busca pública com cadastro) e 10 (portal do titular e protocolo) depois do login de verdade no Supabase; 7 (agenda e funerárias) com a etapa 3; 8 (painel de vagas melhorado) com a etapa 3; 9 (digitalização de livros) com a importação.
 - [ ] Etapa 3 — concessões, sepultamentos, exumações e ossário.
 - [ ] Etapa 4 — processo administrativo (nada automático; pessoa decide).
 - [ ] Etapa 5 — imóveis (Patrimônio).
@@ -86,3 +89,4 @@ Atualizar este arquivo a cada entrega, sem apagar o histórico. Marcar `[x]` com
 - 07/10/2026: Gestão do patrimônio criada em `patrimonio/gestao/` a partir das 47 telas do concorrente (DOSSIE.md A5); login `patrimonio` passa a abrir a Gestão.
 - 07/10/2026: dossiê v1.5; Gestão do cemitério (etapa 1) em `cemiterio/gestao/`; login `selemitério` passa a abrir a Gestão; decisões: Supabase e empresa de levantamento.
 - 07/10/2026: roteiros de instalação do banco (Supabase) para patrimônio e cemitério, um projeto por cidade e por produto.
+- 07/10/2026: pesquisa de sistemas de outros países; Atlas descartado; 10 funções aprovadas (DOSSIE.md B7).
