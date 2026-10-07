@@ -32,6 +32,7 @@ A referência de público-alvo é a Prefeitura de Rio do Sul/SC.
 - (07/10/2026) A localização exata dos túmulos virá de **empresa especializada** (drone/GNSS). O sistema só recebe (CSV ou GeoJSON, com prévia) — formato no `DOSSIE.md` B6.
 - (07/10/2026) Atlas (atlas.co) **não** será usado; mapa = Leaflet no próprio sistema. Funções novas aprovadas no `DOSSIE.md` B7. Busca pública "chegar ao túmulo" só com código do túmulo ou nome completo, gratuita, com cadastro.
 - (07/10/2026) Gestão do cemitério em `cemiterio/gestao/`. O login `selemitério` abre a Gestão; o app de campo fica no botão do topo.
+- (07/10/2026) **Marca: escudo VitalPat, opção B** (marinho `#16365a`, dourado fosco `#b8902f`), nome escrito junto "VitalPat". Arquivos `icones/logo-vitalpat.svg` (escudo + nome) e `icones/icone-vitalpat.svg` (só escudo) em cada sistema.
 - (07/10/2026) Modelo de importação do cemitério (planilha limpa, só quadra/aléia/sepultura): `cemiterio/modelos-importacao/`.
 
 ## Bloqueador legal (ler antes de qualquer coisa comercial)

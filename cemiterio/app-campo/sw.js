@@ -1,7 +1,7 @@
 // Guarda os arquivos do aplicativo no aparelho para funcionar sem internet.
 // Ao mudar qualquer arquivo abaixo, aumentar a VERSAO para os aparelhos baixarem de novo.
 const PREFIXO = 'vitalpat-cemiterio-';
-const VERSAO = PREFIXO + 'v5';
+const VERSAO = PREFIXO + 'v6';
 const ARQUIVOS = [
   './',
   './index.html',
@@ -14,7 +14,8 @@ const ARQUIVOS = [
   './manifest.webmanifest',
   './icones/icone-192.png',
   './icones/icone-512.png',
-  './icones/logo-vitalpat.svg'
+  './icones/logo-vitalpat.svg',
+  './icones/icone-vitalpat.svg'
 ];
 
 self.addEventListener('install', (e) => {

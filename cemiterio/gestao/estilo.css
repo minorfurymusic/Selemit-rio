@@ -3,7 +3,7 @@
   color-scheme: light;
   --fundo: #f4f6f8; --superficie: #ffffff; --superficie-2: #f9f9f7; --texto: #1b2430; --texto-2: #52514e; --suave: #6b6a65;
   --borda: #dcdfe4; --grade: #e1e0d9; --base: #c3c2b7;
-  --primaria: #1f5f8b; --primaria-texto: #ffffff; --primaria-clara: #e6f0f8;
+  --primaria: #16365a; --primaria-texto: #ffffff; --primaria-clara: #e5ecf4; --dourado: #b8902f;
   --serie-1: #2a78d6; --serie-2: #eb6834; --serie-cinza: #d6d5ce;
   --ok: #0ca30c; --ok-texto: #006300; --atencao: #fab219; --serio: #ec835a; --critico: #d03b3b;
   --raio: 12px; --sombra: 0 1px 2px rgba(0,0,0,.05);
@@ -13,7 +13,7 @@
     color-scheme: dark;
     --fundo: #0d0d0d; --superficie: #1a1a19; --superficie-2: #222220; --texto: #f2f2f0; --texto-2: #c3c2b7; --suave: #9a998f;
     --borda: #2f2f2c; --grade: #2c2c2a; --base: #383835;
-    --primaria: #4f9bd1; --primaria-texto: #0d1318; --primaria-clara: #15283a;
+    --primaria: #6f9fd6; --primaria-texto: #0d1318; --primaria-clara: #14243a; --dourado: #d6b25a;
     --serie-1: #3987e5; --serie-2: #d95926; --serie-cinza: #3a3a37;
     --ok-texto: #0ca30c;
   }
@@ -22,7 +22,7 @@
   color-scheme: dark;
   --fundo: #0d0d0d; --superficie: #1a1a19; --superficie-2: #222220; --texto: #f2f2f0; --texto-2: #c3c2b7; --suave: #9a998f;
   --borda: #2f2f2c; --grade: #2c2c2a; --base: #383835;
-  --primaria: #4f9bd1; --primaria-texto: #0d1318; --primaria-clara: #15283a;
+  --primaria: #6f9fd6; --primaria-texto: #0d1318; --primaria-clara: #14243a; --dourado: #d6b25a;
   --serie-1: #3987e5; --serie-2: #d95926; --serie-cinza: #3a3a37; --ok-texto: #0ca30c;
 }
 * { box-sizing: border-box; }
@@ -312,7 +312,7 @@ tr.chegou { background: var(--primaria-clara); } tr.sobra { background: #fff4e0;
 
 /* topo: texto sempre legível (claro e escuro) */
 .topo, .topo .botao.claro, .topo .botao-icone { color: #ffffff; }
-.topo { background: #1f5f8b; }
+.topo { background: #16365a; }
 
 /* ---------- cemitério: selos, mapa esquemático e ficha */
 .o-ocupado { color: var(--serie-1); } .o-vago { color: var(--ok-texto); } .o-reservado { color: #a35a00; } .o-nao-informado { color: var(--suave); }

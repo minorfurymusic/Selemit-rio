@@ -60,7 +60,8 @@ Atualizar este arquivo a cada entrega, sem apagar o histórico. Marcar `[x]` com
 - [ ] Trocar a tabela de vida útil e valor residual de exemplo pela tabela oficial do município.
 - [ ] Validar com o setor contábil o arquivo "Para a contabilidade" (layout das colunas).
 - [ ] Configurações que ainda só ficam guardadas (lista em `patrimonio/gestao/LEIA-ME.md`) dependem do servidor.
-- [ ] Ajustar o logo (o usuário vai rever).
+- [x] Ajustar o logo (o usuário vai rever). — 07/10/2026: aprovada a marca **escudo VitalPat, opção B** (marinho `#16365a` + dourado fosco `#b8902f`; nome escrito junto, "VitalPat"). Aplicada nos 4 sistemas e na entrada: `logo-vitalpat.svg` (escudo + nome), `icone-vitalpat.svg` (só escudo, para aba e celular), ícones do aplicativo (192 e 512), cor principal das telas. Cores dos gráficos e das situações não mudaram. Testes do zero: campo 43/0, gestões `TODOS PASSARAM` / `TUDO PASSOU`, fumaça `ERROS: []`, entrada com servidor real `TUDO PASSOU`.
+- [ ] Marca: o nome na logo usa a fonte do aparelho (Archivo quando houver, senão Helvetica/Arial). Para a arte final (impressos, proposta), converter o texto em desenho com um designer.
 
 ## Ligar ao Supabase (plano aprovado em 07/10/2026; vem antes das etapas do cemitério)
 
@@ -116,3 +117,4 @@ Atualizar este arquivo a cada entrega, sem apagar o histórico. Marcar `[x]` com
 - 07/10/2026: pesquisa de sistemas de outros países; Atlas descartado; 10 funções aprovadas (DOSSIE.md B7).
 - 07/10/2026: sistema ligado ao Supabase (login de verdade, Gestões e apps de campo gravando no servidor), testado com o banco real em PostgreSQL+PostgREST locais; falta provar no Supabase de verdade (passo 0).
 - 07/10/2026: ligação ao Supabase provada no projeto de teste real (um projeto para os dois sistemas).
+- 07/10/2026: marca nova (escudo VitalPat, opção B) aplicada em todo o sistema.
