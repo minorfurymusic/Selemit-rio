@@ -14,7 +14,10 @@ Atualizar este arquivo a cada entrega, sem apagar o histórico. Marcar `[x]` com
 
 - [x] Um repositório ou dois (um por produto)? — 07/10/2026: um repositório, duas pastas independentes (`patrimonio/` e `cemiterio/`). Commit: ver histórico do git.
 - [ ] Stack/tecnologia. — 07/10/2026: servidor = Supabase (decisão do usuário). Falta o resto.
-- [ ] Supabase: criar projeto próprio do VitalPat e passar URL e chave pública (anon key). Nunca a chave secreta.
+- [ ] Supabase: criar projeto próprio do VitalPat e passar URL e chave pública (anon key). Nunca a chave secreta. — 07/10/2026: decisão do usuário: um projeto por cidade e por produto. Roteiros prontos em `patrimonio/banco/` e `cemiterio/banco/` (testados em PostgreSQL 16 local imitando o Supabase; não testados no Supabase de verdade, porque a rede deste ambiente bloqueia supabase.com).
+- [ ] Criar 1 projeto de teste de cada produto e passar URL + anon key, para ligar as telas ao banco (login de verdade).
+- [ ] Conferir preço do Supabase (plano gratuito limita projetos ativos; 2 projetos por cidade).
+- [ ] Atlas (atlas.co) no cemitério: avaliar plano gratuito (pesquisa em andamento).
 - [ ] Contratar a empresa do levantamento (localização exata dos túmulos); formato de entrega no DOSSIE.md B6.
 - [x] As duas trilhas andam juntas, ou uma sai primeiro? — 07/10/2026: decisão do usuário: equipes de trabalho e treinamento intensivo.
 - [ ] Em que fase entra a frota de veículos (Módulo 10).
@@ -82,3 +85,4 @@ Atualizar este arquivo a cada entrega, sem apagar o histórico. Marcar `[x]` com
 - 07/10/2026: tela de login única na raiz; cada usuário abre seu sistema (teste: 42 verificações passaram no navegador automático).
 - 07/10/2026: Gestão do patrimônio criada em `patrimonio/gestao/` a partir das 47 telas do concorrente (DOSSIE.md A5); login `patrimonio` passa a abrir a Gestão.
 - 07/10/2026: dossiê v1.5; Gestão do cemitério (etapa 1) em `cemiterio/gestao/`; login `selemitério` passa a abrir a Gestão; decisões: Supabase e empresa de levantamento.
+- 07/10/2026: roteiros de instalação do banco (Supabase) para patrimônio e cemitério, um projeto por cidade e por produto.
