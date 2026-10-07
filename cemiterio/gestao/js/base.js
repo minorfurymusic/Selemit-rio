@@ -81,7 +81,7 @@ VP.CONFIG_PADRAO = {
   mostrarFotos: true
 };
 
-VP.COLECOES = ['cemiterios', 'quadras', 'tumulos', 'eventos', 'importacoes', 'filtrosSalvos', 'meta'];
+VP.COLECOES = ['cemiterios', 'quadras', 'tumulos', 'eventos', 'importacoes', 'filtrosSalvos', 'meta', 'registrosCampo'];
 
 // Armazenamento no navegador (IndexedDB). Tudo é carregado na memória ao abrir.
 // Preparado para trocar por servidor (Supabase) mantendo as mesmas funções: carregar, lista, pega, gravar, gravarVarias.

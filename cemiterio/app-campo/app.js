@@ -192,7 +192,7 @@ Telas.inicio = async () => {
   return {
     titulo: 'VitalPat Cemitério',
     html: `
-      <p class="aviso-demo">Versão de demonstração. Os dados de exemplo são fictícios.</p>
+      ${window.Envio?.ativo ? `<p class="aviso-demo">Conectado ao servidor${window.Envio.municipio ? ' · ' + esc(window.Envio.municipio) : ''}. ${regs.filter((r) => r.situacao === 'enviado').length} registro(s) já enviado(s) deste aparelho.</p>` : '<p class="aviso-demo">Versão de demonstração. Os dados de exemplo são fictícios.</p>'}
       <div class="grade tres">
         <button class="cartao" data-ir="tumulo"><strong>Vistoria de túmulo</strong><span>Estrutura, limpeza, identificação, tampa e sinais de visita</span></button>
         <button class="cartao" data-ir="registros"><strong>Registros</strong><span><span class="contador" id="qtd-aguardando">${aguardando}</span> aguardando envio</span></button>
@@ -281,7 +281,7 @@ function listaHtml(regs, acao) {
       <div class="topo"><strong>${esc(NOMES_TIPO[r.tipo])}</strong><span class="data">${esc(dataHora(r.criadoEm))}</span></div>
       <div>${esc(resumo(r))}</div>
       <div class="topo" style="margin-top:8px">
-        <span class="etiqueta">${r.situacao === 'lixeira' ? 'Na Lixeira desde ' + esc(dataHora(r.excluidoEm)) : 'Aguardando envio'} · ${r.fotos.length} foto(s) · ${r.gps ? 'com localização' : 'sem localização'}</span>
+        <span class="etiqueta">${r.situacao === 'lixeira' ? 'Na Lixeira desde ' + esc(dataHora(r.excluidoEm)) : r.ultimoErro ? 'Não enviado: ' + esc(r.ultimoErro) : 'Aguardando envio'} · ${r.fotos.length} foto(s) · ${r.gps ? 'com localização' : 'sem localização'}</span>
         ${acao === 'excluir' ? '<button class="botao perigo" data-acao="excluir">Excluir</button>' : '<button class="botao secundario" data-acao="restaurar">Restaurar</button>'}
       </div>
     </li>`).join('') + '</ul>';
@@ -294,8 +294,12 @@ Telas.registros = async () => {
     html: `
       <div class="cartao">
         <p style="margin-top:0"><span class="contador">${regs.length}</span> registro(s) guardado(s) neste aparelho, aguardando envio.</p>
-        <button class="botao" disabled title="Ainda não disponível">Enviar</button>
-        <p class="ajuda">O envio ainda não existe nesta versão de demonstração. Para tirar os dados do aparelho, use “Baixar planilha” ou “Baixar cópia completa”.</p>
+        ${window.Envio?.ativo
+          ? `<button class="botao" id="enviar" ${regs.length ? '' : 'disabled'}>Enviar para o servidor</button>
+        <p class="ajuda">Com internet, o envio também acontece sozinho. Sem internet, os registros ficam guardados aqui até a internet voltar.</p>
+        <div id="resultado-envio"></div>`
+          : `<button class="botao" disabled title="Ainda não disponível">Enviar</button>
+        <p class="ajuda">Nesta versão de demonstração não há servidor. Para tirar os dados do aparelho, use “Baixar planilha” ou “Baixar cópia completa”.</p>`}
         <button class="botao secundario" id="json" style="margin-top:8px">Baixar cópia completa (com fotos)</button>
       </div>
       <div class="cartao" style="margin-top:12px">
@@ -325,6 +329,19 @@ Telas.registros = async () => {
           <label class="opcao"><input type="checkbox" value="${esc(c.chave)}" ${!salvas || salvas.includes(c.chave) ? 'checked' : ''}> ${esc(c.rotulo)}</label>`).join('')
           || '<p class="ajuda">Nenhum registro deste tipo.</p>';
       };
+      $('#enviar')?.addEventListener('click', async () => {
+        const b = $('#enviar');
+        b.disabled = true; b.textContent = 'Enviando…';
+        const r = await window.Envio.enviar(Banco, (n, total) => { b.textContent = `Enviando… ${n} de ${total}`; });
+        if (r.semLogin) { $('#resultado-envio').innerHTML = '<p class="erro">Sua sessão terminou. Saia e entre de novo (com internet) para enviar. Os registros continuam guardados.</p>'; b.disabled = false; b.textContent = 'Enviar para o servidor'; return; }
+        sessionStorage.setItem('vitalpat-cemiterio-ultimo-envio', JSON.stringify({ enviados: r.enviados.length, falhas: r.falhas }));
+        render();
+      });
+      const ultimo = (() => { try { return JSON.parse(sessionStorage.getItem('vitalpat-cemiterio-ultimo-envio')); } catch (_) { return null; } })();
+      if (ultimo && $('#resultado-envio')) {
+        sessionStorage.removeItem('vitalpat-cemiterio-ultimo-envio');
+        $('#resultado-envio').innerHTML = `<div class="resultado-envio"><p><strong>${ultimo.enviados}</strong> registro(s) enviado(s).</p>${ultimo.falhas.length ? `<p class="erro">${ultimo.falhas.length} não enviado(s):</p><ul>${ultimo.falhas.map((f) => `<li>${esc(f.motivo)}</li>`).join('')}</ul>` : ''}</div>`;
+      }
       $('#tipo-planilha').addEventListener('change', desenhar);
       $('#marcar-todas').addEventListener('click', () => document.querySelectorAll('#colunas input').forEach((i) => { i.checked = true; }));
       $('#desmarcar-todas').addEventListener('click', () => document.querySelectorAll('#colunas input').forEach((i) => { i.checked = false; }));
@@ -459,16 +476,25 @@ function atualizarConexao() {
 
 $('#voltar').addEventListener('click', () => { location.hash = 'inicio'; });
 // Sair: volta para a tela de login. Os registros continuam guardados no aparelho.
-$('#sair').addEventListener('click', () => {
+$('#sair').addEventListener('click', async () => {
+  if (window.Envio?.ativo) await window.Envio.sair();
   try { localStorage.removeItem('vitalpat-sessao'); } catch (_) { /* nada a fazer */ }
   location.replace('../../index.html?motivo=saiu');
 });
 window.addEventListener('hashchange', render);
 window.addEventListener('online', atualizarConexao);
+// Envio automático: ao abrir com internet e quando a internet volta
+async function envioAutomatico() {
+  if (!window.Envio?.ativo || !P().online()) return;
+  const r = await window.Envio.enviar(Banco);
+  if (r.enviados?.length) { avisar(`${r.enviados.length} registro(s) enviado(s) ao servidor.`); if (['inicio', 'registros'].includes(telaAtual())) render(); }
+}
+window.addEventListener('online', envioAutomatico);
 window.addEventListener('offline', atualizarConexao);
 if (!window.VP_SEM_ACESSO) {
   atualizarConexao();
   render();
+  envioAutomatico();
 }
 
 if (!window.VP_SEM_ACESSO && 'serviceWorker' in navigator) {

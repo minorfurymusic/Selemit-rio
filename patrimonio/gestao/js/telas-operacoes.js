@@ -364,6 +364,8 @@
         req.onerror = () => ok([]);
       });
     } catch (_) { regs = []; }
+    // Com servidor: também os registros que os aparelhos já enviaram (sem repetir os que estão neste navegador)
+    for (const r of VP.db.lista('registrosCampo')) if (!regs.some((x) => x.id === r.id)) regs.push(r);
     const daqui = regs.filter((r) => r.situacao !== 'lixeira');
     const sucesso = [], falhas = [], eventos = [];
     const unidadePorNome = (nome) => VP.db.lista('unidades').find((x) => u.normalizar(x.nome) === u.normalizar(nome));

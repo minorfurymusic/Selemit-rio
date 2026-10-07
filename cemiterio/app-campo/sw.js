@@ -1,12 +1,15 @@
 // Guarda os arquivos do aplicativo no aparelho para funcionar sem internet.
 // Ao mudar qualquer arquivo abaixo, aumentar a VERSAO para os aparelhos baixarem de novo.
 const PREFIXO = 'vitalpat-cemiterio-';
-const VERSAO = PREFIXO + 'v4';
+const VERSAO = PREFIXO + 'v5';
 const ARQUIVOS = [
   './',
   './index.html',
   './estilo.css',
   './app.js',
+  './envio.js',
+  './vendor/supabase.js',
+  '../config-servidor.js',
   './dados-exemplo.js',
   './manifest.webmanifest',
   './icones/icone-192.png',
@@ -28,8 +31,14 @@ self.addEventListener('activate', (e) => {
 });
 
 // Primeiro tenta o que está guardado no aparelho; se não tiver, busca na internet.
+// Servidor (outro endereço) nunca passa pelo que está guardado. O arquivo de configuração busca na
+// internet primeiro, para uma mudança de servidor chegar logo; sem internet, usa o guardado.
 self.addEventListener('fetch', (e) => {
-  if (e.request.method !== 'GET') return;
+  if (e.request.method !== 'GET' || new URL(e.request.url).origin !== self.location.origin) return;
+  if (e.request.url.includes('config-servidor.js')) {
+    e.respondWith(fetch(e.request).then((r) => { const copia = r.clone(); caches.open(VERSAO).then((c) => c.put(e.request, copia)); return r; }).catch(() => caches.match(e.request, { ignoreSearch: true })));
+    return;
+  }
   e.respondWith(
     caches.match(e.request, { ignoreSearch: true }).then((r) => r || fetch(e.request))
   );
