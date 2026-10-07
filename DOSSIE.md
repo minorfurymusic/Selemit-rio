@@ -261,6 +261,8 @@ O texto pede que "restrições legais sejam um problema a ser superado" e cita i
 
 ### A1.14 Módulo 10 — Frota de veículos (novo na v1.2)
 
+*Atualização 07/10/2026: aba Frota implementada na Gestão do Patrimônio (`patrimonio/gestao/js/telas-frota.js`) com FR-01 a FR-11, FR-14 e FR-16 (custos já no relatório de veículos) e FR-17 (app de campo). Faltam FR-12 (pneus), FR-13 (reservas) e FR-15 (cartão-combustível).*
+
 Referência de mercado pedida pelo usuário: **GAX (3ia)** — ver A4. Os itens marcados "GAX" são funções que o GAX divulga publicamente; os demais foram acrescentados.
 
 | ID | Requisito | Origem | Observação |

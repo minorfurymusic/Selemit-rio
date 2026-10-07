@@ -56,7 +56,7 @@ h4 { font-size: 14px; margin: 14px 0 6px; color: var(--texto-2); }
   .topo .botao-icone { display: inline-block; }
   .topo { flex-wrap: wrap; row-gap: 8px; }
   .topo .marca span { display: none; }
-  .topo .link-campo { font-size: 12px; padding: 0 8px; }
+  .topo .link-campo, .topo #tema { font-size: 12px; padding: 0 8px; }
   #busca-global { order: 5; flex: 1 1 100%; max-width: none; }
   .menu { top: 100px; }
   .menu { transform: translateX(-100%); transition: transform .2s; z-index: 30; box-shadow: 2px 0 12px rgba(0,0,0,.2); }
@@ -321,3 +321,22 @@ body.papel-consulta .barra-lote, body.papel-campo .barra-lote,
 body.papel-consulta [data-acao]:not([data-acao="etiqueta"]):not([data-acao="imprimir"]), body.papel-campo [data-acao]:not([data-acao="etiqueta"]):not([data-acao="imprimir"]):not([data-acao="vistoria"]),
 body.papel-consulta [data-editar], body.papel-consulta [data-novo], body.papel-consulta [data-novo-cad], body.papel-consulta [data-excluir-cad], body.papel-consulta [data-restaurar-item], body.papel-consulta [data-salvar-cfg],
 body.papel-campo [data-editar], body.papel-campo [data-novo], body.papel-campo [data-novo-cad], body.papel-campo [data-excluir-cad], body.papel-campo [data-restaurar-item], body.papel-campo [data-salvar-cfg] { display: none !important; }
+
+/* novo bem: detalhes (não obrigatórios, mas importantes) */
+.detalhes-bem { border-top: 1px solid var(--borda); margin-top: 14px; padding-top: 4px; }
+.detalhes-bem h4 { margin-top: 10px; }
+
+/* novo bem: nome e classificação digitados, com aviso do que já existe */
+.achado { font-size: 13px; margin-top: 6px; min-height: 1.3em; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color: var(--texto-2); }
+.ok-txt { color: var(--ok-texto); font-weight: 600; } .novo-txt { color: #a35a00; }
+/* nota fiscal: conferência item por item */
+.itens-nf { display: grid; gap: 10px; }
+.item-nf { border: 1px solid var(--borda); border-radius: 10px; padding: 10px 12px; display: grid; gap: 6px; }
+.item-nf-dados { color: var(--texto-2); font-size: 14px; font-variant-numeric: tabular-nums; }
+.item-nf-classe { display: grid; gap: 4px; font-size: 13px; color: var(--texto-2); }
+.item-nf-classe input { font: inherit; padding: 8px; border: 1px solid var(--borda); border-radius: 8px; background: var(--superficie); color: var(--texto); }
+.difs { display: grid; gap: 6px; }
+.dif { display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: center; font-size: 14px; }
+.dif > span { font-weight: 600; min-width: 130px; }
+.achado .mae { display: inline-flex; gap: 6px; align-items: center; font-size: 13px; }
+.achado select, .item-nf-classe select { font: inherit; padding: 6px; border: 1px solid var(--borda); border-radius: 8px; background: var(--superficie); color: var(--texto); }

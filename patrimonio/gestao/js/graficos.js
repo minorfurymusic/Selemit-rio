@@ -53,7 +53,7 @@
   G.colunas = (dados, op = {}) => {
     const fmt = op.formato || fmtPadrao;
     if (!dados.length || dados.every((d) => !d.valor)) return '<p class="vazio">Sem dados para este gráfico.</p>';
-    const W = op.largura || 440, H = op.altura || 200, mE = 58, mD = 6, mT = 14, mB = 26;
+    const W = op.largura || 440, H = op.altura || 200, mE = 72, mD = 6, mT = 14, mB = 26;
     const max = Math.max(...dados.map((d) => d.valor), 1);
     const passo = (W - mE - mD) / dados.length;
     const larg = Math.max(4, Math.min(36, passo - 6));

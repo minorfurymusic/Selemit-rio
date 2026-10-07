@@ -76,7 +76,7 @@
       ligar() {
         ui.ligarTabela('cad-' + qual);
         document.querySelector('[data-novo-cad]').addEventListener('click', () => editar(null));
-        document.getElementById('conteudo').addEventListener('click', async (e) => {
+        document.getElementById('conteudo').onclick = async (e) => { // onclick: não acumula a cada visita
           const ed = e.target.closest('[data-editar-cad]');
           if (ed) return editar(VP.db.pega(qual, ed.dataset.editarCad));
           const ex = e.target.closest('[data-excluir-cad]');
@@ -89,7 +89,7 @@
             ui.aviso('Na Lixeira.');
             VP.app.render();
           }
-        });
+        };
       }
     };
   };
@@ -142,6 +142,7 @@
       ['validaTransferenciaRetroativa', 'bool', 'Não aceitar transferência com data anterior à última movimentação', ''],
       ['avisarTransferencia', 'select', 'Aviso de transferência pendente', '', [['painel', 'Na central de pendências do painel'], ['nenhum', 'Não avisar']]],
       ['depreciacaoAnual', 'bool', 'Fechar a depreciação de uma vez por ano (em vez de mês a mês)', ''],
+      ['depreciacaoAutomatica', 'select', 'Lançar a depreciação automaticamente', 'As regras (vida útil, valor residual, método) vêm da classificação de cada bem. "Ao gerar o balancete": antes de calcular, o sistema fecha os meses que faltam até o fim do período. Sempre dá para desfazer o último fechamento em Financeiro.', [['manual', 'Não: eu fecho o mês em Financeiro'], ['balancete', 'Sim, ao gerar o balancete'], ['abrir', 'Sim, ao abrir o sistema (meses já terminados)']]],
       ['tombamentoAutomatico', 'bool', 'Gerar número de tombamento e plaqueta automaticamente', ''],
       ['obrigaUnidade', 'bool', 'Exigir unidade em todo bem', ''],
       ['taxaPorEntidade', 'bool', 'Taxa de depreciação diferente por entidade', 'Guardado para a versão com servidor.']] },
@@ -213,17 +214,17 @@
   // ---------------------------------------------------------------- lixeira
   T.lixeira = () => {
     const itens = [];
-    for (const c of ['bens'].concat(Object.keys(CAD))) for (const x of VP.db.lista(c, true).filter((d) => d.excluido)) itens.push({ id: c + '|' + x.id, col: c, x });
+    for (const c of ['bens'].concat(Object.keys(CAD), Object.keys(VP.frota?.COLECOES || {}))) for (const x of VP.db.lista(c, true).filter((d) => d.excluido)) itens.push({ id: c + '|' + x.id, col: c, x });
     return {
       titulo: 'Lixeira',
       html: `<p class="ajuda">Nada é apagado de verdade. O que foi excluído fica aqui e pode voltar.</p>${ui.tabela({ id: 'lixeira', linhas: itens, nomePlanilha: 'lixeira', vazio: 'A Lixeira está vazia.', colunas: [
-        { chave: 'tipo', titulo: 'O que é', valor: (i) => (i.col === 'bens' ? 'Bem' : CAD[i.col].titulo.split(' (')[0]) },
-        { chave: 'nome', titulo: 'Nome', valor: (i) => (i.col === 'bens' ? `${i.x.codigo} · ${i.x.descricao}` : i.x.nome || i.x.codigo) },
+        { chave: 'tipo', titulo: 'O que é', valor: (i) => (i.col === 'bens' ? 'Bem' : CAD[i.col] ? CAD[i.col].titulo.split(' (')[0] : VP.frota.COLECOES[i.col]) },
+        { chave: 'nome', titulo: 'Nome', valor: (i) => (i.col === 'bens' ? `${i.x.codigo} · ${i.x.descricao}` : i.x.nome || i.x.codigo || i.x.placa || i.x.numero || i.x.item || i.x.tipo || i.x.descricao || u.data(i.x.data || i.x.saida)) },
         { chave: 'quando', titulo: 'Excluído em', valor: (i) => u.data(i.x.excluidoEm) },
         { chave: 'acao', titulo: '', html: (i) => `<button class="botao pequeno" data-restaurar-item="${esc(i.id)}">Restaurar</button>` }] })}`,
       ligar() {
         ui.ligarTabela('lixeira');
-        document.getElementById('conteudo').addEventListener('click', async (e) => {
+        document.getElementById('conteudo').onclick = async (e) => { // onclick: não acumula a cada visita
           const r = e.target.closest('[data-restaurar-item]'); if (!r) return;
           const [col, id] = r.dataset.restaurarItem.split('|');
           const x = VP.db.pega(col, id);
@@ -231,7 +232,7 @@
           await VP.db.gravar(col, x);
           if (col === 'bens') await VP.db.gravar('eventos', VP.novoEvento(x.id, 'alteracao', { descricao: 'Restaurado da Lixeira' }));
           ui.aviso('Restaurado.'); VP.app.render();
-        });
+        };
       }
     };
   };

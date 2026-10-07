@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Nota fiscal FICTÍCIA, só para testar a importação no VitalPat. Nenhum dado real. -->
+<nfeProc xmlns="http://www.portalfiscal.inf.br/nfe" versao="4.00">
+  <NFe>
+    <infNFe Id="NFe42261011222333000181550010000045671000045678" versao="4.00">
+      <ide><cUF>42</cUF><natOp>Venda</natOp><mod>55</mod><serie>1</serie><nNF>4567</nNF><dhEmi>2026-10-01T10:15:00-03:00</dhEmi></ide>
+      <emit><CNPJ>11222333000181</CNPJ><xNome>Fornecedor Exemplo de Informática Ltda.</xNome></emit>
+      <dest><CNPJ>00000000000000</CNPJ><xNome>Prefeitura Municipal de Exemplo</xNome></dest>
+      <det nItem="1"><prod><cProd>NB-15</cProd><xProd>Notebook</xProd><NCM>84713012</NCM><CFOP>5102</CFOP><uCom>UN</uCom><qCom>2.0000</qCom><vUnCom>4890.0000000000</vUnCom><vProd>9780.00</vProd></prod></det>
+      <det nItem="2"><prod><cProd>MON-24</cProd><xProd>Monitor 24 polegadas</xProd><NCM>85285200</NCM><CFOP>5102</CFOP><uCom>UN</uCom><qCom>3.0000</qCom><vUnCom>899.9000000000</vUnCom><vProd>2699.70</vProd></prod></det>
+      <det nItem="3"><prod><cProd>CAD-01</cProd><xProd>Cadeira giratória</xProd><NCM>94013000</NCM><CFOP>5102</CFOP><uCom>UN</uCom><qCom>4.0000</qCom><vUnCom>520.0000000000</vUnCom><vProd>2080.00</vProd></prod></det>
+      <total><ICMSTot><vNF>14559.70</vNF></ICMSTot></total>
+    </infNFe>
+  </NFe>
+</nfeProc>

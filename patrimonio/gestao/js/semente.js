@@ -237,9 +237,13 @@
       else regs.push(VP.novoEvento(b.id, 'observacao', { data, descricao: escolhe(['Bem com marcas de uso', 'Plaqueta trocada', 'Usado em evento externo e devolvido']) }));
     }
     for (const b of veiculos) {
-      for (let k = 0; k < 6; k++) {
-        const litros = Math.round(entre(25, 70));
-        regs.push(VP.novoEvento(b.id, 'abastecimento', { data: u.somaDias(hoje, -Math.floor(entre(3, 170))), valor: Math.round(litros * entre(5.6, 6.4) * 100) / 100, descricao: `${litros} L`, extra: { litros, km: Math.floor(entre(20000, 180000)) } }));
+      // km sempre subindo e consumo coerente (8 a 11 km/L), para os alertas da Frota fazerem sentido
+      let km = Math.floor(entre(20000, 120000));
+      const consumo = entre(8, 11);
+      for (let k = 0; k < 8; k++) {
+        const litros = Math.round(entre(25, Math.min(70, b.veiculo?.capacidadeTanque || 70)));
+        km += Math.round(litros * consumo * entre(0.92, 1.08));
+        regs.push(VP.novoEvento(b.id, 'abastecimento', { data: u.somaDias(hoje, -(7 - k) * 20 - 3 - Math.floor(entre(0, 3))), valor: Math.round(litros * entre(5.6, 6.4) * 100) / 100, descricao: `${litros} L`, extra: { litros, km, combustivel: b.veiculo?.combustivel } }));
       }
     }
     for (let i = 0; i < 8; i++) {
@@ -266,6 +270,33 @@
     // uma transferência aguardando aceite
     const tb = ativos.filter((b) => b.unidadeId === 'U5').slice(0, 3);
     if (tb.length) await VP.db.gravar('transferencias', { id: 'T1', tipo: 'interna', bens: tb.map((b) => b.id), origemUnidadeId: 'U5', destinoUnidadeId: 'U1', responsavelDestinoId: 'R1', motivo: 'Remanejamento', data: u.somaDias(hoje, -3), situacao: 'pendente', observacao: '' });
+    // Frota (fictícia): contrato de locação, 2 alugados, motoristas, abastecimentos, viagens, preventivas, multa e documentos
+    const contrato = { id: 'CL1', numero: `018/${anoAtual - 1}`, empresa: 'Locadora Exemplo Ltda.', inicio: u.somaDias(hoje, -320), fim: u.somaDias(hoje, 45), valorMensal: 3200, franquiaKm: 2500, valorKmExcedente: 0.85, valorTotal: 3200 * 2 * 12, quemPaga: 'prefeitura', observacao: '1º aditivo: prorrogação por 12 meses (exemplo)' };
+    const locados = [
+      { id: 'VL1', placa: 'LOC1A23', marca: 'Fiat', modelo: 'Strada (exemplo)', ano: String(anoAtual - 1), combustivel: 'Flex', tanque: 55, kmInicial: 15000, contratoId: 'CL1', unidadeId: 'U3', situacao: 'ativo' },
+      { id: 'VL2', placa: 'LOC2B34', marca: 'Volkswagen', modelo: 'Gol (exemplo)', ano: String(anoAtual - 2), combustivel: 'Flex', tanque: 50, kmInicial: 22000, contratoId: 'CL1', unidadeId: 'U1', situacao: 'ativo' }];
+    const motoristas = [
+      { id: 'M1', nome: 'Motorista Exemplo Um', cnh: '00000000001', categoria: 'D', validade: u.somaDias(hoje, 400), unidadeId: 'U3', cursos: 'Transporte de pacientes' },
+      { id: 'M2', nome: 'Motorista Exemplo Dois', cnh: '00000000002', categoria: 'B', validade: u.somaDias(hoje, 20), unidadeId: 'U1', cursos: '' },
+      { id: 'M3', nome: 'Motorista Exemplo Três', cnh: '00000000003', categoria: 'AB', validade: u.somaDias(hoje, -10), unidadeId: 'U4', cursos: '' }];
+    const abast = [], viagens = [];
+    for (const l of locados) {
+      let km = l.kmInicial;
+      for (let k = 0; k < 7; k++) {
+        const litros = Math.round(entre(25, 45));
+        km += Math.round(litros * entre(10.5, 12.5));
+        abast.push({ id: `AB-${l.id}-${k}`, ref: 'L:' + l.id, data: u.somaDias(hoje, -(6 - k) * 15 - 2), hora: '08:' + String(10 + k * 5), litros, valor: Math.round(litros * entre(5.6, 6.3) * 100) / 100, km: k === 5 && l.id === 'VL2' ? km - 900 : km, combustivel: 'Gasolina', motoristaId: l.id === 'VL1' ? 'M1' : 'M2', posto: 'Posto Exemplo' });
+      }
+      let ks = l.kmInicial + 200;
+      for (let k = 0; k < 4; k++) { const ida = Math.round(entre(40, 180)); viagens.push({ id: `VG-${l.id}-${k}`, ref: 'L:' + l.id, motoristaId: l.id === 'VL1' ? 'M1' : 'M2', saida: u.somaDias(hoje, -(4 - k) * 9), horaSaida: '07:30', kmSaida: ks, destino: escolhe(['Hospital regional', 'Escola do interior', 'Secretaria de Estado', 'Unidade de saúde']), motivo: 'Serviço', retorno: u.somaDias(hoje, -(4 - k) * 9), horaRetorno: '17:00', kmRetorno: ks + ida }); ks += ida + 300; }
+    }
+    const v1 = veiculos[0];
+    const planos = [
+      v1 ? { id: 'PM1', ref: 'B:' + v1.id, item: 'Troca de óleo e filtro', cadaKm: 10000, cadaMeses: 6, ultimoKm: 0, ultimaData: u.somaDias(hoje, -200) } : null,
+      { id: 'PM2', ref: 'L:VL1', item: 'Revisão', cadaKm: 10000, cadaMeses: 12, ultimoKm: 15000, ultimaData: u.somaDias(hoje, -150) }].filter(Boolean);
+    const multas = v1 ? [{ id: 'MU1', ref: 'B:' + v1.id, data: u.somaDias(hoje, -20), auto: 'A00000001 (exemplo)', descricao: 'Excesso de velocidade até 20%', valor: 130.16, prazoIndicacao: u.somaDias(hoje, 5), motoristaId: '', situacao: 'aberta' }] : [];
+    const docs = veiculos.map((b, i) => ({ id: 'DV' + i, ref: 'B:' + b.id, tipo: 'Licenciamento (CRLV)', vencimento: u.somaDias(hoje, i === 0 ? 12 : 60 + i * 30), observacao: '' }));
+    await VP.db.gravarVarias({ contratosLocacao: [contrato], veiculosLocados: locados, motoristas, abastecimentos: abast, viagens, planosManutencao: planos, multas, documentosVeiculo: docs });
     await VP.salvarConfig(Object.assign({}, VP.CONFIG_PADRAO, { usuarioResponsavelId: 'R6', unidadePatrimonio: 'U6', unidadeSolicitacaoBaixa: 'U6' }));
     await VP.db.gravar('meta', { id: 'semente', criadoEm: VP.Plataforma.agoraISO(), ficticio: true });
     VP.invalidarIndice();

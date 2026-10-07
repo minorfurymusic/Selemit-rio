@@ -8,6 +8,10 @@
   <link rel="icon" href="icones/icone-vitalpat.svg" type="image/svg+xml">
   <link rel="stylesheet" href="estilo.css">
   <script>
+    // Tema escolhido pela pessoa (claro, escuro ou automático = igual ao aparelho). Aplicado antes de desenhar, para não piscar.
+    (function () { try { var t = localStorage.getItem('vitalpat-tema'); if (t === 'claro') document.documentElement.dataset.theme = 'light'; else if (t === 'escuro') document.documentElement.dataset.theme = 'dark'; } catch (e) { /* sem preferência guardada */ } })();
+  </script>
+  <script>
     // Só entra quem fez login com um usuário do cemitério (ver ../../index.html).
     (function () {
       var s = null;
@@ -27,6 +31,7 @@
     <span id="modo-sistema" class="modo-sistema"></span>
     <input id="busca-global" type="search" placeholder="Buscar túmulo (código, quadra, número…) e Enter" aria-label="Buscar túmulo">
     <a class="botao pequeno claro link-campo" href="../app-campo/" title="Aplicativo para celular e tablet">Aplicativo de campo</a>
+    <button id="tema" class="botao pequeno claro" type="button" title="Mudar entre claro, escuro e automático">Tema: automático</button>
     <button id="sair" class="botao pequeno claro">Sair</button>
   </header>
   <nav id="menu" class="menu" aria-label="Menu principal"></nav>

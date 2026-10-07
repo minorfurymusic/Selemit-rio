@@ -109,7 +109,7 @@ VP.u = {
 VP.LISTAS = {
   tiposBem: { movel: 'Bem móvel', imovel: 'Bem imóvel', veiculo: 'Veículo', intangivel: 'Intangível (software, licença)', infraestrutura: 'Infraestrutura (ruas, redes, pontes)' },
   status: { ativo: 'Em uso', desuso: 'Em desuso', cedido: 'Fora (cedido/emprestado)', manutencao: 'Em conserto', baixado: 'Baixado' },
-  estados: { 5: 'Ótimo', 4: 'Bom', 3: 'Regular', 2: 'Ruim', 1: 'Péssimo' },
+  estados: { 6: 'Novo', 5: 'Ótimo', 4: 'Bom', 3: 'Regular', 2: 'Ruim', 1: 'Péssimo' },
   situacoesAquisicao: ['Compra', 'Doação recebida', 'Cessão recebida', 'Permuta', 'Construção / obra', 'Desapropriação', 'Dação em pagamento', 'Loteamento (área pública)', 'Saldo inicial'],
   metodos: { linear: 'Cotas constantes (linear)', somaDigitos: 'Soma dos dígitos', unidades: 'Unidades produzidas' },
   tiposBaixa: ['Inservível', 'Alienação (leilão)', 'Doação', 'Furto / roubo', 'Extravio', 'Sinistro', 'Permuta', 'Fim da vida útil'],
@@ -154,6 +154,7 @@ VP.CONFIG_PADRAO = {
   validaTransferenciaRetroativa: true,
   avisarTransferencia: 'painel',
   depreciacaoAnual: false,
+  depreciacaoAutomatica: 'manual', // manual | balancete (ao gerar o balancete) | abrir (ao abrir o sistema)
   tombamentoAutomatico: true,
   obrigaUnidade: true,
   taxaPorEntidade: false,
@@ -191,7 +192,9 @@ VP.CONFIG_PADRAO = {
 // ---------------------------------------------------------------------------
 VP.COLECOES = ['bens', 'eventos', 'unidades', 'responsaveis', 'classificacoes', 'produtos', 'contas', 'fornecedores',
   'motivos', 'entidades', 'comissoes', 'seguradoras', 'tiposGarantia', 'itensIncorporar', 'transferencias',
-  'inventarios', 'fechamentos', 'reavaliacoes', 'exportacoes', 'filtrosSalvos', 'meta', 'registrosCampo'];
+  'inventarios', 'fechamentos', 'reavaliacoes', 'exportacoes', 'filtrosSalvos', 'meta', 'registrosCampo',
+  // Frota (veículo próprio continua em "bens")
+  'veiculosLocados', 'abastecimentos', 'viagens', 'contratosLocacao', 'motoristas', 'planosManutencao', 'multas', 'documentosVeiculo'];
 
 VP.db = {
   _db: null,

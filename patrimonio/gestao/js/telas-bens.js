@@ -29,10 +29,16 @@
   };
 
   // ======================================================== LISTA DE BENS
-  const filtrosBens = () => {
+  // Abas: bens móveis e bens imóveis ficam separados; veículos ficam na Frota (continuam sendo patrimônio).
+  const GRUPOS = {
+    moveis: { titulo: 'Bens móveis', tipos: ['movel', 'intangivel'], novo: 'movel' },
+    imoveis: { titulo: 'Bens imóveis', tipos: ['imovel', 'infraestrutura'], novo: 'imovel' }
+  };
+  VP.GRUPOS_BENS = GRUPOS;
+  const filtrosBens = (grupo) => {
     const cfg = VP.config();
     const defs = [
-      { chave: 'tipo', rotulo: 'Tipo', tipo: 'select', opcoes: Object.entries(L.tiposBem) },
+      { chave: 'tipo', rotulo: 'Tipo', tipo: 'select', opcoes: Object.entries(L.tiposBem).filter(([k]) => !grupo || grupo.tipos.includes(k)) },
       { chave: 'status', rotulo: 'Situação', tipo: 'select', opcoes: Object.entries(L.status) },
       { chave: 'estado', rotulo: 'Estado', tipo: 'select', opcoes: Object.entries(L.estados).reverse() },
       { chave: 'unidadeId', rotulo: 'Unidade', tipo: 'select', opcoes: opc('unidades') },
@@ -53,9 +59,9 @@
     if (cfg.filtroPorClassificacao) defs.splice(3, 0, { chave: 'classificacaoId', rotulo: 'Classificação', tipo: 'select', opcoes: opcClassificacoes() });
     return defs;
   };
-  const aplicarFiltros = (v) => {
+  const aplicarFiltros = (v, grupo) => {
     const f = ui.limparValores(v);
-    return VP.filtrarBens(Object.assign({}, f, {
+    return VP.filtrarBens(Object.assign({}, f, { tipos: grupo ? grupo.tipos : null }, {
       totalmenteDepreciados: !!f.depreciados,
       valorMin: f.valorMin != null ? u.num(f.valorMin) : null,
       valorMax: f.valorMax != null ? u.num(f.valorMax) : null
@@ -86,13 +92,15 @@
 
   VP.estado = VP.estado || { filtrosBens: {}, listaAtual: [] };
 
-  T.bens = (_, query) => {
-    const v = VP.estado.filtrosBens;
+  T.bens = (aba, query) => {
+    const grupo = GRUPOS[aba] || null;
+    const chaveFiltro = grupo ? 'filtrosBens_' + aba : 'filtrosBens';
+    const v = VP.estado[chaveFiltro] = VP.estado[chaveFiltro] || {};
     if (query.semResponsavel) { for (const k of Object.keys(v)) delete v[k]; v.semResponsavel = true; }
     if (query.depreciados) { for (const k of Object.keys(v)) delete v[k]; v.depreciados = true; }
     if (query.unidade) { for (const k of Object.keys(v)) delete v[k]; v.unidadeId = query.unidade; }
     const desenhar = () => {
-      const bens = aplicarFiltros(v);
+      const bens = aplicarFiltros(v, grupo);
       VP.estado.listaAtual = bens.map((b) => b.id);
       const total = bens.reduce((t, b) => t + VP.saldo(b).liquido, 0);
       const salvos = VP.db.lista('filtrosSalvos');
@@ -104,7 +112,7 @@
           ${G.numero('Sem responsável', u.inteiro(bens.filter((b) => !b.responsavelId && b.status !== 'baixado').length))}
         </div>
         ${salvos.length ? `<div class="filtros-salvos"><span>Filtros salvos:</span>${salvos.map((s) => `<button type="button" class="botao pequeno" data-filtro-salvo="${esc(s.id)}">${esc(s.nome)}</button>`).join('')}</div>` : ''}
-        <div class="linha-filtros">${ui.filtros({ id: 'bens', defs: filtrosBens(), valores: v, placeholder: 'Buscar por código (ex.: 1,2,6-10), plaqueta, nome, local, responsável, placa…', aoMudar: (_v, origem) => { atualizar(origem); } })}
+        <div class="linha-filtros">${grupo ? '' : '<p class="ajuda">Todos os bens, de todos os tipos. Use as abas Bens móveis, Bens imóveis e Frota no menu para ver cada grupo.</p>'}${ui.filtros({ id: 'bens', defs: filtrosBens(grupo), valores: v, placeholder: 'Buscar por código (ex.: 1,2,6-10), plaqueta, nome, local, responsável, placa…', aoMudar: (_v, origem) => { atualizar(origem); } })}
           <button type="button" class="botao pequeno" data-salvar-filtro>Salvar filtro</button></div>
         <div id="barra-lote" class="barra-lote" hidden></div>
         ${ui.tabela({ id: 'bens', colunas: colunasBens(), linhas: bens, selecao: true, aoClicar: (b) => VP.app.ir('#bem/' + b.id), nomePlanilha: 'bens', vazio: 'Nenhum bem com estes filtros.' })}`;
@@ -154,8 +162,8 @@
       }));
     };
     return {
-      titulo: 'Bens',
-      acoes: '<a class="botao primario" href="#novo-bem">+ Novo bem</a> <a class="botao" href="#entradas">Itens a incorporar</a>',
+      titulo: grupo ? grupo.titulo : 'Todos os bens',
+      acoes: `<a class="botao primario" href="#novo-bem/${grupo ? grupo.novo : 'movel'}">+ Novo ${grupo === GRUPOS.imoveis ? 'imóvel' : 'bem'}</a> <a class="botao" href="#entradas">Itens a incorporar</a>`,
       html: `<div id="area-bens">${desenhar()}</div>`,
       ligar
     };
@@ -253,7 +261,7 @@
       </section>`;
     return {
       titulo: `Bem ${b.codigo}`,
-      acoes: `<a class="botao" href="#bens">‹ Lista</a> ${ant ? `<a class="botao" href="#bem/${esc(ant)}" title="Bem anterior">‹ Anterior</a>` : ''} ${prox ? `<a class="botao" href="#bem/${esc(prox)}" title="Próximo bem">Próximo ›</a>` : ''}`,
+      acoes: `<a class="botao" href="#${b.tipo === 'veiculo' ? 'frota/veiculos' : ['imovel', 'infraestrutura'].includes(b.tipo) ? 'bens/imoveis' : 'bens/moveis'}">‹ Lista</a> ${ant ? `<a class="botao" href="#bem/${esc(ant)}" title="Bem anterior">‹ Anterior</a>` : ''} ${prox ? `<a class="botao" href="#bem/${esc(prox)}" title="Próximo bem">Próximo ›</a>` : ''}`,
       html,
       ligar() {
         const area = document.getElementById('conteudo');
@@ -422,13 +430,63 @@
     }
   };
 
-  // ======================================================== NOVO BEM (curto; o resto vem do produto e da classificação)
-  T['novo-bem'] = () => {
+  // ======================================================== NOVO BEM
+  // O nome é digitado livre, com sugestões do catálogo e dos bens já cadastrados. Igual a um existente → oferece puxar as informações.
+  // Classificação: mesma ideia. O que for novo entra sozinho nos Cadastros (produto e classificação) ao incluir o bem.
+  // Nota fiscal (XML da NF-e): abre todos os itens; os dados da nota valem, e cada diferença com o cadastro anterior é mostrada para conferência.
+  const GRUPO_DO_TIPO = { movel: 'moveis', intangivel: 'moveis', imovel: 'imoveis', infraestrutura: 'imoveis', veiculo: 'frota' };
+  const tiposDoMesmoGrupo = (tipo) => Object.keys(GRUPO_DO_TIPO).filter((k) => GRUPO_DO_TIPO[k] === GRUPO_DO_TIPO[tipo]);
+  const caminhoClassificacao = (c) => { const r = []; let x = c; while (x) { r.unshift(x.nome); x = x.paiId ? VP.db.pega('classificacoes', x.paiId) : null; } return r.join(' › '); };
+  const classificacoesDoTipo = (tipo) => VP.db.lista('classificacoes').filter((c) => tiposDoMesmoGrupo(tipo).includes(VP.dadosDaClassificacao(c.id).tipoBem || 'movel'));
+  const acharClassificacao = (texto, tipo) => {
+    const t = u.normalizar(texto);
+    if (!t) return null;
+    return classificacoesDoTipo(tipo).find((c) => u.normalizar(caminhoClassificacao(c)) === t) || classificacoesDoTipo(tipo).find((c) => u.normalizar(c.nome) === t) || null;
+  };
+  const opcMaes = (tipo) => classificacoesDoTipo(tipo).filter((c) => c.nivel !== 'subclasse').map((c) => [c.id, caminhoClassificacao(c)]).sort((a, b) => a[1].localeCompare(b[1], 'pt-BR'));
+  const maeSugerida = (tipo) => { const ops = classificacoesDoTipo(tipo).filter((c) => c.nivel !== 'subclasse' && VP.dadosDaClassificacao(c.id).contaId); return (ops.find((c) => c.paiId) || ops[0])?.id || ''; };
+  // Dados contábeis que o bem vai ter: da classificação existente, ou da classe-mãe se a classificação for nova
+  const dadosPrevistos = (texto, paiId, tipo) => { const c = acharClassificacao(texto, tipo); return VP.dadosDaClassificacao(c ? c.id : paiId); };
+  // O que já se sabe sobre um nome: catálogo de produtos e o bem mais recente com a mesma descrição
+  VP.infoAnterior = (nome) => {
+    const t = u.normalizar(nome);
+    if (!t) return null;
+    const produto = VP.db.lista('produtos').find((p) => u.normalizar(p.nome) === t) || null;
+    const bem = VP.db.lista('bens', true).filter((b) => u.normalizar(b.descricao) === t).sort((a, b) => String(b.dataIncorporacao).localeCompare(String(a.dataIncorporacao)))[0] || null;
+    if (!produto && !bem) return null;
+    return {
+      produto, bem, nome: produto?.nome || bem.descricao,
+      classificacaoId: produto?.classificacaoId || bem?.classificacaoId || '',
+      marca: bem?.detalhes?.marca || '', modelo: bem?.detalhes?.modelo || '',
+      fornecedorId: bem?.fornecedorId || '', valor: bem?.origem?.valorUnitario ?? null,
+      ncm: produto?.ncm || '', unidadeMedida: produto?.unidadeMedida || ''
+    };
+  };
+  // Garante produto e classificação nos Cadastros (cria o que for novo)
+  const garantirCadastros = async ({ tipo, nome, classificacaoTexto, classificacaoId, paiId, ncm, unidadeMedida }) => {
+    const criados = [];
+    let cl = classificacaoId ? VP.db.pega('classificacoes', classificacaoId) : acharClassificacao(classificacaoTexto, tipo);
+    if (!cl) {
+      const grupo = (paiId && VP.db.pega('classificacoes', paiId)) || VP.db.lista('classificacoes').find((c) => !c.paiId && (c.tipoBem || 'movel') === tipo) || VP.db.lista('classificacoes').find((c) => !c.paiId && tiposDoMesmoGrupo(tipo).includes(c.tipoBem || 'movel'));
+      const nomeCl = String(classificacaoTexto || '').split('›').pop().trim();
+      cl = { id: u.id(), nome: nomeCl, paiId: grupo?.id || '', nivel: !grupo ? 'grupo' : grupo.paiId ? 'subclasse' : 'classe', tipoBem: grupo ? '' : tipo, criadoPeloBem: true };
+      await VP.db.gravar('classificacoes', cl);
+      criados.push(`Classificação nova "${nomeCl}" criada${grupo ? ` dentro de "${grupo.nome}"` : ''}. Vida útil e conta vêm do grupo; confira em Cadastros → Classificações.`);
+    }
+    let p = VP.db.lista('produtos').find((x) => u.normalizar(x.nome) === u.normalizar(nome));
+    if (!p) {
+      p = { id: u.id(), nome, classificacaoId: cl.id, ncm: ncm || '', unidadeMedida: unidadeMedida || '', criadoPeloBem: true };
+      await VP.db.gravar('produtos', p);
+      criados.push(`Produto novo "${nome}" incluído no catálogo (Cadastros → Produtos).`);
+    } else if ((ncm && !p.ncm) || (unidadeMedida && !p.unidadeMedida)) { p.ncm = p.ncm || ncm; p.unidadeMedida = p.unidadeMedida || unidadeMedida; await VP.db.gravar('produtos', p); }
+    return { classificacao: cl, produto: p, criados };
+  };
+
+  T['novo-bem'] = (tipoParam) => {
+    const tipo = L.tiposBem[tipoParam] ? tipoParam : 'movel';
     const cfg = VP.config();
+    const nomeTipo = { movel: 'bem móvel', imovel: 'bem imóvel', veiculo: 'veículo (patrimônio)', intangivel: 'bem intangível', infraestrutura: 'bem de infraestrutura' }[tipo];
     const campos = [
-      { chave: 'produtoId', rotulo: 'Produto (preenche descrição e classificação)', tipo: 'select', opcoes: opc('produtos') },
-      { chave: 'descricao', rotulo: 'Descrição', obrigatorio: true },
-      { chave: 'classificacaoId', rotulo: 'Classificação', tipo: 'select', opcoes: opcClassificacoes(), obrigatorio: true },
       { chave: 'unidadeId', rotulo: 'Unidade', tipo: 'select', opcoes: opc('unidades'), obrigatorio: cfg.obrigaUnidade, largura: 'meia' },
       { chave: 'responsavelId', rotulo: 'Responsável (vem da unidade)', tipo: 'select', opcoes: opc('responsaveis'), largura: 'meia' },
       { chave: 'dataAquisicao', rotulo: 'Data de aquisição', tipo: 'data', obrigatorio: true, largura: 'meia', padrao: VP.Plataforma.hoje() },
@@ -436,7 +494,7 @@
       { chave: 'quantidade', rotulo: 'Quantidade (gera um bem para cada)', tipo: 'numero', padrao: 1, largura: 'meia' },
       { chave: 'situacaoAquisicao', rotulo: 'Como entrou', tipo: 'select', opcoes: L.situacoesAquisicao.map((x) => [x, x]), padrao: 'Compra', vazio: false, largura: 'meia' },
       { chave: 'fornecedorId', rotulo: 'Fornecedor', tipo: 'select', opcoes: opc('fornecedores'), largura: 'meia' },
-      { chave: 'estado', rotulo: 'Estado', tipo: 'select', opcoes: Object.entries(L.estados).reverse(), padrao: 5, vazio: false, largura: 'meia' }
+      { chave: 'estado', rotulo: 'Estado', tipo: 'select', opcoes: Object.entries(L.estados).reverse(), padrao: 6, vazio: false, largura: 'meia' }
     ];
     if (cfg.codigoManual) campos.splice(0, 0, { chave: 'codigo', rotulo: 'Código do bem', tipo: 'numero', obrigatorio: true });
     if (!cfg.tombamentoAutomatico) campos.push({ chave: 'plaqueta', rotulo: 'Plaqueta (primeira, as próximas seguem a sequência)' });
@@ -445,53 +503,180 @@
       { chave: 'origem.empenho', rotulo: 'Empenho (ano/número)', largura: 'meia' }, { chave: 'detalhes.marca', rotulo: 'Marca', largura: 'meia' },
       { chave: 'detalhes.modelo', rotulo: 'Modelo', largura: 'meia' }, { chave: 'detalhes.serie', rotulo: 'Número de série (um bem)', largura: 'meia' },
       { chave: 'localizacao', rotulo: 'Localização na unidade' }, { chave: 'complemento', rotulo: 'Complemento', tipo: 'area' }];
+    const nomes = [...new Set(VP.db.lista('produtos').map((p) => p.nome).concat(VP.db.lista('bens').filter((b) => tiposDoMesmoGrupo(tipo).includes(b.tipo)).map((b) => b.descricao)))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+    const classes = classificacoesDoTipo(tipo).map(caminhoClassificacao).sort((a, b) => a.localeCompare(b, 'pt-BR'));
     return {
-      titulo: 'Novo bem',
-      acoes: '<a class="botao" href="#bens">Cancelar</a>',
-      html: `<form class="cartao form-novo" id="form-novo">
-          <p class="ajuda">Só o essencial. Vida útil, valor residual e contas vêm da classificação; o código e a plaqueta são automáticos.</p>
+      titulo: 'Novo ' + nomeTipo,
+      acoes: `<label class="botao">Importar nota fiscal (XML)<input type="file" accept=".xml,text/xml" data-nfe hidden></label> <a class="botao" href="#${tipo === 'veiculo' ? 'frota/veiculos' : 'bens/' + GRUPO_DO_TIPO[tipo]}">Cancelar</a>`,
+      html: `<form class="cartao form-novo" id="form-novo" autocomplete="off">
+          <p class="ajuda">Digite o nome do bem. Se já existir um igual (no catálogo ou em outro bem), o sistema oferece puxar as informações. Vida útil, valor residual e contas vêm da classificação; código e plaqueta são automáticos.</p>
+          <div class="form-grade">
+            <div class="campo"><label for="f-descricao">Nome do bem <span class="obrig" title="obrigatório">*</span></label><input id="f-descricao" name="descricao" list="dl-nomes" placeholder="Ex.: Cadeira giratória"><datalist id="dl-nomes">${nomes.map((n) => `<option value="${esc(n)}">`).join('')}</datalist><div id="achado-nome" class="achado" aria-live="polite"></div></div>
+            <div class="campo"><label for="f-classificacao">Classificação <span class="obrig" title="obrigatório">*</span></label><input id="f-classificacao" name="classificacaoTexto" list="dl-classes" placeholder="Digite para procurar ou criar"><datalist id="dl-classes">${classes.map((n) => `<option value="${esc(n)}">`).join('')}</datalist><div id="achado-classe" class="achado" aria-live="polite"></div></div>
+          </div>
           ${ui.campos(campos)}
-          <details><summary>Mais detalhes (opcional)</summary>${ui.campos(mais)}</details>
+          <section class="detalhes-bem"><h4>Detalhes do bem</h4><p class="ajuda">Preencha o que tiver em mãos agora. O que faltar pode ser completado depois, na ficha do bem.</p>${ui.campos(mais)}</section>
           <div id="previa-novo" class="previa"></div>
           <p class="erro-form" role="alert"></p>
           <button class="botao primario grande" type="submit">Incluir</button>
         </form>`,
       ligar() {
         const f = document.getElementById('form-novo');
+        const el = (n) => f.elements[n];
+        const mostrarClasse = () => {
+          const c = acharClassificacao(el('classificacaoTexto').value, tipo);
+          const box = document.getElementById('achado-classe');
+          const txt = el('classificacaoTexto').value.trim();
+          const maeAtual = box.querySelector('[data-mae]')?.value || maeSugerida(tipo);
+          box.innerHTML = !txt ? '' : c ? `<span class="ok-txt">✓ ${esc(caminhoClassificacao(c))}</span>` : `<span class="novo-txt">Classificação nova: será criada nos Cadastros ao incluir o bem.</span>
+            <label class="mae">Fica dentro de <select data-mae>${opcMaes(tipo).map(([id, n]) => `<option value="${esc(id)}" ${id === maeAtual ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></label><small>A conta e a vida útil vêm daqui.</small>`;
+          box.querySelector('[data-mae]')?.addEventListener('change', previa);
+          return c;
+        };
+        const usarAnterior = (info) => {
+          const c = VP.db.pega('classificacoes', info.classificacaoId);
+          if (c) el('classificacaoTexto').value = caminhoClassificacao(c);
+          if (info.marca) el('detalhes.marca').value = info.marca;
+          if (info.modelo) el('detalhes.modelo').value = info.modelo;
+          if (info.fornecedorId) el('fornecedorId').value = info.fornecedorId;
+          if (info.valor != null && !el('valor').value) el('valor').value = String(info.valor).replace('.', ',');
+          mostrarClasse(); previa();
+          document.getElementById('achado-nome').innerHTML = '<span class="ok-txt">✓ Informações do cadastro anterior aplicadas. Confira e ajuste o que mudou.</span>';
+        };
+        const mostrarNome = () => {
+          const info = VP.infoAnterior(el('descricao').value);
+          const box = document.getElementById('achado-nome');
+          if (!info) { box.innerHTML = el('descricao').value.trim() ? '<span class="novo-txt">Nome novo: entra no catálogo de produtos ao incluir o bem.</span>' : ''; return; }
+          const partes = [info.classificacaoId && `classificação ${VP.nome('classificacoes', info.classificacaoId)}`, info.marca && `marca ${info.marca}`, info.modelo && `modelo ${info.modelo}`, info.valor != null && `último valor ${u.moeda(info.valor)}`].filter(Boolean);
+          box.innerHTML = `<span>Já cadastrado: <b>${esc(info.nome)}</b>${partes.length ? ` (${esc(partes.join(', '))})` : ''}.</span> <button type="button" class="botao pequeno primario" data-usar-anterior>Usar as informações</button>`;
+          box.querySelector('[data-usar-anterior]').addEventListener('click', () => usarAnterior(info));
+        };
         const previa = () => {
           const { valores: v } = ui.lerCampos(f, campos);
-          const dc = VP.dadosDaClassificacao(v.classificacaoId);
+          const texto = el('classificacaoTexto').value.trim();
+          const dc = texto ? dadosPrevistos(texto, document.querySelector('#achado-classe [data-mae]')?.value, tipo) : null;
           const qtd = Math.max(1, Math.floor(v.quantidade || 1));
-          document.getElementById('previa-novo').innerHTML = v.classificacaoId ? `<b>Prévia:</b> ${qtd} bem(ns) a partir do código ${cfg.codigoManual ? (v.codigo || '?') : VP.proximoCodigo()} · conta ${esc(VP.nome('contas', dc.contaId))} · ${dc.naoDeprecia ? 'não deprecia' : `vida útil ${dc.vidaUtilMeses || '?'} meses, residual ${dc.residualPct ?? 0}%`}${v.valor ? ` · total ${u.moeda(v.valor * qtd)}` : ''}` : '';
+          document.getElementById('previa-novo').innerHTML = dc ? `<b>Prévia:</b> ${qtd} bem(ns) a partir do código ${cfg.codigoManual ? (v.codigo || '?') : VP.proximoCodigo()} · conta ${esc(VP.nome('contas', dc.contaId))} · ${dc.naoDeprecia ? 'não deprecia' : `vida útil ${dc.vidaUtilMeses || '?'} meses, residual ${dc.residualPct ?? 0}%`}${v.valor ? ` · total ${u.moeda(v.valor * qtd)}` : ''}` : '';
         };
+        el('descricao').addEventListener('input', mostrarNome);
+        el('classificacaoTexto').addEventListener('input', () => { mostrarClasse(); previa(); });
         f.addEventListener('change', (e) => {
-          if (e.target.name === 'produtoId') {
-            const p = VP.db.pega('produtos', e.target.value);
-            if (p) { f.elements.descricao.value = p.nome; f.elements.classificacaoId.value = p.classificacaoId; }
-          }
-          if (e.target.name === 'unidadeId') {
-            const un = VP.db.pega('unidades', e.target.value);
-            if (un?.responsavelId) f.elements.responsavelId.value = un.responsavelId;
-          }
+          if (e.target.name === 'unidadeId') { const un = VP.db.pega('unidades', e.target.value); if (un?.responsavelId) el('responsavelId').value = un.responsavelId; }
           previa();
         });
         f.addEventListener('input', previa);
+        document.querySelector('[data-nfe]').addEventListener('change', async (e) => { const arq = e.target.files[0]; e.target.value = ''; if (arq) importarNotaFiscal(arq, tipo); });
         f.addEventListener('submit', async (e) => {
           e.preventDefault();
+          const erro = f.querySelector('.erro-form');
           const lidos = ui.lerCampos(f, campos.concat(mais));
           const v = lidos.valores;
-          const erro = f.querySelector('.erro-form');
-          if (lidos.faltando.length) { erro.textContent = 'Preencha: ' + lidos.faltando.join(', '); return; }
-          const dc = VP.dadosDaClassificacao(v.classificacaoId);
-          if (cfg.obrigaContas && !dc.contaId) { erro.textContent = 'Esta classificação não tem conta contábil. Ajuste em Cadastros → Classificações.'; return; }
+          v.descricao = el('descricao').value.trim();
+          const textoCl = el('classificacaoTexto').value.trim();
+          const faltando = lidos.faltando.concat(!v.descricao ? ['Nome do bem'] : [], !textoCl ? ['Classificação'] : []);
+          if (faltando.length) { erro.textContent = 'Preencha: ' + faltando.join(', '); return; }
           if (cfg.codigoManual && VP.db.lista('bens', true).some((x) => x.codigo === v.codigo)) { erro.textContent = 'Já existe bem com este código.'; return; }
-          const criados = await VP.criarBens(Object.assign({}, v, { quantidade: Math.max(1, Math.floor(v.quantidade || 1)) }));
-          ui.resultado({ titulo: 'Bens incluídos', sucesso: criados.map((b) => `${b.codigo} · plaqueta ${b.plaqueta} · ${b.descricao}`) });
+          const paiId = document.querySelector('#achado-classe [data-mae]')?.value || '';
+          // Confere a conta ANTES de criar qualquer cadastro (não deixa classificação solta)
+          if (cfg.obrigaContas && !dadosPrevistos(textoCl, paiId, tipo).contaId) { erro.textContent = 'Esta classificação não tem conta contábil. Escolha em "Fica dentro de" uma classe com conta, ou ajuste em Cadastros → Classificações.'; return; }
+          const cad = await garantirCadastros({ tipo, nome: v.descricao, classificacaoTexto: textoCl, paiId });
+          const criados = await VP.criarBens(Object.assign({}, v, { produtoId: cad.produto.id, classificacaoId: cad.classificacao.id, tipo, quantidade: Math.max(1, Math.floor(v.quantidade || 1)) }));
+          ui.resultado({ titulo: 'Bens incluídos', sucesso: criados.map((b) => `${b.codigo} · plaqueta ${b.plaqueta} · ${b.descricao}`).concat(cad.criados) });
           VP.estado.listaAtual = criados.map((b) => b.id);
           VP.app.ir('#bem/' + criados[0].id);
         });
       }
     };
+  };
+
+  // ---------------------------------------------------------------- nota fiscal eletrônica (XML da NF-e)
+  VP.lerNFe = (xmlTexto) => {
+    const doc = new DOMParser().parseFromString(xmlTexto, 'application/xml');
+    if (doc.getElementsByTagName('parsererror').length) throw new Error('O arquivo não é um XML válido.');
+    const tag = (raiz, nome) => raiz?.getElementsByTagName(nome)[0]?.textContent?.trim() || '';
+    const infNFe = doc.getElementsByTagName('infNFe')[0];
+    if (!infNFe) throw new Error('Este XML não é de uma nota fiscal eletrônica (NF-e).');
+    const ide = infNFe.getElementsByTagName('ide')[0], emit = infNFe.getElementsByTagName('emit')[0];
+    const itens = [...infNFe.getElementsByTagName('det')].map((d) => {
+      const p = d.getElementsByTagName('prod')[0];
+      return { n: Number(d.getAttribute('nItem')) || 0, codigo: tag(p, 'cProd'), nome: tag(p, 'xProd'), ncm: tag(p, 'NCM'), unidade: tag(p, 'uCom'), quantidade: u.num(tag(p, 'qCom')) || 1, valorUnitario: u.num(tag(p, 'vUnCom')) || 0, valorTotal: u.num(tag(p, 'vProd')) || 0 };
+    });
+    return {
+      numero: tag(ide, 'nNF'), serie: tag(ide, 'serie'), emissao: (tag(ide, 'dhEmi') || tag(ide, 'dEmi')).slice(0, 10),
+      chave: (infNFe.getAttribute('Id') || '').replace(/^NFe/, ''),
+      emitente: { cnpj: tag(emit, 'CNPJ') || tag(emit, 'CPF'), nome: tag(emit, 'xNome') }, itens
+    };
+  };
+  const importarNotaFiscal = async (arquivo, tipo) => {
+    let nf;
+    try { nf = VP.lerNFe(await arquivo.text()); } catch (e) { return ui.aviso(e.message, 'erro'); }
+    if (!nf.itens.length) return ui.aviso('A nota não tem itens.', 'erro');
+    const cnpj = nf.emitente.cnpj.replace(/\D/g, '');
+    const fornecedor = VP.db.lista('fornecedores').find((x) => String(x.documento || '').replace(/\D/g, '') === cnpj && cnpj);
+    const classes = classificacoesDoTipo(tipo).map(caminhoClassificacao).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+    // Diferenças entre a nota e o cadastro anterior (a nota vale; a pessoa pode escolher o anterior)
+    const linhas = nf.itens.map((it) => {
+      const ant = VP.infoAnterior(it.nome);
+      const difs = [];
+      if (ant) {
+        if (ant.valor != null && Math.abs(ant.valor - it.valorUnitario) > 0.005) difs.push({ campo: 'valor', rotulo: 'Valor unitário', nota: u.moeda(it.valorUnitario), anterior: u.moeda(ant.valor) });
+        if (ant.fornecedorId && fornecedor && ant.fornecedorId !== fornecedor.id) difs.push({ campo: 'fornecedor', rotulo: 'Fornecedor', nota: fornecedor.nome, anterior: VP.nome('fornecedores', ant.fornecedorId) });
+        if (ant.fornecedorId && !fornecedor) difs.push({ campo: 'fornecedor', rotulo: 'Fornecedor', nota: `${nf.emitente.nome} (novo)`, anterior: VP.nome('fornecedores', ant.fornecedorId) });
+        if (ant.ncm && it.ncm && ant.ncm !== it.ncm) difs.push({ campo: 'ncm', rotulo: 'NCM', nota: it.ncm, anterior: ant.ncm });
+        if (ant.unidadeMedida && it.unidade && u.normalizar(ant.unidadeMedida) !== u.normalizar(it.unidade)) difs.push({ campo: 'unidade', rotulo: 'Unidade de medida', nota: it.unidade, anterior: ant.unidadeMedida });
+      }
+      return { it, ant, difs };
+    });
+    const corpo = `
+      <p><b>Nota ${esc(nf.numero)}${nf.serie ? '/' + esc(nf.serie) : ''}</b> · ${esc(nf.emitente.nome)} (${esc(nf.emitente.cnpj)}) · emitida em ${u.data(nf.emissao)} · ${nf.itens.length} item(ns)</p>
+      ${fornecedor ? '' : '<p class="aviso-inline">Fornecedor ainda não cadastrado: será incluído em Cadastros → Fornecedores.</p>'}
+      <div class="form-grade">${ui.campos([
+        { chave: 'unidadeId', rotulo: 'Unidade que recebe', tipo: 'select', opcoes: opc('unidades'), largura: 'meia' },
+        { chave: 'estado', rotulo: 'Estado', tipo: 'select', opcoes: Object.entries(L.estados).reverse(), padrao: 6, vazio: false, largura: 'meia' },
+        { chave: 'empenho', rotulo: 'Empenho (ano/número)', largura: 'meia' }, { chave: 'dataIncorporacao', rotulo: 'Data de incorporação', tipo: 'data', padrao: VP.Plataforma.hoje(), largura: 'meia' }])}</div>
+      <p class="ajuda">Os dados da nota valem. Quando um item já existe no cadastro e alguma informação mudou, ela aparece em destaque: confira e escolha, em cada uma, se fica a da nota ou a anterior.</p>
+      <datalist id="dl-classes-nf">${classes.map((n) => `<option value="${esc(n)}">`).join('')}</datalist>
+      <div class="itens-nf">${linhas.map((l, i) => `
+        <div class="item-nf" data-i="${i}">
+          <label class="linha-check"><input type="checkbox" data-incluir checked> <b>${esc(l.it.nome)}</b></label>
+          <div class="item-nf-dados">${u.inteiro(l.it.quantidade)} ${esc(l.it.unidade || 'un')} × ${u.moeda(l.it.valorUnitario)} = <b>${u.moeda(l.it.valorTotal || l.it.quantidade * l.it.valorUnitario)}</b>${l.it.ncm ? ` · NCM ${esc(l.it.ncm)}` : ''}</div>
+          <div class="item-nf-sit">${l.ant ? `<span class="selo-status s-ativo">Já cadastrado</span>` : '<span class="selo-status t-pendente">Novo: entra no catálogo</span>'}</div>
+          <label class="item-nf-classe">Classificação <input data-classe list="dl-classes-nf" value="${esc(l.ant?.classificacaoId ? caminhoClassificacao(VP.db.pega('classificacoes', l.ant.classificacaoId) || {}) : '')}" placeholder="Digite para procurar ou criar"></label>
+          <label class="item-nf-classe">Se a classificação for nova, fica dentro de <select data-mae>${opcMaes(tipo).map(([id, n]) => `<option value="${esc(id)}" ${id === maeSugerida(tipo) ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></label>
+          ${l.difs.length ? `<div class="difs"><p class="aviso-inline">Mudou em relação ao cadastro anterior. Confira:</p>${l.difs.map((d, k) => `
+            <div class="dif"><span>${esc(d.rotulo)}</span>
+              <label><input type="radio" name="d-${i}-${k}" value="nota" checked> Da nota: <b>${esc(d.nota)}</b></label>
+              <label><input type="radio" name="d-${i}-${k}" value="anterior"> Anterior: ${esc(d.anterior)}</label></div>`).join('')}</div>` : ''}
+        </div>`).join('')}</div>
+      <p class="erro-form" role="alert"></p>`;
+    ui.modal({ titulo: 'Conferir itens da nota fiscal', largura: 'grande', corpo, botoes: [{ texto: 'Cancelar' }, { texto: 'Incluir bens', classe: 'primario', fecha: false, acao: async (d, fechar) => {
+      const geral = ui.lerCampos(d, [{ chave: 'unidadeId' }, { chave: 'estado' }, { chave: 'empenho' }, { chave: 'dataIncorporacao' }]).valores;
+      const escolhidos = linhas.map((l, i) => ({ l, box: d.querySelector(`.item-nf[data-i="${i}"]`) })).filter((x) => x.box.querySelector('[data-incluir]').checked);
+      if (!escolhidos.length) { d.querySelector('.erro-form').textContent = 'Marque pelo menos um item.'; return false; }
+      const semClasse = escolhidos.filter((x) => !x.box.querySelector('[data-classe]').value.trim());
+      if (semClasse.length) { d.querySelector('.erro-form').textContent = `Informe a classificação de: ${semClasse.map((x) => x.l.it.nome).join(', ')}`; return false; }
+      const semConta = VP.config().obrigaContas ? escolhidos.filter((x) => !dadosPrevistos(x.box.querySelector('[data-classe]').value, x.box.querySelector('[data-mae]').value, tipo).contaId) : [];
+      if (semConta.length) { d.querySelector('.erro-form').textContent = `Sem conta contábil: ${semConta.map((x) => x.l.it.nome).join(', ')}. Escolha uma classe com conta em "fica dentro de".`; return false; }
+      let forn = fornecedor;
+      const sucesso = [], falhas = [], avisos = [];
+      if (!forn) { forn = { id: u.id(), nome: nf.emitente.nome, documento: nf.emitente.cnpj, criadoPelaNota: true }; await VP.db.gravar('fornecedores', forn); avisos.push(`Fornecedor "${forn.nome}" incluído nos Cadastros.`); }
+      for (const { l, box } of escolhidos) {
+        const escolha = (campo) => { const k = l.difs.findIndex((x) => x.campo === campo); return k < 0 ? 'nota' : box.querySelector(`input[name="d-${box.dataset.i}-${k}"]:checked`).value; };
+        const cad = await garantirCadastros({ tipo, nome: l.it.nome, classificacaoTexto: box.querySelector('[data-classe]').value, paiId: box.querySelector('[data-mae]').value, ncm: escolha('ncm') === 'nota' ? l.it.ncm : l.ant?.ncm, unidadeMedida: escolha('unidade') === 'nota' ? l.it.unidade : l.ant?.unidadeMedida });
+        avisos.push(...cad.criados);
+        const valor = escolha('valor') === 'nota' ? l.it.valorUnitario : l.ant.valor;
+        const fornecedorId = escolha('fornecedor') === 'nota' ? forn.id : l.ant.fornecedorId;
+        const qtd = Math.max(1, Math.round(l.it.quantidade));
+        try {
+          const criados = await VP.criarBens({ descricao: l.it.nome, produtoId: cad.produto.id, classificacaoId: cad.classificacao.id, tipo, unidadeId: geral.unidadeId, dataAquisicao: nf.emissao || VP.Plataforma.hoje(), dataIncorporacao: geral.dataIncorporacao, valor, quantidade: qtd, situacaoAquisicao: 'Compra', fornecedorId, estado: geral.estado || 6,
+            nf: { numero: nf.numero, serie: nf.serie, emissao: nf.emissao, chave: nf.chave }, origem: { empenho: geral.empenho || '' }, detalhes: l.ant ? { marca: l.ant.marca, modelo: l.ant.modelo } : {}, origemTexto: `NF ${nf.numero} item ${l.it.n}` });
+          sucesso.push(`${l.it.nome}: ${criados.length} bem(ns), códigos ${criados[0].codigo}${criados.length > 1 ? ' a ' + criados[criados.length - 1].codigo : ''}${l.difs.length ? ' (diferenças conferidas)' : ''}`);
+        } catch (e) { falhas.push({ item: l.it.nome, motivo: e.message }); }
+      }
+      fechar();
+      ui.resultado({ titulo: `Nota ${nf.numero}: bens incluídos`, sucesso: sucesso.concat(avisos), falhas });
+      VP.app.ir('#bens/' + (GRUPO_DO_TIPO[tipo] === 'frota' ? 'moveis' : GRUPO_DO_TIPO[tipo]));
+    } }] });
   };
 
   // Cria N bens + incorporação (usado em Novo bem, Replicar e Itens a incorporar)
@@ -506,14 +691,14 @@
     for (let i = 0; i < (v.quantidade || 1); i++) {
       const pl = plaqueta ? String(plaqueta + i) : String(1000 + codigo);
       const b = {
-        id: u.id(), codigo, plaqueta: pl, plaquetaAnterior: '', tipo: dc.tipoBem || grupo?.tipoBem || 'movel', status: 'ativo', estado: Number(v.estado || 5),
+        id: u.id(), codigo, plaqueta: pl, plaquetaAnterior: '', tipo: v.tipo || dc.tipoBem || grupo?.tipoBem || 'movel', status: 'ativo', estado: Number(v.estado || 5),
         descricao: v.descricao, complemento: v.complemento || v.descricao, produtoId: v.produtoId || '', classificacaoId: v.classificacaoId,
         unidadeId: v.unidadeId || '', localizacao: v.localizacao || '', responsavelId: v.responsavelId || unidade?.responsavelId || '', responsaveisAdicionais: [],
         dataAquisicao: v.dataAquisicao, dataIncorporacao: v.dataIncorporacao || VP.Plataforma.hoje(), situacaoAquisicao: v.situacaoAquisicao || 'Compra',
         comissaoId: '', exerciciosAnteriores: false, entidadeId: v.entidadeId || 'E1', fornecedorId: v.fornecedorId || '', contaId: dc.contaId || '',
         origem: Object.assign({ quantidade: v.quantidade || 1, valorUnitario: v.valor }, v.origem || {}), nf: v.nf || {},
         detalhes: Object.assign({ tombamento: cfg.tombamentoAutomatico ? String(codigo) : '', dataTombamento: cfg.tombamentoAutomatico ? VP.Plataforma.hoje() : '', textoJuridico: {} }, v.detalhes || {}, i > 0 ? { serie: '' } : {}),
-        endereco: null, medidas: [], veiculo: dc.tipoBem === 'veiculo' || grupo?.tipoBem === 'veiculo' ? {} : null, seguro: null, garantia: null, fotos: [], anexos: [], criticidade: 2,
+        endereco: null, medidas: [], veiculo: v.tipo === 'veiculo' || dc.tipoBem === 'veiculo' || grupo?.tipoBem === 'veiculo' ? {} : null, seguro: null, garantia: null, fotos: [], anexos: [], criticidade: 2,
         depreciacao: { automatica: !dc.naoDeprecia, metodo: 'linear', inicio: u.somaMeses(v.dataIncorporacao || VP.Plataforma.hoje(), 1) + '-01', vidaUtilMeses: dc.vidaUtilMeses || 0, residualTipo: 'percentual', residual: dc.residualPct ?? 0, producaoTotal: 0, contaDebito: 'C_VPD', contaCredito: dc.contaDepreciacaoId || '' }
       };
       bens.push(b);

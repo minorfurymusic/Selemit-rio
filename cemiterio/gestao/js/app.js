@@ -57,6 +57,21 @@
       e.target.value = '';
       VP.app.ir('#tumulos?busca=' + encodeURIComponent(t));
     });
+    // Tema: automático → claro → escuro (guardado neste navegador)
+    const NOMES_TEMA = { auto: 'automático', claro: 'claro', escuro: 'escuro' };
+    const lerTema = () => { try { return localStorage.getItem('vitalpat-tema') || 'auto'; } catch (_) { return 'auto'; } };
+    const aplicarTema = (t) => {
+      if (t === 'claro') document.documentElement.dataset.theme = 'light';
+      else if (t === 'escuro') document.documentElement.dataset.theme = 'dark';
+      else delete document.documentElement.dataset.theme;
+      document.getElementById('tema').textContent = 'Tema: ' + NOMES_TEMA[t];
+    };
+    aplicarTema(lerTema());
+    document.getElementById('tema').addEventListener('click', () => {
+      const prox = { auto: 'claro', claro: 'escuro', escuro: 'auto' }[lerTema()];
+      try { localStorage.setItem('vitalpat-tema', prox); } catch (_) { /* vale só nesta visita */ }
+      aplicarTema(prox);
+    });
     document.getElementById('abrir-menu').addEventListener('click', () => document.body.classList.toggle('menu-aberto'));
     document.getElementById('sair').addEventListener('click', async () => {
       if (VP.servidor.ativo) await VP.servidor.sair();

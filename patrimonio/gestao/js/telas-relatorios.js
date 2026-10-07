@@ -345,9 +345,12 @@
     const defs = r.filtros.map((k) => F[k]()).concat(r.extras || []);
     const desenhar = () => {
       const f = ui.limparValores(v);
+      // Sem data de início ou fim (filtro removido): usa o período padrão do relatório
+      const pad = r.padrao ? r.padrao() : {};
+      for (const k of ['de', 'ate']) if (!f[k] && pad[k]) f[k] = pad[k];
       const out = r.gerar(f);
-      if (out.vazio) return `${ui.filtros({ id: 'rel', defs, valores: v, busca: false, aoMudar: () => atualizar() })}<p class="vazio">${esc(out.vazio)}</p>`;
-      return `${ui.filtros({ id: 'rel', defs, valores: v, busca: false, aoMudar: () => atualizar() })}
+      if (out.vazio) return `${ui.filtros({ id: 'rel', defs, valores: v, busca: false, aoMudar: () => { atualizar(); lancarAntes(); } })}<p class="vazio">${esc(out.vazio)}</p>`;
+      return `${ui.filtros({ id: 'rel', defs, valores: v, busca: false, aoMudar: () => { atualizar(); lancarAntes(); } })}
         <div class="relatorio" id="corpo-relatorio">
           <div class="relatorio-filtros-texto">${esc(textoFiltros(defs, f))}</div>
           <div class="resumo-linha">${(out.resumo || []).join('')}</div>
@@ -358,12 +361,22 @@
         </div>`;
     };
     const atualizar = () => { document.getElementById('area-rel').innerHTML = desenhar(); ui.ligarTabela('rel-' + chave); };
+    // Depreciação automática ao gerar o balancete (opção em Configurações)
+    const lancarAntes = async () => {
+      if (chave !== 'balancete' || VP.config().depreciacaoAutomatica !== 'balancete') return;
+      const ate = (ui.limparValores(v).ate || VP.Plataforma.hoje()).slice(0, 7);
+      if (!VP.mesesPendentes(ate).length) return;
+      const feitos = await VP.fecharMesesPendentes(ate);
+      ui.resultado({ titulo: 'Depreciação lançada automaticamente', sucesso: feitos.map((x) => `${u.mesExtenso(x.mes)}: ${u.inteiro(x.qtd)} bens · ${u.moeda(x.total)}`), extra: '<p class="ajuda">Feito porque a configuração "Lançar a depreciação automaticamente" está em "Ao gerar o balancete". Para desfazer, use Financeiro → Fechar o mês.</p>' });
+      atualizar();
+    };
     return {
       titulo: r.titulo,
       acoes: '<a class="botao" href="#relatorios">‹ Relatórios</a> <button class="botao" data-planilha-rel>Baixar planilha</button> <button class="botao primario" data-imprimir-rel>Imprimir / PDF</button>',
       html: `<p class="ajuda">${esc(r.descricao)}</p><div id="area-rel">${desenhar()}</div>`,
       ligar() {
         ui.ligarTabela('rel-' + chave);
+        lancarAntes();
         document.querySelector('[data-imprimir-rel]').addEventListener('click', () => {
           const corpo = document.getElementById('corpo-relatorio').cloneNode(true);
           corpo.querySelectorAll('.tabela-barra,.paginacao,button').forEach((x) => x.remove());

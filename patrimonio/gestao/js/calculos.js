@@ -139,7 +139,7 @@
     const custo = evs.filter((e) => (e.tipo === 'manutencao' || e.tipo === 'despesa') && e.data >= umAno)
       .reduce((t, e) => t + (e.valor || 0), 0);
     const vistoriaRecente = evs.some((e) => (e.tipo === 'vistoria' || e.tipo === 'inventario') && e.data >= umAno);
-    const estado = (Number(bem.estado) || 3) / 5;
+    const estado = Math.min(5, Number(bem.estado) || 3) / 5; // "Novo" (6) conta como o máximo
     const vida = VP.naoDeprecia(bem) ? 0.5 : 1 - s.consumido;
     const custoRel = 1 - Math.min(1, custo / Math.max(1, s.base));
     const v = Math.round(100 * (0.40 * estado + 0.30 * vida + 0.20 * custoRel + 0.10 * (vistoriaRecente ? 1 : 0.3)));
@@ -180,6 +180,7 @@
       }
     }
     if (f.tipo) lista = lista.filter((b) => b.tipo === f.tipo);
+    if (f.tipos) lista = lista.filter((b) => f.tipos.includes(b.tipo));
     if (f.status) lista = lista.filter((b) => b.status === f.status);
     if (f.estado) lista = lista.filter((b) => String(b.estado) === String(f.estado));
     if (f.unidadeId) lista = lista.filter((b) => b.unidadeId === f.unidadeId);
@@ -235,6 +236,8 @@
       add('inventario', 'info', `Inventário ${inv.nome} em andamento (${u.pct(pr.total ? pr.conferidos / pr.total : 0)} conferido)`, 1, '#inventario');
     }
     const ordem = { critico: 0, atencao: 1, info: 2 };
+    // Frota: um item por tipo de alerta (o detalhe fica no painel da Frota)
+    if (VP.frota) { const af = VP.frota.alertas(); add('frota-critico', 'critico', 'Frota: alertas urgentes (CNH, manutenção, multas, documentos)', af.filter((a) => a.nivel === 'critico').length, '#frota'); add('frota-atencao', 'atencao', 'Frota: itens para conferir', af.filter((a) => a.nivel === 'atencao').length, '#frota'); }
     return p.sort((a, b) => ordem[a.nivel] - ordem[b.nivel]);
   };
 
@@ -299,6 +302,20 @@
     const fech = { id: loteId, mes: ym, loteId, situacao: 'fechado', qtd: eventos.length, total, fechadoEm: VP.Plataforma.agoraISO(), usuario: VP.sessao?.usuario || 'demonstração' };
     await VP.db.gravarVarias({ eventos, fechamentos: [fech] });
     return fech;
+  };
+
+  // Fecha, em ordem, todos os meses já terminados que ainda não foram fechados, até "ateYM" (inclusive)
+  VP.mesesPendentes = (ateYM) => {
+    const hojeYM = VP.Plataforma.hoje().slice(0, 7);
+    const ult = VP.ultimoFechamento();
+    const r = [];
+    for (let m = ult ? u.somaMeses(ult.mes, 1) : u.somaMeses(hojeYM, -1); m < hojeYM && m <= ateYM; m = u.somaMeses(m, 1)) r.push(m);
+    return r;
+  };
+  VP.fecharMesesPendentes = async (ateYM) => {
+    const feitos = [];
+    for (const m of VP.mesesPendentes(ateYM)) feitos.push(await VP.aplicarFechamento(m));
+    return feitos;
   };
 
   VP.desfazerFechamento = async (fech) => {

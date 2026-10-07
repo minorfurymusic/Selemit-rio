@@ -63,6 +63,23 @@ Atualizar este arquivo a cada entrega, sem apagar o histórico. Marcar `[x]` com
 - [x] Ajustar o logo (o usuário vai rever). — 07/10/2026: aprovada a marca **escudo VitalPat, opção B** (marinho `#16365a` + dourado fosco `#b8902f`; nome escrito junto, "VitalPat"). Aplicada nos 4 sistemas e na entrada: `logo-vitalpat.svg` (escudo + nome), `icone-vitalpat.svg` (só escudo, para aba e celular), ícones do aplicativo (192 e 512), cor principal das telas. Cores dos gráficos e das situações não mudaram. Testes do zero: campo 43/0, gestões `TODOS PASSARAM` / `TUDO PASSOU`, fumaça `ERROS: []`, entrada com servidor real `TUDO PASSOU`.
 - [ ] Marca: o nome na logo usa a fonte do aparelho (Archivo quando houver, senão Helvetica/Arial). Para a arte final (impressos, proposta), converter o texto em desenho com um designer.
 
+## Pedido de 07/10/2026 — Patrimônio (9 itens)
+
+- [x] 1. Separar bens móveis de bens imóveis (abas no menu).
+- [x] 2. Aba Frota com as funções do GAX (painel, próprios e alugados, abastecimentos com alertas, diário de bordo, contratos com conferência mensal, motoristas/CNH, preventiva, multas, documentos).
+- [x] 3. Novo bem: nome digitado com sugestões; igual a existente puxa as informações; importar nota fiscal (XML NF-e) com conferência das diferenças; produto novo entra no catálogo.
+- [x] 4. Classificação digitada com a mesma ideia; nova entra nos Cadastros (com escolha da classe-mãe, de onde vêm conta e vida útil).
+- [x] 5. Estado "Novo".
+- [x] 6. Detalhes do bem visíveis (não obrigatórios).
+- [x] 7. Depreciação automática com gatilho no balancete (ou ao abrir o sistema), à escolha do usuário.
+- [x] 8. Botão de tema claro/escuro (antes só seguia o aparelho; não havia botão).
+- [x] 9. Robô que clica em todos os botões: Patrimônio 34 telas / 291 botões; Cemitério 13 telas / 60 botões. Defeitos achados e corrigidos: filtro de data do Balancete, "Editar" abastecimento, clique duplicado na Lixeira/Cadastros do Patrimônio.
+- Testes do zero (07/10/2026): campo 43/0; gestão patrimônio `TODOS PASSARAM` (34); gestão cemitério `TUDO PASSOU`; fumaça `ERROS: []`; novo bem e nota `TUDO PASSOU` (16); depreciação automática `TUDO PASSOU`; com servidor (banco local com regras reais): gestão patrimônio, gestão cemitério, campo cemitério e campo patrimônio `TUDO PASSOU`.
+- [ ] Frota, ainda não feito: pneus (FR-12), reserva de veículos por secretaria (FR-13), arquivo do cartão-combustível (FR-15), dias parados na conferência da locação.
+- [ ] Aplicativo de campo do patrimônio ainda usa a escala de estado sem "Novo".
+- [ ] Cemitério: "Gerar etiquetas" de todos os 2.058 túmulos de exemplo demora alguns segundos; pensar em gerar por quadra.
+- [ ] Nota fiscal: só XML da NF-e (modelo 55). PDF/DANFE e NFS-e não são lidos.
+
 ## Ligar ao Supabase (plano aprovado em 07/10/2026; vem antes das etapas do cemitério)
 
 - [ ] Passo 0 (usuário): liberar `*.supabase.co` na rede do ambiente do Claude Code; criar 2 projetos de teste (`vitalpat-patrimonio-teste`, `vitalpat-cemiterio-teste`); passar URL, chave anon e um usuário de teste de cada.
@@ -118,3 +135,4 @@ Atualizar este arquivo a cada entrega, sem apagar o histórico. Marcar `[x]` com
 - 07/10/2026: sistema ligado ao Supabase (login de verdade, Gestões e apps de campo gravando no servidor), testado com o banco real em PostgreSQL+PostgREST locais; falta provar no Supabase de verdade (passo 0).
 - 07/10/2026: ligação ao Supabase provada no projeto de teste real (um projeto para os dois sistemas).
 - 07/10/2026: marca nova (escudo VitalPat, opção B) aplicada em todo o sistema.
+- 07/10/2026: Patrimônio com abas (móveis, imóveis, frota), Frota completa, novo bem com nota fiscal, depreciação automática, tema claro/escuro; robô de botões.

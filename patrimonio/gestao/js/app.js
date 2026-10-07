@@ -5,11 +5,13 @@
   const esc = VP.u.esc;
 
   const MENU = [
-    ['painel', 'Painel', '◧'], ['bens', 'Bens', '▦'], ['entradas', 'Entradas', '⇩'], ['transferencias', 'Transferências', '⇄'],
+    ['painel', 'Painel', '◧'], ['bens/moveis', 'Bens móveis', '▦'], ['bens/imoveis', 'Bens imóveis', '⌂'], ['frota', 'Frota', '⛟'], ['entradas', 'Entradas', '⇩'], ['transferencias', 'Transferências', '⇄'],
     ['inventario', 'Inventário', '☑'], ['financeiro/fechamento', 'Financeiro', '＄'], ['relatorios', 'Relatórios', '▤'],
     ['historico', 'Histórico', '◷'], ['cadastros/unidades', 'Cadastros', '☰'], ['configuracoes', 'Configurações', '⚙'], ['lixeira', 'Lixeira', '🗑']
   ];
-  const rotaMenu = { bem: 'bens', 'novo-bem': 'bens', relatorio: 'relatorios', unidade: 'cadastros/unidades' };
+  const rotaMenu = { relatorio: 'relatorios', unidade: 'cadastros/unidades' };
+  // Qual aba do menu acende: a ficha do bem e o "novo bem" acendem a aba do tipo do bem
+  const abaDoTipo = (tipo) => (tipo === 'veiculo' ? 'frota' : ['imovel', 'infraestrutura'].includes(tipo) ? 'bens/imoveis' : 'bens/moveis');
 
   const lerRota = () => {
     const h = location.hash.replace(/^#/, '') || 'painel';
@@ -30,8 +32,12 @@
       document.getElementById('acoes-tela').innerHTML = t.acoes || '';
       document.getElementById('conteudo').innerHTML = t.html;
       document.title = `${t.titulo} · VitalPat Patrimônio`;
-      const ativo = rotaMenu[r.tela] || r.caminho;
-      document.querySelectorAll('#menu a').forEach((a) => a.classList.toggle('ativo', a.dataset.rota === ativo || (a.dataset.rota.split('/')[0] === (rotaMenu[r.tela] || r.tela).split('/')[0])));
+      let ativo = rotaMenu[r.tela] || r.caminho;
+      if (r.tela === 'bem') ativo = abaDoTipo(VP.db.pega('bens', r.param)?.tipo);
+      if (r.tela === 'novo-bem') ativo = abaDoTipo(r.param);
+      if (r.tela === 'bens' && !r.param) ativo = 'bens/moveis';
+      const exato = [...document.querySelectorAll('#menu a')].some((a) => a.dataset.rota === ativo);
+      document.querySelectorAll('#menu a').forEach((a) => a.classList.toggle('ativo', exato ? a.dataset.rota === ativo : a.dataset.rota.split('/')[0] === ativo.split('/')[0]));
       const n = VP.pendencias().length;
       const selo = document.getElementById('selo-pendencias');
       selo.textContent = n; selo.hidden = !n;
@@ -56,6 +62,21 @@
       VP.estado.filtrosBens = { busca: t };
       e.target.value = '';
       VP.app.ir('#bens');
+    });
+    // Tema: automático → claro → escuro (guardado neste navegador)
+    const NOMES_TEMA = { auto: 'automático', claro: 'claro', escuro: 'escuro' };
+    const lerTema = () => { try { return localStorage.getItem('vitalpat-tema') || 'auto'; } catch (_) { return 'auto'; } };
+    const aplicarTema = (t) => {
+      if (t === 'claro') document.documentElement.dataset.theme = 'light';
+      else if (t === 'escuro') document.documentElement.dataset.theme = 'dark';
+      else delete document.documentElement.dataset.theme;
+      document.getElementById('tema').textContent = 'Tema: ' + NOMES_TEMA[t];
+    };
+    aplicarTema(lerTema());
+    document.getElementById('tema').addEventListener('click', () => {
+      const prox = { auto: 'claro', claro: 'escuro', escuro: 'auto' }[lerTema()];
+      try { localStorage.setItem('vitalpat-tema', prox); } catch (_) { /* vale só nesta visita */ }
+      aplicarTema(prox);
     });
     document.getElementById('abrir-menu').addEventListener('click', () => document.body.classList.toggle('menu-aberto'));
     document.getElementById('sair').addEventListener('click', async () => {
@@ -85,6 +106,10 @@
     if (VP.config().minhaResponsabilidadePadrao && !Object.keys(VP.estado.filtrosBens).length) VP.estado.filtrosBens.minha = true;
     carregando.remove();
     montarLayout();
+    if (VP.config().depreciacaoAutomatica === 'abrir' && VP.mesesPendentes(VP.Plataforma.hoje().slice(0, 7)).length) {
+      const feitos = await VP.fecharMesesPendentes(VP.Plataforma.hoje().slice(0, 7));
+      VP.ui.aviso(`Depreciação lançada automaticamente: ${feitos.map((x) => VP.u.mesExtenso(x.mes)).join(', ')}.`);
+    }
     await VP.app.render();
     window.VP_PRONTO = true;
   };

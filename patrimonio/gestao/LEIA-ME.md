@@ -28,6 +28,25 @@ O botão **Aplicativo de campo**, no topo, abre o aplicativo de celular e tablet
 | **Configurações** | Todas as opções do concorrente, explicadas, e mais a cópia de segurança (baixar e restaurar) |
 | **Lixeira** | Tudo o que foi excluído, com opção de restaurar |
 
+## Novidades de 07/10/2026 (pedido do usuário)
+
+- **Abas separadas no menu:** Bens móveis (móveis e intangíveis), Bens imóveis (imóveis e infraestrutura) e **Frota**. "Todos os bens" continua acessível pela busca do topo e pelos atalhos do painel.
+- **Frota de veículos** (referência: GAX; requisitos FR do `DOSSIE.md` A1.14):
+  - painel (veículos em uso/parados/em manutenção, combustível do mês, km rodados, custo por km, consumo por veículo, próprios × alugados);
+  - veículos próprios (são bens do patrimônio) e **alugados** (não são patrimônio; ficam ligados ao contrato);
+  - **abastecimentos** com conferência automática: km menor que o anterior, litros acima do tanque, consumo fora da média, dois no mesmo dia, combustível diferente do veículo, veículo parado;
+  - **diário de bordo** (saída e retorno), que não aceita km menor que o último nem motorista com CNH vencida;
+  - **contratos de locação** com alerta de vencimento e **conferência mensal da fatura** (km × franquia → valor previsto);
+  - **motoristas** (CNH e validade), **manutenção preventiva** por km ou tempo, **multas** (prazo para indicar o condutor) e **documentos** (licenciamento, seguro…);
+  - os alertas da Frota aparecem também na central de pendências do Painel.
+- **Novo bem:** o nome é digitado livre, com sugestões. Se já existir um igual (catálogo ou outro bem), aparece "Usar as informações" (classificação, marca, modelo, fornecedor, último valor). A classificação também é digitada; se for nova, escolhe-se onde ela fica (de onde vêm conta e vida útil). Produto, classificação e fornecedor novos entram sozinhos nos Cadastros.
+- **Importar nota fiscal (XML da NF-e)** no Novo bem: abre todos os itens. Os dados da nota valem; quando um item já existia e algo mudou (valor, fornecedor, NCM, unidade), a diferença aparece e a pessoa escolhe, em cada uma, nota ou anterior. Exemplo fictício para testar: `exemplos/nfe-exemplo.xml`.
+- **Estado "Novo"** (acima de Ótimo); é o padrão de um bem novo.
+- **Detalhes do bem** aparecem abertos no Novo bem (não são obrigatórios, mas não estão escondidos como "opcionais").
+- **Depreciação automática** (Configurações → "Lançar a depreciação automaticamente"): manual, **ao gerar o balancete** (fecha os meses que faltam até o fim do período antes de calcular) ou ao abrir o sistema. As regras vêm da classificação de cada bem; o último fechamento pode ser desfeito em Financeiro.
+- **Tema claro/escuro**: botão "Tema" no topo (automático → claro → escuro), guardado no navegador.
+- Correções achadas pelo robô que clica em todos os botões: tirar o filtro de data do Balancete quebrava o relatório; "Editar" abastecimento dava erro; restaurar da Lixeira e editar Cadastros podiam executar o clique duas vezes.
+
 ## Limitações reais desta demonstração
 
 - **Os dados são fictícios** e ficam só neste navegador. Para guardá-los, use Configurações → Baixar cópia completa.
