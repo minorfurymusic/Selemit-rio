@@ -182,6 +182,7 @@ VP.CONFIG_PADRAO = {
   avisoSeguroIntervalo: 7,
   avisoGarantiaDias: 30,
   reavaliacaoAnos: 4,
+  limiteControle: 300, // itens de controle: valor abaixo do qual o bem pode ser só controlado (fora do balancete) — [A conferir] base legal
   avisoImovelDias: 60, // documentos e cessões de imóveis: avisar com esta antecedência
   // Usuário de demonstração (para "minha responsabilidade")
   usuarioResponsavelId: ''
@@ -198,6 +199,10 @@ VP.COLECOES = ['bens', 'eventos', 'unidades', 'responsaveis', 'classificacoes', 
   'veiculosLocados', 'abastecimentos', 'viagens', 'contratosLocacao', 'motoristas', 'planosManutencao', 'multas', 'documentosVeiculo',
   // Imóveis (etapa 5)
   'documentosImovel', 'cessoesImovel', 'pendenciasImovel',
+  // Exportar e importar (planilhas)
+  'importacoesPlanilha', 'importacoesAnexos',
+  // Itens de controle (fora do balancete)
+  'bensControle',
   // Manutenção, vistorias e equipes (etapa 6)
   'chamados', 'planosPreventiva', 'vistoriasPat', 'equipes',
   // Frota, segunda parte

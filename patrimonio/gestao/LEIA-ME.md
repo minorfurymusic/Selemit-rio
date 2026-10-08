@@ -62,6 +62,18 @@ Menu **Manutenção**: chamados de conserto (aberto → em campo → em revisão
 - **Relatórios → Relatório com fotos**: bens com foto por unidade e estado; imóveis com fotos e mapa desenhado (sai na impressão).
 - Biblioteca do mapa: Leaflet 1.9.4 (licença BSD-2), em `vendor/leaflet/`. Os dados de exemplo têm localização fictícia para os 6 imóveis.
 
+## Exportar, importar e anexos (08/10/2026)
+
+Passo a passo para quem usa: `manual.md`, na raiz do repositório.
+- **Exportar e importar** (menu):
+  - exportação em Excel com filtros e colunas;
+  - modelo de importação;
+  - importação com De/Para, prévia e desfazer;
+  - anexos em lote (.zip). Código em `js/planilha.js` (ler e gravar .xlsx e .zip sem biblioteca), `js/telas-planilhas.js` e `js/telas-anexos.js`.
+- **Itens de controle** (menu): coleção `bensControle`, fora do balancete e da depreciação (`js/telas-controle.js`).
+- **Ler matrícula (PDF)**: ficha do imóvel e Novo imóvel (`js/matricula.js` + `vendor/pdfjs/`).
+- Coleções novas: `importacoesPlanilha`, `importacoesAnexos` e `bensControle`.
+
 ## Limitações reais desta demonstração
 
 - **Os dados são fictícios** e ficam só neste navegador. Para guardá-los, use Configurações → Baixar cópia completa.

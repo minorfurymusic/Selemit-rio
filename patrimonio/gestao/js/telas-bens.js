@@ -240,7 +240,7 @@
         ${cartao('Local e responsáveis', 'local', [['Unidade', VP.nome('unidades', b.unidadeId)], ['Localização', b.localizacao], ['Responsável', b.responsavelId ? VP.nome('responsaveis', b.responsavelId) : ''], ['Responsáveis adicionais', (b.responsaveisAdicionais || []).map((r) => VP.nome('responsaveis', r)).join(', ')], b.endereco ? ['Endereço', [b.endereco.logradouro, b.endereco.bairro, b.endereco.cidade].filter(Boolean).join(', ')] : null])}
         ${cartao('Origem e compra', 'origem', [['Fornecedor', VP.nome('fornecedores', b.fornecedorId)], ['Empenho', b.origem?.empenho], ['Item do empenho', b.origem?.item], ['Quantidade', b.origem?.quantidade], ['Valor unitário', b.origem?.valorUnitario != null ? u.moeda(b.origem.valorUnitario) : ''], ['Nota fiscal', [b.nf?.numero, b.nf?.serie].filter(Boolean).join(' / série ')], ['Emissão da nota', u.data(b.nf?.emissao)], ['Licitação', [b.origem?.licitacao?.modalidade, b.origem?.licitacao?.processo && 'processo ' + b.origem.licitacao.processo, b.origem?.licitacao?.numero && 'nº ' + b.origem.licitacao.numero].filter(Boolean).join(' · ')]])}
         ${cartao('Detalhes', 'detalhes', [['Marca', b.detalhes?.marca], ['Modelo', b.detalhes?.modelo], ['Cor', b.detalhes?.cor], ['Número de série', b.detalhes?.serie], ['RFID', b.detalhes?.rfid], ['Texto jurídico', [b.detalhes?.textoJuridico?.categoria, b.detalhes?.textoJuridico?.numeroAno].filter(Boolean).join(' · ')]], (b.medidas || []).length ? `<h4>Medidas</h4><dl class="dados">${b.medidas.map((m) => `<dt>${esc(m.nome)}</dt><dd>${esc(m.valor)}</dd>`).join('')}</dl>` : '')}
-        ${b.tipo === 'imovel' || b.imovel ? cartao('Imóvel: registro e uso', 'imovel', [['Matrícula', b.imovel?.matricula], ['Cartório', b.imovel?.cartorio], ['Situação do registro', b.imovel?.situacaoRegistro], ['O que impede o registro', b.imovel?.motivoPendencia], ['Classificação de uso', b.imovel?.uso], ['Afetado', b.imovel?.afetado == null ? '' : b.imovel.afetado ? 'Sim' : 'Não'], ['Inscrição imobiliária (IPTU)', b.imovel?.inscricaoIptu], ['Escritura', b.imovel?.escritura], ['Área do terreno', b.imovel?.areaTerreno ? u.inteiro(b.imovel.areaTerreno) + ' m²' : ''], ['Área construída', b.imovel?.areaConstruida ? u.inteiro(b.imovel.areaConstruida) + ' m²' : ''], ['Valor do terreno', b.imovel?.valorTerreno ? u.moeda(b.imovel.valorTerreno) : ''], ['Origem', b.imovel?.origemArea]]) + (VP.imoveis ? VP.imoveis.secoesFicha(b) : '') : ''}
+        ${b.tipo === 'imovel' || b.imovel ? cartao('Imóvel: registro e uso', 'imovel', [['Matrícula', b.imovel?.matricula], ['Cartório', b.imovel?.cartorio], ['Situação do registro', b.imovel?.situacaoRegistro], ['O que impede o registro', b.imovel?.motivoPendencia], ['Classificação de uso', b.imovel?.uso], ['Afetado', b.imovel?.afetado == null ? '' : b.imovel.afetado ? 'Sim' : 'Não'], ['Inscrição imobiliária (IPTU)', b.imovel?.inscricaoIptu], ['Escritura', b.imovel?.escritura], ['Área do terreno', b.imovel?.areaTerreno ? u.inteiro(b.imovel.areaTerreno) + ' m²' : ''], ['Área construída', b.imovel?.areaConstruida ? u.inteiro(b.imovel.areaConstruida) + ' m²' : ''], ['Valor do terreno', b.imovel?.valorTerreno ? u.moeda(b.imovel.valorTerreno) : ''], ['Origem', b.imovel?.origemArea], ['Proprietário na matrícula', b.imovel?.proprietarioMatricula], ['Último registro na matrícula', b.imovel?.ultimoRegistroMatricula ? u.data(b.imovel.ultimoRegistroMatricula) : '']]) + (VP.imoveis ? VP.imoveis.secoesFicha(b) : '') : ''}
         ${b.tipo === 'veiculo' ? cartao('Veículo', 'veiculo', [['Placa', b.veiculo?.placa], ['RENAVAM', b.veiculo?.renavam], ['Chassi', b.veiculo?.chassi], ['Combustível', b.veiculo?.combustivel], ['Ano/modelo', b.veiculo?.anoModelo], ['Tanque (litros)', b.veiculo?.capacidadeTanque], ['Abastecimentos registrados', abast.length ? `${abast.length} · ${u.inteiro(litros)} L · ${u.moeda(abast.reduce((t, e) => t + e.valor, 0))}` : '']]) : ''}
         ${cartao('Seguro e garantia', 'seguro', [['Seguradora', b.seguro?.seguradoraId ? VP.nome('seguradoras', b.seguro.seguradoraId) : ''], ['Corretora', b.seguro?.corretoraId ? VP.nome('seguradoras', b.seguro.corretoraId) : ''], ['Apólice', b.seguro?.apolice], ['Vigência', b.seguro?.inicio ? `${u.data(b.seguro.inicio)} a ${u.data(b.seguro.termino)}` : ''], ['Valor do seguro', b.seguro?.valor ? u.moeda(b.seguro.valor) : ''], ['Franquia', b.seguro?.franquia ? u.moeda(b.seguro.franquia) : ''], ['Garantia', b.garantia?.termino ? `${VP.nome('tiposGarantia', b.garantia.tipoId)} até ${u.data(b.garantia.termino)}` : ''], ['Fornecedor da garantia', b.garantia?.fornecedorId ? VP.nome('fornecedores', b.garantia.fornecedorId) : '']])}
         ${cartao('Valores e contas', 'valores', [['Conta contábil', VP.nome('contas', b.contaId)], ['Valor base (aquisição, reavaliação e melhorias)', u.moeda(s.base)], ['Melhorias somadas', u.moeda(s.agregado)], ['Valor residual', u.moeda(s.residual)], ['Depreciação acumulada', u.moeda(s.acumulada)], ['Valor contábil (líquido)', u.moeda(s.liquido)]])}
@@ -248,9 +248,7 @@
         <section class="cartao secao"><header><h3>Despesas e manutenções</h3></header>
           ${custos.length ? `<div class="resumo-linha">${G.numero('Últimos 12 meses', u.moeda(custos.filter((e) => e.data >= umAno).reduce((t, e) => t + (e.valor || 0), 0)))}${G.numero('Total registrado', u.moeda(custos.reduce((t, e) => t + (e.valor || 0), 0)))}</div>` : '<p class="vazio">Nenhuma despesa registrada.</p>'}
         </section>
-        <section class="cartao secao"><header><h3>Anexos</h3><button class="botao pequeno" data-acao="anexar">Anexar</button></header>
-          ${(b.anexos || []).length ? `<ul class="anexos">${b.anexos.map((a) => `<li>${a.tipo?.startsWith('image/') ? `<img src="${a.dataURL}" alt="">` : '<span class="icone-arquivo">📄</span>'}<a href="${a.dataURL}" download="${esc(a.nome)}">${esc(a.nome)}</a><small>${u.data(a.data)}</small></li>`).join('')}</ul>` : '<p class="vazio">Nenhum anexo.</p>'}
-        </section>
+        ${VP.anexos.secaoFicha(b)}
       </div>
       <section class="cartao secao linha-do-tempo-cartao">
         <header><h3>Linha do tempo</h3>
@@ -296,6 +294,7 @@
         }));
         ligarEstorno(b);
         if (VP.imoveis && (b.tipo === 'imovel' || b.imovel)) VP.imoveis.ligarFicha(b, recarrega);
+        VP.anexos.ligarFicha(b, recarrega);
       }
     };
   };
@@ -450,6 +449,7 @@
     if (!t) return null;
     return classificacoesDoTipo(tipo).find((c) => u.normalizar(caminhoClassificacao(c)) === t) || classificacoesDoTipo(tipo).find((c) => u.normalizar(c.nome) === t) || null;
   };
+  VP.caminhoClassificacao = caminhoClassificacao; VP.acharClassificacao = acharClassificacao; // usados na importação por planilha
   const opcMaes = (tipo) => classificacoesDoTipo(tipo).filter((c) => c.nivel !== 'subclasse').map((c) => [c.id, caminhoClassificacao(c)]).sort((a, b) => a[1].localeCompare(b[1], 'pt-BR'));
   const maeSugerida = (tipo) => { const ops = classificacoesDoTipo(tipo).filter((c) => c.nivel !== 'subclasse' && VP.dadosDaClassificacao(c.id).contaId); return (ops.find((c) => c.paiId) || ops[0])?.id || ''; };
   // Dados contábeis que o bem vai ter: da classificação existente, ou da classe-mãe se a classificação for nova
@@ -514,7 +514,7 @@
     const classes = classificacoesDoTipo(tipo).map(caminhoClassificacao).sort((a, b) => a.localeCompare(b, 'pt-BR'));
     return {
       titulo: 'Novo ' + nomeTipo,
-      acoes: `<label class="botao">Importar nota fiscal (XML)<input type="file" accept=".xml,text/xml" data-nfe hidden></label> <a class="botao" href="#${tipo === 'veiculo' ? 'frota/veiculos' : 'bens/' + GRUPO_DO_TIPO[tipo]}">Cancelar</a>`,
+      acoes: `${['imovel', 'infraestrutura'].includes(tipo) && VP.matricula ? '<button class="botao" data-nova-matricula>Cadastrar pela matrícula (PDF)</button> ' : ''}<label class="botao">Importar nota fiscal (XML)<input type="file" accept=".xml,text/xml" data-nfe hidden></label> <a class="botao" href="#${tipo === 'veiculo' ? 'frota/veiculos' : 'bens/' + GRUPO_DO_TIPO[tipo]}">Cancelar</a>`,
       html: `<form class="cartao form-novo" id="form-novo" autocomplete="off">
           <p class="ajuda">Digite o nome do bem. Se já existir um igual (no catálogo ou em outro bem), o sistema oferece puxar as informações. Vida útil, valor residual e contas vêm da classificação; código e plaqueta são automáticos.</p>
           <div class="form-grade">
@@ -529,6 +529,7 @@
         </form>`,
       ligar() {
         const f = document.getElementById('form-novo');
+        document.querySelector('[data-nova-matricula]')?.addEventListener('click', () => VP.matricula.cadastrarNovo());
         const el = (n) => f.elements[n];
         const mostrarClasse = () => {
           const c = acharClassificacao(el('classificacaoTexto').value, tipo);
@@ -563,7 +564,10 @@
           const texto = el('classificacaoTexto').value.trim();
           const dc = texto ? dadosPrevistos(texto, document.querySelector('#achado-classe [data-mae]')?.value, tipo) : null;
           const qtd = Math.max(1, Math.floor(v.quantidade || 1));
-          document.getElementById('previa-novo').innerHTML = dc ? `<b>Prévia:</b> ${qtd} bem(ns) a partir do código ${cfg.codigoManual ? (v.codigo || '?') : VP.proximoCodigo()} · conta ${esc(VP.nome('contas', dc.contaId))} · ${dc.naoDeprecia ? 'não deprecia' : `vida útil ${dc.vidaUtilMeses || '?'} meses, residual ${dc.residualPct ?? 0}%`}${v.valor ? ` · total ${u.moeda(v.valor * qtd)}` : ''}` : '';
+          const lim = VP.config().limiteControle;
+          const dica = VP.controle && v.valor > 0 && v.valor < lim && tipo === 'movel' ? `<p class="aviso-inline" id="dica-controle">Valor abaixo de ${u.moeda(lim)}: se for item de pequeno valor ou pouca durabilidade, pode ser cadastrado em <b>Itens de controle</b> (sem plaqueta, fora do balancete). <button type="button" class="botao pequeno" data-ir-controle>Cadastrar como item de controle</button></p>` : '';
+          document.getElementById('previa-novo').innerHTML = dica + (dc ? `<b>Prévia:</b> ${qtd} bem(ns) a partir do código ${cfg.codigoManual ? (v.codigo || '?') : VP.proximoCodigo()} · conta ${esc(VP.nome('contas', dc.contaId))} · ${dc.naoDeprecia ? 'não deprecia' : `vida útil ${dc.vidaUtilMeses || '?'} meses, residual ${dc.residualPct ?? 0}%`}${v.valor ? ` · total ${u.moeda(v.valor * qtd)}` : ''}` : '');
+          document.querySelector('[data-ir-controle]')?.addEventListener('click', () => VP.controle.novo((x) => VP.app.ir('#controle'), { descricao: el('descricao').value, quantidade: v.quantidade || 1, valorUnitario: v.valor, unidadeId: v.unidadeId, responsavelId: v.responsavelId, fornecedorId: v.fornecedorId, estado: v.estado }));
         };
         el('descricao').addEventListener('input', mostrarNome);
         el('classificacaoTexto').addEventListener('input', () => { mostrarClasse(); previa(); });
@@ -688,11 +692,17 @@
 
   // Cria N bens + incorporação (usado em Novo bem, Replicar e Itens a incorporar)
   VP.criarBens = async (v) => {
+    const { bens, eventos } = VP.montarBens(v);
+    await VP.db.gravarVarias({ bens, eventos });
+    return bens;
+  };
+  // Monta os bens sem gravar (a importação por planilha monta muitos e grava de uma vez). codigoInicial: para vários lotes seguidos.
+  VP.montarBens = (v, codigoInicial = null) => {
     const cfg = VP.config();
     const dc = VP.dadosDaClassificacao(v.classificacaoId);
     const grupo = VP.grupoDe(v.classificacaoId);
     const unidade = VP.db.pega('unidades', v.unidadeId);
-    let codigo = cfg.codigoManual && v.codigo ? v.codigo : VP.proximoCodigo();
+    let codigo = cfg.codigoManual && v.codigo ? v.codigo : codigoInicial || VP.proximoCodigo();
     let plaqueta = v.plaqueta ? Number(v.plaqueta) : null;
     const bens = [], eventos = [];
     for (let i = 0; i < (v.quantidade || 1); i++) {
@@ -712,8 +722,7 @@
       eventos.push(VP.novoEvento(b.id, 'incorporacao', { data: b.dataIncorporacao, valor: v.valor, descricao: `Incorporação — ${b.situacaoAquisicao}${v.origemTexto ? ' · ' + v.origemTexto : ''}`, extra: { contaDebito: b.contaId } }));
       codigo++;
     }
-    await VP.db.gravarVarias({ bens, eventos });
-    return bens;
+    return { bens, eventos };
   };
 
   // ======================================================== AÇÕES
@@ -929,18 +938,7 @@
     titulo: 'Observação', largura: 'pequena', campos: [{ chave: 'texto', rotulo: 'Observação', tipo: 'area', obrigatorio: true }, { chave: 'data', rotulo: 'Data', tipo: 'data', padrao: VP.Plataforma.hoje() }],
     salvar: async (v) => { await VP.db.gravar('eventos', VP.novoEvento(b.id, 'observacao', { data: v.data, descricao: v.texto })); ui.aviso('Observação registrada.'); depois(); }
   });
-  A.anexar = (b, depois) => ui.formulario({
-    titulo: 'Anexar arquivos', largura: 'pequena', campos: [{ chave: 'arquivos', rotulo: 'Arquivos (fotos, PDF, laudos)', tipo: 'arquivo', multiplo: true, obrigatorio: true }],
-    textoSalvar: 'Anexar',
-    salvar: async (v) => {
-      if (!v.arquivos?.length) return 'Escolha um arquivo.';
-      const arqs = await ui.lerArquivos(v.arquivos);
-      b.anexos = (b.anexos || []).concat(arqs);
-      await VP.db.gravarVarias({ bens: [b], eventos: [VP.novoEvento(b.id, 'alteracao', { descricao: `Anexado: ${arqs.map((a) => a.nome).join(', ')}` })] });
-      ui.aviso(`${arqs.length} arquivo(s) anexado(s).`);
-      depois();
-    }
-  });
+  A.anexar = (b, depois) => VP.anexos.anexar(b, depois); // cadastro de anexos com tipo: telas-anexos.js
   A.replicar = (b, depois) => ui.formulario({
     titulo: 'Replicar bem', largura: 'pequena', textoSalvar: 'Replicar',
     intro: `<p>Cria cópias de <b>${esc(b.descricao)}</b> com códigos e plaquetas novos, mesmo valor de aquisição e mesma classificação.</p>`,

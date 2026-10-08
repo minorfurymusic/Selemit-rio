@@ -259,12 +259,12 @@
     const modelos = ui.pref.ler('modelos-planilha', {});
     ui.modal({
       titulo: 'Baixar planilha', largura: 'media',
-      corpo: `<p class="ajuda">Planilha simples (sem gráficos), para levar a outro sistema. Marque só as informações que o outro sistema aceita. ${esc(aviso)}</p>
+      corpo: `<p class="ajuda">Planilha (sem gráficos), para abrir no Excel ou levar a outro sistema. Marque só as informações que o outro sistema aceita. ${esc(aviso)}</p>
         ${Object.keys(modelos).length ? `<label>Modelo salvo <select data-modelo><option value="">—</option>${Object.keys(modelos).map((m) => `<option>${esc(m)}</option>`).join('')}</select></label>` : ''}
         <div class="linha-botoes"><button type="button" class="botao pequeno" data-todas>Marcar todas</button><button type="button" class="botao pequeno" data-nenhuma>Desmarcar todas</button></div>
         <div class="lista-marcar colunas">${colunas.map((c) => `<label><input type="checkbox" value="${esc(c.chave)}" ${!salvas || salvas.includes(c.chave) ? 'checked' : ''}> ${esc(c.titulo)}</label>`).join('')}</div>
         <label>Salvar esta escolha como modelo (opcional) <input data-nome-modelo placeholder="Ex.: Planilha para o sistema X"></label>
-        <label>Formato <select data-formato><option value="csv">Planilha (CSV, abre no Excel)</option><option value="json">Arquivo de dados (JSON)</option></select></label>`,
+        <label>Formato <select data-formato><option value="xlsx">Excel (.xlsx)</option><option value="csv">Planilha simples (CSV)</option><option value="json">Arquivo de dados (JSON)</option></select></label>`,
       botoes: [{ texto: 'Cancelar' }, { texto: 'Baixar', classe: 'primario', acao: (d) => {
         const marcadas = [...d.querySelectorAll('.colunas input:checked')].map((i) => i.value);
         if (!marcadas.length) { ui.aviso('Marque pelo menos uma informação.', 'erro'); return false; }
@@ -273,18 +273,45 @@
         if (nm) { modelos[nm] = marcadas; ui.pref.gravar('modelos-planilha', modelos); }
         const cols = colunas.filter((c) => marcadas.includes(c.chave));
         const dados = linhas.map((l) => cols.map((c) => c.valor(l)));
-        if (d.querySelector('[data-formato]').value === 'json') {
+        const formato = d.querySelector('[data-formato]').value;
+        ui.pref.gravar('formato-planilha', formato);
+        if (formato === 'json') {
           ui.baixar(`${nome}.json`, JSON.stringify(dados.map((r) => Object.fromEntries(cols.map((c, i) => [c.titulo, r[i]]))), null, 2), 'application/json');
-        } else ui.baixarCSV(nome, cols.map((c) => c.titulo), dados);
+        } else if (formato === 'xlsx' && VP.baixarXLSX) VP.baixarXLSX(nome, [{ nome, cabecalho: cols.map((c) => c.titulo), linhas: dados }]);
+        else ui.baixarCSV(nome, cols.map((c) => c.titulo), dados);
       } }]
     }).el.addEventListener('click', (e) => {
       const d = e.currentTarget;
       if (e.target.matches('[data-todas]')) d.querySelectorAll('.colunas input').forEach((i) => { i.checked = true; });
       if (e.target.matches('[data-nenhuma]')) d.querySelectorAll('.colunas input').forEach((i) => { i.checked = false; });
     });
+    const selFmt = document.querySelector('dialog.janela:last-of-type [data-formato]');
+    if (selFmt && ui.pref.ler('formato-planilha')) selFmt.value = ui.pref.ler('formato-planilha');
     document.querySelector('dialog.janela:last-of-type [data-modelo]')?.addEventListener('change', (e) => {
       const m = modelos[e.target.value]; if (!m) return;
       e.target.closest('dialog').querySelectorAll('.colunas input').forEach((i) => { i.checked = m.includes(i.value); });
+    });
+  };
+  // Listas simples (tabela sem a barra de ferramentas): ganham o botão "Baixar planilha" com a mesma escolha de colunas.
+  // Chamado depois de cada tela. Tabela com data-sem-planilha fica de fora.
+  ui.planilhaNasTabelasSimples = (raiz) => {
+    if (!raiz) return;
+    raiz.querySelectorAll('table.tabela:not([data-sem-planilha]):not([data-planilha-ok])').forEach((tb, n) => {
+      const caixa = tb.closest('.tabela-rolagem') || tb;
+      if (caixa.previousElementSibling?.classList.contains('tabela-barra')) return; // já é uma lista completa
+      if (!tb.tBodies[0] || !tb.tBodies[0].rows.length) return;
+      tb.dataset.planilhaOk = '1';
+      const titulo = (tb.closest('section')?.querySelector('h3, h4')?.textContent || document.getElementById('titulo-tela')?.textContent || 'lista').trim();
+      const barra = document.createElement('div');
+      barra.className = 'tabela-barra'; barra.innerHTML = '<span></span><span class="tabela-acoes"><button type="button" class="botao pequeno" data-planilha-simples>Baixar planilha</button></span>';
+      caixa.parentNode.insertBefore(barra, caixa);
+      barra.querySelector('button').addEventListener('click', () => {
+        const ths = [...(tb.tHead?.rows[0]?.cells || [])];
+        const textoCel = (td) => { const i = td.querySelector('input:not([type=checkbox]), select'); const s = (i ? i.value : td.textContent).replace(/\s+/g, ' ').trim(); return /^-?(R\$\s?)?-?\d{1,3}(\.\d{3})*(,\d+)?$|^-?\d+(,\d+)?$/.test(s) ? u.num(s.replace(/R\$\s?/, '')) : s; };
+        const linhas = [...tb.tBodies[0].rows].filter((r) => !r.hidden && r.cells.length === ths.length).map((r) => [...r.cells].map(textoCel));
+        const colunas = ths.map((th, i) => ({ chave: 'c' + i, titulo: th.textContent.trim() || `Coluna ${i + 1}`, valor: (l) => l[i] })).filter((c, i) => c.titulo.trim() && linhas.some((l) => l[i] !== ''));
+        ui.exportarPlanilha(u.normalizar(titulo).replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'lista', colunas, linhas);
+      });
     });
   };
   ui.baixar = (nome, conteudo, tipo) => {

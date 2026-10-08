@@ -156,6 +156,60 @@ Atualizar este arquivo a cada entrega, sem apagar o histórico. Marcar `[x]` com
 - [ ] Planilha de chãos: 11 linhas repetidas na mesma aba aparecem como Conflito na importação (bate com o DOSSIE.md B5, item 6).
 - [ ] Gestão do patrimônio: mesmo defeito corrigido no cemitério (clique que pode ser contado duas vezes em Cadastros) existe em `patrimonio/gestao/js/telas-cadastros.js`; corrigir só com autorização.
 
+## Pedido de 08/10/2026 — Exportar, importar e anexos (Patrimônio)
+
+Explicado no `manual.md` (raiz), seções 1 a 5. Plano aprovado: exportar e importar em Excel, anexos, itens de controle e leitura da matrícula.
+- [x] **Excel (.xlsx) em toda exportação**, sem biblioteca nova (`patrimonio/gestao/js/planilha.js`), com escolha das colunas e modelos salvos. Listas simples ganharam o botão "Baixar planilha". — 08/10/2026, commit no histórico do git.
+- [x] **Tela "Exportar e importar"** (menu):
+  - exportar bens, veículos, imóveis e itens de controle com filtros e "uma aba por unidade";
+  - lista completa de onde mais dá para exportar.
+- [x] **Importação de bens pelo Excel:**
+  - modelo com abas Bens móveis, Veículos, Imóveis, Itens de controle, Instruções e Listas;
+  - De/Para das colunas, que pode ser lembrado;
+  - prévia novo/alterado/igual/erro;
+  - tela de resultado e desfazer.
+
+  Valor, unidade, data e classificação de bem existente não mudam pela planilha (vão por reavaliação, transferência ou ficha).
+- [x] **Anexos:**
+  - tipo (foto, nota fiscal, termo assinado, laudo, contrato, matrícula, outro), renomear, tirar e restaurar;
+  - .zip por bem e em lote com o nome `plaqueta_descricao_01.ext`;
+  - importação em lote pelo nome do arquivo (ou .zip), com prévia e desfazer.
+- [x] **Itens de controle** (fora do balancete):
+  - código C-000001, sem plaqueta e sem depreciação;
+  - entregar, baixa e Lixeira;
+  - exportar e importar;
+  - sugestão no Novo bem abaixo do limite (padrão R$ 300, em Configurações).
+- [x] **Leitura da matrícula (PDF):**
+  - pdf.js 4.10.38 (Apache-2.0) em `vendor/pdfjs`, versão sem a falha CVE-2024-4367 da 3.x;
+  - conferência campo a campo e PDF anexado;
+  - cadastro de imóvel novo pela matrícula.
+  - Testes do zero (08/10/2026), depois das mudanças:
+
+    | Teste | Resultado |
+    |---|---|
+    | Exportar/importar | `TUDO PASSOU` (25: Excel aberto pelo openpyxl, uma aba por unidade, modelo preenchido fora do sistema, prévia com 31/02 e "abc" recusados, veículo e imóvel importados, desfazer) |
+    | Anexos | `TUDO PASSOU` (16) |
+    | Itens de controle | `TUDO PASSOU` (15) |
+    | Matrícula | `TUDO PASSOU` (11, PDF fictício e PDF de imagem) |
+    | Listas simples | `TUDO PASSOU` (7) |
+    | Com servidor (banco local com regras reais) | `TUDO PASSOU` (9: bens, item de controle e anexo no banco e no armazenamento; consulta barrada) |
+    | Gestão do patrimônio | `TODOS PASSARAM` (34; o teste do CSV passou a escolher CSV, porque o padrão agora é Excel) |
+    | Imóveis | `TUDO PASSOU` (23, depois de corrigir nome de arquivo longo que passava da tela no celular) |
+    | Campo | 43/0 |
+    | Manutenção, frota, mapas, novo bem, depreciação, gestão do cemitério | `TUDO PASSOU` |
+    | Fumaças | `ERROS: []` / `ERROS 0` |
+    | Patrimônio com servidor, campo com servidor e login | `TUDO PASSOU` |
+    | Robô de botões do Patrimônio | 48 telas, 433 botões, 2 suspeitos já conhecidos ("Tudo") |
+
+- [ ] **[A conferir]** Base legal e valor do limite dos itens de controle (Portaria STN 448/2002, MCASP, norma do município). Validar com a contabilidade.
+- [ ] Matrícula **escaneada** (imagem): ler exige reconhecimento de texto (OCR). Hoje o sistema avisa e pede para digitar.
+- [ ] Leitura da matrícula: as regras de texto foram testadas só com PDF fictício. Testar com matrículas reais de 2 ou 3 cartórios (fora do repositório, sem dados pessoais) e ajustar.
+- [ ] **AI Studio** (achado em 08/10/2026): a cópia publicada estava incompleta, sem `vendor/supabase.js`, e o login dava "Sem conexão com o servidor". A cada sincronização, pedir ao AI Studio que confira o tamanho dos arquivos principais. O texto pronto para colar vai junto com cada entrega.
+- [ ] Limitações conhecidas:
+  - fotos são reduzidas e viram JPEG ao entrar no sistema (o .zip sai com .jpg);
+  - anexo até 10 MB;
+  - listas em formato de lista (não tabela), como "para resolver" dos imóveis, não têm botão próprio: os mesmos dados saem pelas listas de documentos, cessões, pendências e demonstrativo.
+
 ## Histórico
 
 - 23/09/2026: dossiê v1.0 criado (Cowork).

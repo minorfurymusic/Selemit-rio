@@ -35,6 +35,9 @@ A referência de público-alvo é a Prefeitura de Rio do Sul/SC.
 - (07/10/2026) **Marca: escudo VitalPat, opção B** (marinho `#16365a`, dourado fosco `#b8902f`), nome escrito junto "VitalPat". Arquivos `icones/logo-vitalpat.svg` (escudo + nome) e `icones/icone-vitalpat.svg` (só escudo) em cada sistema.
 - (07/10/2026) Modelo de importação do cemitério (planilha limpa, só quadra/aléia/sepultura): `cemiterio/modelos-importacao/`.
 
+- (08/10/2026) **Manual de uso em `manual.md`** (raiz). Cada função nova ganha uma seção; o documento é atualizado, nunca recriado.
+- (08/10/2026) Patrimônio: **itens de controle** (baixo valor ou pouca durabilidade; padrão abaixo de R$ 300) ficam fora do balancete, sem plaqueta. Os anexos exportados e importados usam o nome `plaqueta_descricao_01.ext`.
+
 ## Bloqueador legal (ler antes de qualquer coisa comercial)
 
 **Atualização 07/10/2026:** o usuário informou que o impedimento foi resolvido. Nenhum documento foi anexado. O texto abaixo foi mantido como histórico.

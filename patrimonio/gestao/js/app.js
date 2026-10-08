@@ -5,9 +5,9 @@
   const esc = VP.u.esc;
 
   const MENU = [
-    ['painel', 'Painel', '◧'], ['bens/moveis', 'Bens móveis', '▦'], ['bens/imoveis', 'Bens imóveis', '⌂'], ['frota', 'Frota', '⛟'], ['entradas', 'Entradas', '⇩'], ['transferencias', 'Transferências', '⇄'],
+    ['painel', 'Painel', '◧'], ['bens/moveis', 'Bens móveis', '▦'], ['bens/imoveis', 'Bens imóveis', '⌂'], ['frota', 'Frota', '⛟'], ['controle', 'Itens de controle', '◫'], ['entradas', 'Entradas', '⇩'], ['transferencias', 'Transferências', '⇄'],
     ['inventario', 'Inventário', '☑'], ['manutencao', 'Manutenção', '⚒'], ['financeiro/fechamento', 'Financeiro', '＄'], ['relatorios', 'Relatórios', '▤'],
-    ['historico', 'Histórico', '◷'], ['cadastros/unidades', 'Cadastros', '☰'], ['configuracoes', 'Configurações', '⚙'], ['lixeira', 'Lixeira', '🗑']
+    ['historico', 'Histórico', '◷'], ['cadastros/unidades', 'Cadastros', '☰'], ['configuracoes', 'Configurações', '⚙'], ['planilhas', 'Exportar e importar', '⇅'], ['lixeira', 'Lixeira', '🗑']
   ];
   const rotaMenu = { relatorio: 'relatorios', unidade: 'cadastros/unidades', imoveis: 'bens/imoveis' };
   // Qual aba do menu acende: a ficha do bem e o "novo bem" acendem a aba do tipo do bem
@@ -85,6 +85,9 @@
       location.replace('../../index.html?motivo=saiu');
     });
     window.addEventListener('hashchange', () => VP.app.render());
+    // Listas simples ganham "Baixar planilha" (também quando uma parte da tela é redesenhada)
+    let pendente = false;
+    new MutationObserver(() => { if (pendente) return; pendente = true; requestAnimationFrame(() => { pendente = false; VP.ui.planilhaNasTabelasSimples(document.getElementById('conteudo')); }); }).observe(document.getElementById('conteudo'), { childList: true, subtree: true });
   };
 
   const iniciar = async () => {

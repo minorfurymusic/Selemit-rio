@@ -365,3 +365,20 @@ body.papel-consulta [data-nova-equipe], body.papel-campo [data-nova-equipe], bod
 .fotos-rel figure { margin: 0; }
 .fotos-rel img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 6px; display: block; }
 .fotos-rel figcaption { font-size: 11px; color: var(--texto-2); }
+
+/* Exportar e importar (planilhas) e anexos em lote */
+.grade-depara { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px 14px; }
+.grade-depara label { display: flex; flex-direction: column; gap: 3px; font-size: 13px; font-weight: 600; }
+.grade-depara select { font-weight: 400; }
+.grade-links { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 4px 18px; }
+.grade-links h4 { margin: 8px 0 2px; }
+.lista-mudancas { margin: 4px 0 0; padding-left: 18px; font-size: 13px; }
+.erro-txt { color: var(--critico); font-weight: 600; }
+.aviso-txt { color: var(--texto-2); font-size: 12px; margin-top: 3px; }
+#tab-previa-imp td { vertical-align: top; }
+.anexos-lista { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; }
+.anexos-lista li { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; border-bottom: 1px solid var(--borda); padding-bottom: 6px; }
+.anexos-lista img { width: 48px; height: 48px; object-fit: cover; border-radius: 6px; }
+.anexos-lista .anexo-nome { flex: 1 1 200px; min-width: 0; overflow-wrap: anywhere; }
+.anexos-lista .anexo-icone { width: 48px; height: 48px; display: grid; place-items: center; border: 1px solid var(--borda); border-radius: 6px; font-size: 11px; font-weight: 700; color: var(--texto-2); }
+#sec-anexos code { overflow-wrap: anywhere; word-break: break-all; }
