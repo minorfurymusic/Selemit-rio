@@ -121,8 +121,10 @@
   // CSV com ";" ou "," (detecta), aspas e marca BOM
   VP.lerCSV = (texto) => {
     texto = texto.replace(/^﻿/, '');
-    const l0 = texto.split('\n')[0];
-    const sep = (l0.match(/;/g) || []).length >= (l0.match(/,/g) || []).length ? ';' : ',';
+    // separador: tabulação (relatórios exportados de outros sistemas), senão ";" ou "," pela primeira linha
+    const prim = texto.split('\n').slice(0, 15);
+    const l0 = prim.find((l) => /[;,\t]/.test(l)) || '';
+    const sep = prim.some((l) => (l.match(/\t/g) || []).length >= 2) ? '\t' : (l0.match(/;/g) || []).length >= (l0.match(/,/g) || []).length ? ';' : ',';
     const linhas = [];
     let lin = [], cel = '', aspas = false;
     for (let i = 0; i < texto.length; i++) {
@@ -137,10 +139,12 @@
     if (cel || lin.length) { lin.push(cel.trim()); linhas.push(lin); }
     return [{ nome: 'Planilha', linhas: linhas.filter((l) => l.some((x) => x !== '')) }];
   };
+  // Texto em UTF-8; se não for (relatórios de sistemas antigos), acentos do Windows (ISO-8859-1 / windows-1252)
+  VP.decodificarTexto = (buffer) => { try { return new TextDecoder('utf-8', { fatal: true }).decode(buffer); } catch (_) { return new TextDecoder('windows-1252').decode(buffer); } };
   VP.lerArquivoPlanilha = async (arquivo) => {
     const nome = arquivo.name.toLowerCase();
     if (nome.endsWith('.xlsx')) return VP.lerXLSX(await arquivo.arrayBuffer());
-    if (nome.endsWith('.csv') || nome.endsWith('.txt')) return VP.lerCSV(await arquivo.text());
+    if (nome.endsWith('.csv') || nome.endsWith('.txt')) return VP.lerCSV(VP.decodificarTexto(await arquivo.arrayBuffer()));
     throw new Error('Use planilha do Excel (.xlsx) ou .csv. Arquivo .xls antigo: abra no Excel e salve como .xlsx.');
   };
 

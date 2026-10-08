@@ -73,6 +73,7 @@ Passo a passo para quem usa: `manual.md`, na raiz do repositório.
 - **Itens de controle** (menu): coleção `bensControle`, fora do balancete e da depreciação (`js/telas-controle.js`).
 - **Ler matrícula (PDF)**: ficha do imóvel e Novo imóvel (`js/matricula.js` + `vendor/pdfjs/`).
 - Coleções novas: `importacoesPlanilha`, `importacoesAnexos` e `bensControle`.
+- Importação do relatório "Consulta de Bem" do sistema atual (tabulação, acentos do Windows, títulos e rodapé). Valor contábil como "Saldo inicial", centro de custo como unidade, "A classificar" sem depreciação. Veja o `manual.md`, seção 2.5.
 
 ## Limitações reais desta demonstração
 

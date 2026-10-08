@@ -201,6 +201,29 @@ Explicado no `manual.md` (raiz), seções 1 a 5. Plano aprovado: exportar e impo
     | Patrimônio com servidor, campo com servidor e login | `TUDO PASSOU` |
     | Robô de botões do Patrimônio | 48 telas, 433 botões, 2 suspeitos já conhecidos ("Tudo") |
 
+- [x] **Importar do sistema atual (relatório "Consulta de Bem")** — 08/10/2026, commit no histórico do git. O relatório real (35.152 bens) dava erro em todas as linhas: o separador era tabulação, os acentos vinham do Windows e havia 4 linhas de título.
+  - O sistema agora lê esse formato, acha o cabeçalho, ignora o rodapé e liga as 10 colunas sozinho.
+  - Decisões do usuário: Código = plaqueta; Centro de custo = unidade (código vira unidade nova com nome provisório, ou é ligado a uma existente); valor contábil = "Saldo inicial", com depreciação a partir do mês seguinte.
+  - Sem classificação no arquivo: "A classificar (importação)" sem depreciação, com pendência. Tipo do bem linha a linha.
+  - Para arquivos grandes: prévia com 300 linhas na tela e a prévia completa em Excel; gravação em lotes de 1.000 com progresso.
+  - Teste com relatório FICTÍCIO no mesmo formato: `TUDO PASSOU` (20).
+  - Arquivo real, só no ambiente de teste e fora do repositório:
+
+    | Etapa | Resultado |
+    |---|---|
+    | Leitura | 0,3 s, 35.155 linhas |
+    | Prévia | 1,1 s: 35.152 bens (34.655 móveis, 495 imóveis, 2 de domínio público), 159 centros de custo, 3 linhas de rodapé ignoradas |
+    | Gravação | 24 s, 35.147 feitos; os 5 que não entraram têm plaqueta repetida no próprio arquivo (códigos 22945, 23284, 23291, 23294, 23296 aparecem duas vezes) |
+    | Recarregar o sistema com tudo | 1,5 s |
+  - Testes do zero depois das mudanças:
+    - `TUDO PASSOU`: importar relatório (20), exportar/importar (25), anexos (16), itens de controle (15), matrícula (11), listas (7), gestão do patrimônio (34), imóveis (23), manutenção (22), frota (22), mapas (16), novo bem (16) e depreciação (5); campo 43/0; fumaça `ERROS: []`.
+    - Com servidor `TUDO PASSOU`: planilhas (9), patrimônio, campo e login.
+    - Robô de botões: 48 telas, 433 botões, 2 suspeitos já conhecidos ("Tudo").
+    - Achado e corrigido: linha que só atualiza um bem existente (plaqueta + local) estava sendo ignorada como rodapé.
+    - Mudança de regra: bem novo sem classificação agora entra em "A classificar" (antes era erro).
+- [ ] Os 5 códigos repetidos no relatório do sistema atual (22945, 23284, 23291, 23294, 23296): conferir no sistema atual qual é o certo.
+- [ ] Nomes dos 159 centros de custo: o relatório traz só o código. Importar a lista de nomes (Cadastros → Unidades), ou corrigir à mão.
+- [ ] Classificar os bens importados (hoje em "A classificar", sem depreciação). Precisa da tabela de classificação e vida útil do município.
 - [ ] **[A conferir]** Base legal e valor do limite dos itens de controle (Portaria STN 448/2002, MCASP, norma do município). Validar com a contabilidade.
 - [ ] Matrícula **escaneada** (imagem): ler exige reconhecimento de texto (OCR). Hoje o sistema avisa e pede para digitar.
 - [ ] Leitura da matrícula: as regras de texto foram testadas só com PDF fictício. Testar com matrículas reais de 2 ou 3 cartórios (fora do repositório, sem dados pessoais) e ajustar.

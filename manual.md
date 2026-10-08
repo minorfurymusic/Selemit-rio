@@ -143,6 +143,37 @@ Na aba **Importar**, em **Importações feitas**, clique em **Desfazer**:
 
 Se um bem incluído já teve outra movimentação depois da importação (por exemplo, uma transferência), ele não é desfeito. A tela de resultado mostra quais foram.
 
+### 2.5 Importar do sistema atual (relatório "Consulta de Bem")
+
+Para trazer de uma vez todos os bens do sistema que a prefeitura usa hoje (testado com 35 mil bens: a prévia sai em cerca de 1 segundo e a gravação em cerca de 25 segundos):
+
+1. No sistema atual, tire o relatório **Consulta de Bem** (Tipo, Status e Estado: Todos) e salve em **CSV/texto**. Não precisa mexer no arquivo: pode deixar as linhas de título, o rodapé e os acentos como vieram.
+2. Em **Exportar e importar** → **Importar**, escolha o arquivo. O sistema:
+   - acha sozinho o cabeçalho (depois das linhas de título) e ignora o rodapé ("Total de bens", "Emitido em");
+   - liga as **colunas, uma vez só** (não é bem por bem):
+
+     | Coluna do relatório | Informação no VitalPat |
+     |---|---|
+     | Código | Plaqueta |
+     | Tipo | Tipo do bem, linha a linha (móvel, imóvel, domínio público) |
+     | Complemento | Descrição e complemento |
+     | Aquisição | Data de aquisição |
+     | Valor Contábil | Valor contábil |
+     | Status | Situação |
+     | Centro de Custo | Unidade |
+     | Características | Características |
+     | Estado | Estado |
+3. Clique em **Ver a prévia** e confira:
+   - **Centros de custo**: cada código que ainda não existe vira uma **unidade nova** com o nome provisório "Centro de custo 84.003.001". Dá para ligar um código a uma unidade que já existe (uma escolha por código, não por bem). Os nomes se corrigem depois em Cadastros → Unidades.
+   - **Classificação**: o relatório não traz. Escolha uma por grupo ou deixe **"A classificar (importação)"**, que **não deprecia** até os bens serem classificados. A central de pendências mostra quantos faltam; classifique depois em lote pela lista de bens.
+   - A grade mostra as primeiras 300 linhas. **Baixar prévia completa (Excel)** traz todas, com o motivo de cada erro.
+   - **Marcar todos os válidos** vale para o arquivo inteiro.
+4. **Importar o que está marcado**: o sistema grava em lotes, mostrando "Gravando X de Y bens…", e no fim mostra a tela de resultado. Para voltar atrás, use **Desfazer**: os bens e as unidades criadas vão para a Lixeira.
+
+**Valor contábil × valor de aquisição.** Bem vindo de outro sistema (ou transferido) entra com o **valor contábil**, que é o valor de hoje, já depreciado, como **"Saldo inicial"**. A depreciação segue a partir do mês seguinte. Puxar o valor de compra distorceria: um veículo comprado por 150 mil que hoje vale 10 mil voltaria a valer 150 mil. O **valor de aquisição** é para bem comprado agora (cadastro novo). A data de aquisição original fica registrada.
+
+Importar o mesmo relatório de novo **não duplica**: os bens que já entraram aparecem como "Igual".
+
 ---
 
 ## 3. Anexos (fotos, notas, termos)

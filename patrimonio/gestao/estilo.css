@@ -382,3 +382,4 @@ body.papel-consulta [data-nova-equipe], body.papel-campo [data-nova-equipe], bod
 .anexos-lista .anexo-nome { flex: 1 1 200px; min-width: 0; overflow-wrap: anywhere; }
 .anexos-lista .anexo-icone { width: 48px; height: 48px; display: grid; place-items: center; border: 1px solid var(--borda); border-radius: 6px; font-size: 11px; font-weight: 700; color: var(--texto-2); }
 #sec-anexos code { overflow-wrap: anywhere; word-break: break-all; }
+.progresso-imp { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 2000; background: var(--primaria, #16365a); color: #fff; padding: 12px 20px; border-radius: 10px; font-weight: 600; box-shadow: 0 4px 16px rgba(0,0,0,.25); }

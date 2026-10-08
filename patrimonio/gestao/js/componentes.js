@@ -60,9 +60,10 @@
       </div>
       ${extra}
       ${falhas.length ? `<h3>O que não foi feito e por quê</h3><ul class="lista-falhas">${falhas.map((f) => `<li><b>${esc(f.item)}</b> — ${esc(f.motivo)}</li>`).join('')}</ul>` : ''}
-      ${sucesso.length ? `<details><summary>Ver os ${u.inteiro(sucesso.length)} itens feitos</summary><ul class="lista-ok">${sucesso.map((s) => `<li>${esc(s)}</li>`).join('')}</ul></details>` : ''}`;
+      ${sucesso.length ? `<details><summary>Ver os ${u.inteiro(sucesso.length)} itens feitos</summary><ul class="lista-ok">${sucesso.slice(0, 1000).map((s) => `<li>${esc(s)}</li>`).join('')}${sucesso.length > 1000 ? `<li>… e mais ${u.inteiro(sucesso.length - 1000)} (lista completa em "Baixar lista")</li>` : ''}</ul></details>` : ''}`;
     const botoes = [{ texto: 'Fechar', classe: 'primario' }];
-    if (falhas.length) botoes.unshift({ texto: 'Baixar lista de falhas', fecha: false, acao: () => { ui.baixarCSV('falhas', ['Item', 'Motivo'], falhas.map((f) => [f.item, f.motivo])); return false; } });
+    if (falhas.length) botoes.unshift({ texto: 'Baixar lista de falhas', fecha: false, acao: () => { (VP.baixarXLSX ? VP.baixarXLSX('falhas', [{ nome: 'Falhas', cabecalho: ['Item', 'Motivo'], linhas: falhas.map((f) => [f.item, f.motivo]) }]) : ui.baixarCSV('falhas', ['Item', 'Motivo'], falhas.map((f) => [f.item, f.motivo]))); return false; } });
+    if (sucesso.length > 1000) botoes.unshift({ texto: 'Baixar lista', fecha: false, acao: () => { (VP.baixarXLSX ? VP.baixarXLSX('feitos', [{ nome: 'Feitos', cabecalho: ['Item'], linhas: sucesso.map((x) => [x]) }]) : ui.baixarCSV('feitos', ['Item'], sucesso.map((x) => [x]))); return false; } });
     ui.modal({ titulo, corpo, botoes, largura: 'media' });
   };
 
