@@ -55,6 +55,13 @@ Na ficha de cada imóvel: registro e o que impede o registro, uso, áreas, docum
 
 Menu **Manutenção**: chamados de conserto (aberto → em campo → em revisão → concluído), manutenção preventiva por tempo (o chamado abre sozinho na antecedência), vistorias com checklist (cada item não conforme pode virar chamado) e equipes.
 
+## Etapas 7 e 8: mapas e relatórios com fotos
+
+- **Bens imóveis → aba Mapa**: imóveis com localização no mapa de ruas do OpenStreetMap (precisa de internet; sem internet os pontos aparecem mesmo assim), cor pela situação do registro, link para o Google Maps e arquivo para o Google Earth (KML). Pode mostrar também os registros do aplicativo de campo que têm GPS.
+- **Ficha do imóvel → Localização no mapa**: digitar latitude e longitude (copiadas do Google Maps) ou usar o GPS do aparelho. Coordenada fora do Brasil é recusada (pega latitude e longitude trocadas). A mudança fica no histórico do bem.
+- **Relatórios → Relatório com fotos**: bens com foto por unidade e estado; imóveis com fotos e mapa desenhado (sai na impressão).
+- Biblioteca do mapa: Leaflet 1.9.4 (licença BSD-2), em `vendor/leaflet/`. Os dados de exemplo têm localização fictícia para os 6 imóveis.
+
 ## Limitações reais desta demonstração
 
 - **Os dados são fictícios** e ficam só neste navegador. Para guardá-los, use Configurações → Baixar cópia completa.

@@ -123,4 +123,35 @@
     q.make();
     return q.createSvgTag({ cellSize: tamanho, margin: 0, scalable: true });
   };
+  // Mapa simples em desenho (sem internet e bom para imprimir): pontos e contornos por latitude/longitude.
+  // pontos: [{ lat, lon, cor, rotulo, link }]; contornos: [{ pontos: [[lat, lon]…], rotulo }]
+  G.mapaPontos = (pontos, op = {}) => {
+    const ps = pontos.filter((p) => Number.isFinite(p.lat) && Number.isFinite(p.lon));
+    const cs = (op.contornos || []).filter((c) => (c.pontos || []).length >= 3);
+    const todos = ps.map((p) => [p.lat, p.lon]).concat(cs.flatMap((c) => c.pontos));
+    if (!todos.length) return '<p class="vazio">Sem coordenadas para desenhar o mapa.</p>';
+    const W = op.largura || 640, H = op.altura || 360, m = 18;
+    let minLat = Math.min(...todos.map((x) => x[0])), maxLat = Math.max(...todos.map((x) => x[0]));
+    let minLon = Math.min(...todos.map((x) => x[1])), maxLon = Math.max(...todos.map((x) => x[1]));
+    if (maxLat - minLat < 1e-5) { minLat -= 0.0002; maxLat += 0.0002; }
+    if (maxLon - minLon < 1e-5) { minLon -= 0.0002; maxLon += 0.0002; }
+    const k = Math.cos(((minLat + maxLat) / 2) * Math.PI / 180); // longitude encolhe longe do equador
+    const larg = (maxLon - minLon) * k, alt = maxLat - minLat;
+    const esc2 = Math.min((W - 2 * m) / larg, (H - 2 * m) / alt);
+    const ox = (W - larg * esc2) / 2, oy = (H - alt * esc2) / 2;
+    const x = (lon) => ox + (lon - minLon) * k * esc2;
+    const y = (lat) => H - oy - (lat - minLat) * esc2;
+    // escala: metros por pixel ≈ 111.320 m por grau de latitude
+    const mPorPx = 111320 / esc2;
+    const opcoes = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000];
+    const barra = opcoes.find((v) => v / mPorPx >= 60) || 5000;
+    const r = op.raio || 4;
+    const poligonos = cs.map((c) => `<polygon points="${c.pontos.map(([la, lo]) => `${x(lo).toFixed(1)},${y(la).toFixed(1)}`).join(' ')}" class="mapa-contorno"><title>${esc(c.rotulo || '')}</title></polygon>`).join('');
+    const marcas = ps.map((p) => { const c = `<circle cx="${x(p.lon).toFixed(1)}" cy="${y(p.lat).toFixed(1)}" r="${r}" fill="${esc(p.cor || 'var(--serie-1)')}" stroke="var(--superficie)" stroke-width="1"><title>${esc(p.rotulo || '')}</title></circle>`; return p.link ? `<a href="${esc(p.link)}">${c}</a>` : c; }).join('');
+    return `<svg class="grafico-svg mapa-pontos" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(op.titulo || 'Mapa')}">
+      <rect x="0" y="0" width="${W}" height="${H}" class="mapa-fundo"/>${poligonos}${marcas}
+      <g class="eixo"><text x="${W - 14}" y="20" text-anchor="middle">N</text><path d="M${W - 14},24 l-5,12 h10 z" fill="currentColor"/></g>
+      <g class="eixo"><line x1="12" x2="${12 + barra / mPorPx}" y1="${H - 12}" y2="${H - 12}" stroke="currentColor" stroke-width="2"/><text x="12" y="${H - 16}">${barra >= 1000 ? barra / 1000 + ' km' : barra + ' m'}</text></g>
+    </svg>`;
+  };
 })();

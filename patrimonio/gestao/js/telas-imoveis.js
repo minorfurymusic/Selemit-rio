@@ -134,7 +134,10 @@
   E.secoesFicha = (b) => {
     const docs = E.docsDe(b.id), ces = E.cessoesDe(b.id), pend = E.pendenciasDe(b.id);
     const arq = (l) => (l || []).filter((a) => a.dataURL).map((a) => `<a href="${esc(a.dataURL)}" target="_blank" rel="noopener" download="${esc(a.nome || 'documento')}">${esc(a.nome || 'arquivo')}</a>`).join(' ');
+    const temLocal = Number.isFinite(b.imovel?.lat) && Number.isFinite(b.imovel?.lon);
     return `
+      <section class="cartao secao" id="sec-local-imovel"><header><h3>Localização no mapa</h3><button class="botao pequeno" data-local-imovel>${temLocal ? 'Alterar' : 'Informar'}</button></header>
+        ${temLocal ? `<p>${esc(b.imovel.lat)}, ${esc(b.imovel.lon)} · <a href="https://www.google.com/maps/search/?api=1&query=${esc(b.imovel.lat)},${esc(b.imovel.lon)}" target="_blank" rel="noopener">Abrir no Google Maps</a> · <a href="#imoveis/mapa">Ver no mapa dos imóveis</a></p>` : '<p class="vazio">Sem localização. Informe para o imóvel aparecer no mapa e no relatório com mapa.</p>'}</section>
       <section class="cartao secao" id="sec-docs-imovel"><header><h3>Documentos do imóvel</h3><button class="botao pequeno" data-imo="doc">+ Documento</button></header>
         ${docs.length ? `<ul class="lista-simples">${docs.map((d) => `<li>${seloDoc(d)} <b>${esc(d.tipo)}</b>${d.numero ? ' ' + esc(d.numero) : ''}${d.validade ? ' · validade ' + u.data(d.validade) : ''}${d.orgao ? ' · ' + esc(d.orgao) : ''} ${arq(d.arquivos)} <button class="botao pequeno" data-imo-doc="${esc(d.id)}">Atualizar</button></li>`).join('')}</ul>` : '<p class="vazio">Nenhum documento. Ex.: matrícula, habite-se, AVCB, alvarás, laudos.</p>'}</section>
       <section class="cartao secao"><header><h3>Cessões e uso por terceiros</h3><button class="botao pequeno" data-imo="cessao">+ Registrar</button></header>
@@ -146,6 +149,7 @@
   E.ligarFicha = (b, re) => {
     const area = document.getElementById('conteudo');
     area.querySelectorAll('[data-imo]').forEach((el) => el.addEventListener('click', () => ({ doc: () => E.novoDocumento(b, re), cessao: () => E.novaCessao(b, re), pendencia: () => E.novaPendencia(b, re) })[el.dataset.imo]()));
+    area.querySelector('[data-local-imovel]')?.addEventListener('click', () => VP.mapas.informarLocal(b, re));
     area.querySelectorAll('[data-imo-doc]').forEach((el) => el.addEventListener('click', () => E.novoDocumento(b, re, VP.db.pega('documentosImovel', el.dataset.imoDoc))));
     area.querySelectorAll('[data-imo-renovar]').forEach((el) => el.addEventListener('click', () => E.renovarCessao(b, VP.db.pega('cessoesImovel', el.dataset.imoRenovar), re)));
     area.querySelectorAll('[data-imo-encerrar]').forEach((el) => el.addEventListener('click', () => E.encerrarCessao(b, VP.db.pega('cessoesImovel', el.dataset.imoEncerrar), re)));
@@ -154,12 +158,13 @@
 
   // ------------------------------------------------------------------ painel dos imóveis + demonstrativo TCE
   T.imoveis = (aba = 'painel') => {
-    const abas = `<nav class="abas">${[['painel', 'Situação'], ['demonstrativo', 'Demonstrativo (TCE/SC)'], ['documentos', 'Documentos'], ['cessoes', 'Cessões'], ['pendencias', 'Pendências']].map(([k, n]) => `<a href="#imoveis${k === 'painel' ? '' : '/' + k}" class="${k === aba ? 'ativa' : ''}">${n}</a>`).join('')}</nav>`;
+    const abas = `<nav class="abas">${[['painel', 'Situação'], ['demonstrativo', 'Demonstrativo (TCE/SC)'], ['documentos', 'Documentos'], ['cessoes', 'Cessões'], ['pendencias', 'Pendências'], ['mapa', 'Mapa']].map(([k, n]) => `<a href="#imoveis${k === 'painel' ? '' : '/' + k}" class="${k === aba ? 'ativa' : ''}">${n}</a>`).join('')}</nav>`;
     const im = E.lista();
     const imo = im.filter((b) => b.tipo === 'imovel');
     const nomeBem = (id) => { const b = VP.db.pega('bens', id); return b ? `<a href="#bem/${esc(b.id)}">${esc(b.codigo)} · ${esc(b.descricao)}</a>` : '—'; };
     const valBem = (id) => { const b = VP.db.pega('bens', id); return b ? `${b.codigo} · ${b.descricao}` : ''; };
     const ids = new Set(im.map((b) => b.id));
+    if (aba === 'mapa') return VP.mapas.telaMapa(abas);
     if (aba === 'documentos') {
       const l = VP.db.lista('documentosImovel').filter((d) => ids.has(d.bemId));
       return { titulo: 'Bens imóveis', html: abas + ui.tabela({ id: 'imo-docs', linhas: l, porPagina: 100, nomePlanilha: 'documentos-imoveis', vazio: 'Nenhum documento.', colunas: [{ chave: 'situacao', titulo: 'Situação', html: seloDoc, valor: (d) => ({ vencido: 'Vencido', vencendo: 'Vencendo', valido: 'Válido', 'sem-validade': 'Sem validade' }[E.situacaoDoc(d)]) }, { chave: 'imovel', titulo: 'Imóvel', html: (d) => nomeBem(d.bemId), valor: (d) => valBem(d.bemId) }, { chave: 'tipo', titulo: 'Documento' }, { chave: 'numero', titulo: 'Número' }, { chave: 'validade', titulo: 'Validade', valor: (d) => u.data(d.validade), ordenar: (d) => d.validade || '9' }, { chave: 'orgao', titulo: 'Órgão' }] }), ligar() { ui.ligarTabela('imo-docs'); } };

@@ -54,7 +54,9 @@
     concessao: { nome: 'Concessão', classe: (t) => { const c = VP.concessaoAtual(t.id); return !c ? 'c-nao-informado' : VP.concessaoVencida(c) ? 'c-s-apuracao' : c.tipo === 'perpetua' ? 'c-s-declarado' : 'c-s-regular'; }, legenda: [['c-s-declarado', 'Perpétua'], ['c-s-regular', 'Temporária vigente'], ['c-s-apuracao', 'Concessão vencida'], ['c-nao-informado', 'Sem concessão']] },
     campo: { nome: 'Foto e plaqueta', classe: (t) => ((t.fotos || []).length && t.qrAfixado ? 'c-ocupado' : (t.fotos || []).length || t.qrAfixado ? 'c-vago' : 'c-nao-informado'), legenda: [['c-ocupado', 'Foto e plaqueta'], ['c-vago', 'Só um dos dois'], ['c-nao-informado', 'Nenhum']] }
   };
-  T.mapa = (_, query) => {
+  VP.MODOS_MAPA = MODOS;
+  T.mapa = (param, query) => {
+    if (param === 'real') return VP.mapaReal.tela();
     const v = VP.estado.mapa = VP.estado.mapa || { modo: 'ocupacao', quadraId: '' };
     if (query.quadra) v.quadraId = query.quadra;
     const desenhar = () => {
@@ -73,7 +75,7 @@
             return `<a href="#tumulo/${esc(t.id)}" class="cova ${c} ${achou ? 'achada' : ''}" title="${esc(`${q.nome} · Aléia ${t.aleia} · Nº ${t.numero} — ${L.ocupacao[t.ocupacao]} · ${L.tipos[t.tipo]}`)}" aria-label="${esc(`Nº ${t.numero}`)}"></a>`;
           }).join('')}</div></div>`).join('')}</div></section>`;
       }).join('');
-      return `<div class="linha-filtros">
+      return `${VP.mapaReal.abas('posicao')}<div class="linha-filtros">
           <label>Colorir por <select data-modo>${Object.entries(MODOS).map(([k, m]) => `<option value="${k}" ${k === v.modo ? 'selected' : ''}>${m.nome}</option>`).join('')}</select></label>
           <label>Quadra <select data-quadra><option value="">Todas</option>${opc('quadras').map(([id, n]) => `<option value="${id}" ${id === v.quadraId ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></label>
           <label>Achar número <input data-achar value="${esc(v.busca || '')}" size="8" placeholder="Ex.: 15"></label>
@@ -90,7 +92,7 @@
       a.querySelector('[data-achar]').addEventListener('change', (e) => { v.busca = e.target.value; atualizar(); a.querySelector('.cova.achada')?.scrollIntoView({ block: 'center' }); });
       VP.estado.listaAtual = VP.filtrarTumulos({ quadraId: v.quadraId }).map((t) => t.id);
     };
-    return { titulo: 'Mapa do cemitério', acoes: '<a class="botao" href="#tumulos">Ver em lista</a>', html: `<div id="area-mapa">${desenhar()}</div>`, ligar };
+    return { titulo: 'Mapa do cemitério', acoes: '<a class="botao" href="#tumulos">Ver em lista</a> <a class="botao" href="#relatorio/fotografico">Relatório com fotos e mapa</a>', html: `<div id="area-mapa">${desenhar()}</div>`, ligar };
   };
 
   // ===================================================================== LISTA DE TÚMULOS
@@ -594,12 +596,15 @@
       <a class="cartao-relatorio" href="#ordens"><b>Ordens de serviço</b><span>Abertas, atrasadas e pedidos da família, com lista para imprimir.</span></a>
       <a class="cartao-relatorio" href="#vagas"><b>Painel de vagas</b><span>Vagas por tipo e quadra, sepultamentos por mês, previsão em 3 cenários e vagas que podem voltar.</span></a>
       <a class="cartao-relatorio" href="#sepultamentos"><b>Agenda de sepultamentos</b><span>Agendados por dia, para imprimir.</span></a>
+      <a class="cartao-relatorio" href="#relatorio/fotografico"><b>Relatório fotográfico com mapa</b><span>Fotos de cada túmulo, situação, última vistoria e mapa dos pontos, por quadra.</span></a>
+      <a class="cartao-relatorio" href="#mapa/real"><b>Mapa sobre a imagem</b><span>Túmulos com coordenada sobre a foto aérea ou o mapa de ruas, com link para o Google Maps.</span></a>
       <a class="cartao-relatorio" href="#relatorio/etiquetas"><b>Etiquetas QR dos túmulos</b><span>Plaquetas prontas para imprimir, por quadra ou aléia.</span></a>
     </div>`
   });
   T.relatorio = (chave) => {
     if (chave === 'etiquetas') return etiquetas();
     if (chave === 'triagem') return VP.etapa2.relatorioTriagem();
+    if (chave === 'fotografico') return VP.mapaReal.relatorioFotos();
     const quadras = VP.db.lista('quadras').sort((a, b) => a.ordem - b.ordem);
     const linhas = quadras.map((q) => { const l = VP.db.lista('tumulos').filter((t) => t.quadraId === q.id); const r = VP.resumo(l); return Object.assign({ id: q.id, quadra: q.nome }, r, { taxa: r.total ? r.ocupado / r.total : 0 }); }).filter((x) => x.total);
     const r = VP.resumo();

@@ -308,6 +308,7 @@
     const ims = VP.db.lista('bens').filter((b) => b.tipo === 'imovel');
     const documentosImovel = [], cessoesImovel = [], pendenciasImovel = [];
     ims.forEach((b, i) => {
+      b.imovel.lat = Number((-27.2050 - i * 0.0031).toFixed(6)); b.imovel.lon = Number((-49.6380 - (i % 3) * 0.0042).toFixed(6)); // localização FICTÍCIA
       b.imovel.afetado = b.imovel.uso !== 'Dominical';
       b.imovel.areaTerreno = Number((b.medidas || []).find((m) => /terreno/i.test(m.nome))?.valor) || null;
       b.imovel.areaConstruida = Number((b.medidas || []).find((m) => /constru/i.test(m.nome))?.valor) || null;

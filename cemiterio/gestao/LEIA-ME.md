@@ -43,9 +43,17 @@ Abra o `index.html` da raiz e entre com `selemitério` / `123456` (login de demo
 
 Menu **Plaquetas**: números de 000000 até o limite (padrão 100.000), gerados em lotes (+10, +30, +50…). Cada número é ligado a um túmulo por uma pessoa (ficha do túmulo ou em lote pela lista de Túmulos, com prévia). O QR Code da plaqueta leva o número, e a busca acha o túmulo por ele. Plaqueta perdida: desligue e marque como inutilizada (fica no histórico).
 
+## Etapas 7 e 8: mapa sobre imagem e relatório com fotos e mapa
+
+- **Mapa → aba "Sobre a imagem"**: túmulos com coordenada (levantamento da empresa ou GPS) aparecem como pontos sobre a foto aérea do cadastro do cemitério (Cadastros → Cemitérios) e/ou o mapa de ruas do OpenStreetMap. Contorno das quadras, mesmas cores do mapa por posição, busca por código ou plaqueta e balão com link para a ficha e para o Google Maps.
+- O mapa de ruas precisa de internet. Sem internet, os pontos e a foto aérea aparecem mesmo assim. O servidor público do OpenStreetMap serve para uso leve; com muitos acessos, contratar um serviço de mapas (pendência no `checklist.md`).
+- **Relatórios → Relatório fotográfico com mapa**: por quadra e situação, com mapa desenhado (funciona sem internet e sai na impressão), fotos do túmulo e das vistorias, situação e última vistoria. Mostra até 150 túmulos por vez.
+- Arquivo para o Google Earth (KML): menu Localização.
+- Biblioteca do mapa: Leaflet 1.9.4 (licença BSD-2), em `vendor/leaflet/`.
+
 ## O que ainda não faz
 
-Importação de titulares e sepultados das planilhas antigas, portal das funerárias e do titular, sepultamentos, exumações, ossário, processo administrativo e mapa sobre imagem real. Estão nas próximas etapas do `checklist.md`. (Atualização: a ligação ao servidor já existe; veja abaixo.)
+Importação de titulares e sepultados das planilhas antigas e portal das funerárias e do titular. Estão nas próximas etapas do `checklist.md`. (Atualização: a ligação ao servidor já existe; veja abaixo.)
 
 ## Com servidor (Supabase)
 

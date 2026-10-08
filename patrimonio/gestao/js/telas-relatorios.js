@@ -330,7 +330,8 @@
       titulo: 'Relatórios',
       html: `<p class="ajuda">Todos os relatórios abrem na hora, com números, gráficos e tabela. Em cada um: <b>Imprimir / PDF</b> e <b>Baixar planilha</b> (escolhendo as colunas).</p>
         ${grupos.map((g) => `<h3>${esc(g)}</h3><div class="galeria">${todos.filter(([, r]) => r.grupo === g).map(([k, r]) => `<a class="cartao-relatorio" href="#relatorio/${k}"><b>${esc(r.titulo)}</b><span>${esc(r.descricao)}</span></a>`).join('')}</div>`).join('')}
-        <h3>Imóveis</h3><div class="galeria"><a class="cartao-relatorio" href="#imoveis/demonstrativo"><b>Demonstrativo dos bens imóveis (TCE/SC)</b><span>Localização, situação do registro, motivo dos não registrados, uso, área e valor.</span></a><a class="cartao-relatorio" href="#imoveis"><b>Situação dos imóveis</b><span>Documentos vencidos, cessões, pendências de regularização.</span></a></div>`
+        <h3>Imóveis</h3><div class="galeria"><a class="cartao-relatorio" href="#imoveis/demonstrativo"><b>Demonstrativo dos bens imóveis (TCE/SC)</b><span>Localização, situação do registro, motivo dos não registrados, uso, área e valor.</span></a><a class="cartao-relatorio" href="#imoveis"><b>Situação dos imóveis</b><span>Documentos vencidos, cessões, pendências de regularização.</span></a><a class="cartao-relatorio" href="#imoveis/mapa"><b>Mapa dos imóveis</b><span>Imóveis no mapa de ruas, com link para o Google Maps e arquivo para o Google Earth (KML).</span></a></div>
+        <h3>Fotos</h3><div class="galeria"><a class="cartao-relatorio" href="#relatorio-fotos"><b>Relatório com fotos</b><span>Bens com foto por unidade e estado; imóveis com fotos e mapa.</span></a></div>`
     };
   };
 
