@@ -75,6 +75,14 @@ Passo a passo para quem usa: `manual.md`, na raiz do repositório.
 - Coleções novas: `importacoesPlanilha`, `importacoesAnexos` e `bensControle`.
 - Importação do relatório "Consulta de Bem" do sistema atual (tabulação, acentos do Windows, títulos e rodapé). Valor contábil como "Saldo inicial", centro de custo como unidade, "A classificar" sem depreciação. Veja o `manual.md`, seção 2.5.
 
+## Livro de controle patrimonial, leilão e classificador (08/10/2026)
+
+- **Estado de conservação em 8 níveis** (Novo … Imprestável), com conversão única dos dados antigos (`VP.converterEscalaEstados` em `js/base.js`). **Inservível** é situação do bem; **Imprestável** gera pendência e "Iniciar baixa".
+- **"A classificar"** deprecia como "Demais bens" (`VP.DEMAIS_BENS`, `VP.corrigirAClassificar`).
+- **Classificador** (`js/classificador.js`): item de controle só se até R$ 300 **e** até 24 meses (Configurações); lista "Vida útil dos itens" e "Decisões guardadas" em Cadastros. Sugestão na nota fiscal, na importação e no Novo bem. Nota fictícia para testar: `exemplos/nfe-exemplo-itens-baratos.xml`.
+- **Importar nomes de centros de custo** (`js/importa-unidades.js`): só código + nome.
+- **Baixa em lote** (menu, `js/telas-baixa-lote.js`): lote, ata, confirmação; coleção `lotesBaixa`.
+
 ## Limitações reais desta demonstração
 
 - **Os dados são fictícios** e ficam só neste navegador. Para guardá-los, use Configurações → Baixar cópia completa.

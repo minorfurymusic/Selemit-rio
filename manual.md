@@ -12,6 +12,8 @@ Como usar o sistema, passo a passo. Este manual vai crescer: cada função nova 
 4. [Itens de controle (fora do balancete)](#4-itens-de-controle-fora-do-balancete)
 5. [Ler a matrícula do imóvel (PDF)](#5-ler-a-matrícula-do-imóvel-pdf)
 6. [Perguntas comuns](#6-perguntas-comuns)
+7. [Estado de conservação, inservível e imprestável](#7-estado-de-conservação-inservível-e-imprestável)
+8. [Baixa em lote (leilão)](#8-baixa-em-lote-leilão)
 
 ---
 
@@ -162,10 +164,10 @@ Para trazer de uma vez todos os bens do sistema que a prefeitura usa hoje (testa
      | Status | Situação |
      | Centro de Custo | Unidade |
      | Características | Características |
-     | Estado | Estado |
+     | Estado | Estado (*atualização 08/10/2026:* "Inservível" vira a **situação** do bem, não o estado — ver seção 7) |
 3. Clique em **Ver a prévia** e confira:
    - **Centros de custo**: cada código que ainda não existe vira uma **unidade nova** com o nome provisório "Centro de custo 84.003.001". Dá para ligar um código a uma unidade que já existe (uma escolha por código, não por bem). Os nomes se corrigem depois em Cadastros → Unidades.
-   - **Classificação**: o relatório não traz. Escolha uma por grupo ou deixe **"A classificar (importação)"**, que **não deprecia** até os bens serem classificados. A central de pendências mostra quantos faltam; classifique depois em lote pela lista de bens.
+   - **Classificação**: o relatório não traz. Escolha uma por grupo ou deixe **"A classificar (importação)"**. *Atualização 08/10/2026:* "A classificar" **deprecia como "Demais bens"** (tabela do livro de controle patrimonial: móveis 84 meses e 10% de valor residual, imóveis 360 e 30%, veículos 120 e 30%, domínio público 1.200 e 80%), para nenhum bem ficar sem depreciar. Classificações "A classificar" criadas antes passam a depreciar sozinhas ao abrir o sistema (o que estava antes fica guardado). A central de pendências mostra quantos faltam; classifique depois em lote pela lista de bens.
    - A grade mostra as primeiras 300 linhas. **Baixar prévia completa (Excel)** traz todas, com o motivo de cada erro.
    - **Marcar todos os válidos** vale para o arquivo inteiro.
 4. **Importar o que está marcado**: o sistema grava em lotes, mostrando "Gravando X de Y bens…", e no fim mostra a tela de resultado. Para voltar atrás, use **Desfazer**: os bens e as unidades criadas vão para a Lixeira.
@@ -173,6 +175,31 @@ Para trazer de uma vez todos os bens do sistema que a prefeitura usa hoje (testa
 **Valor contábil × valor de aquisição.** Bem vindo de outro sistema (ou transferido) entra com o **valor contábil**, que é o valor de hoje, já depreciado, como **"Saldo inicial"**. A depreciação segue a partir do mês seguinte. Puxar o valor de compra distorceria: um veículo comprado por 150 mil que hoje vale 10 mil voltaria a valer 150 mil. O **valor de aquisição** é para bem comprado agora (cadastro novo). A data de aquisição original fica registrada.
 
 Importar o mesmo relatório de novo **não duplica**: os bens que já entraram aparecem como "Igual".
+
+---
+
+### 2.6 Importar nomes dos centros de custo (unidades)
+
+O relatório de bens traz só o **código** do centro de custo. Os nomes vêm de outro relatório do sistema atual (lista de usuários × centros de custo).
+
+1. Em **Exportar e importar** → **Importar**, escolha o arquivo (CSV ou Excel). O sistema reconhece sozinho a lista de centros de custo e mostra **"É de: Unidades / centros de custo"**.
+2. Só **duas colunas** são lidas: **Classificação** (o código, ex.: 01.001.008) e **Descrição** (o nome). **As outras colunas — como nome e matrícula de servidores — não são lidas nem guardadas.**
+3. **Ver a prévia**. O arquivo repete o centro uma vez por servidor; a prévia junta tudo numa linha por código:
+
+   | Na prévia | O que acontece |
+   |---|---|
+   | **Alterado** | Troca o nome (por exemplo, o provisório "Centro de custo 01.001.008" pelo nome real). O nome anterior fica no histórico da unidade. |
+   | **Novo** | Código que ainda não existe: vira uma unidade nova. |
+   | **Igual** | Nada muda. |
+   | **Erro (conflito)** | O mesmo código com dois nomes diferentes no arquivo. Não entra: corrija o arquivo. |
+
+4. **Importar o que está marcado** e confira a tela de resultado. **Desfazer** volta os nomes anteriores e manda as unidades novas para a Lixeira (as que já tiverem bens continuam).
+
+Dá para importar os nomes antes ou depois do relatório de bens: os bens ficam ligados pelo código.
+
+### 2.7 Itens baratos na importação: patrimônio ou item de controle
+
+Na prévia, os bens **novos sem plaqueta** que custam até o limite (padrão R$ 300) ganham o campo **"Vai para"**, com a **sugestão** do sistema e o motivo (seção 4). O aviso no topo diz quantos foram sugeridos como item de controle, e o filtro **"Valor baixo: conferir destino"** mostra só esses. Mude o que precisar; ao importar, cada linha vai para o lugar escolhido. Bens que já vêm com plaqueta (do sistema atual) não recebem sugestão.
 
 ---
 
@@ -253,6 +280,8 @@ Junto com os arquivos vai a planilha **lista-dos-arquivos.xlsx**, com cada arqui
 
 Servem para bens de **pequeno valor** ou de **pouca durabilidade**, como grampeador, lixeira, garrafa térmica e ventilador de mesa. O limite padrão é abaixo de **R$ 300**, ajustável em Configurações.
 
+*Atualização 08/10/2026 — regra de Rio do Sul (valor × vida útil):* o bem **tem plaqueta** se durar **mais de 2 anos** **ou** custar **mais de R$ 300**. Só vira **item de controle** quando dura **até 2 anos** **e** custa **até R$ 300**. Exemplo: um item de R$ 100 que dura 3 anos tem plaqueta. Os dois limites ficam em **Configurações → Avisos** ("Item de controle: valor até" e "vida útil até (meses)"), porque cada município tem a sua regra.
+
 - **Não ganham plaqueta.** O código é interno: C-000001, C-000002…
 - **Não depreciam e não entram** no balancete, na contabilidade nem no inventário oficial. São controlados à parte.
 
@@ -275,8 +304,20 @@ Menu **Itens de controle**:
   - Para atualizar um item, informe o **Código** (C-000001).
   - Para incluir, deixe o Código vazio.
 - **Sugestão no Novo bem**: ao incluir um bem móvel com valor abaixo do limite, o sistema **sugere** cadastrar como item de controle. **Não obriga**: a pessoa decide.
+  - *Atualização 08/10/2026:* a sugestão só aparece quando o valor está dentro do limite **e** o item dura até 24 meses. Bem barato e durável (ex.: cadeira de R$ 100) não recebe sugestão: ganha plaqueta.
 
-> **Pendência:** a regra de "pequeno valor e pouca durabilidade" e o valor do limite precisam ser conferidos com a contabilidade e com a norma do município (Portaria STN 448/2002 e MCASP). Por isso o limite fica em Configurações.
+### 4.1 Sugestão automática: patrimônio ou item de controle (classificador)
+
+O sistema **sempre avisa e mostra**; **quem decide é a pessoa**, item a item.
+
+- **De onde vem a vida útil:** da lista **Cadastros → Vida útil dos itens** (ex.: mouse 12 meses, vassoura 6, cadeira 120). A lista inicial é uma sugestão do sistema: inclua, corrija ou mande para a Lixeira o que não servir. Se o nome do item não está na lista, usa a vida útil da classificação. Se ninguém sabe, a sugestão é **plaqueta**, com o aviso "confira".
+- **Onde aparece:**
+  - **Nota fiscal (XML):** cada item ganha **"Vai para"** já marcado com a sugestão e o motivo. Exemplo: numa nota de 10 itens, os 4 que custam menos de R$ 10 e duram menos de 1 ano já vêm marcados como item de controle; o aviso no topo diz "4 de 10". Confira, mude o que precisar e clique em **Incluir bens**: os itens de controle vão para **Itens de controle** (sem plaqueta, com a quantidade da nota) e os outros viram bens com plaqueta. Item de controle não pede classificação.
+  - **Importação por planilha** (seção 2.7) e **Novo bem**.
+- **Aprende com as decisões:** a escolha feita para cada item barato fica em **Cadastros → Decisões guardadas**. Da próxima vez que o mesmo item aparecer, a sugestão segue a última decisão ("da última vez você escolheu…"). Dá para corrigir a decisão ali, ou mandá-la para a Lixeira para o sistema voltar a usar a regra.
+- Arquivo de teste fictício: `patrimonio/gestao/exemplos/nfe-exemplo-itens-baratos.xml` (10 itens, 4 sugeridos como item de controle).
+
+> **Pendência (texto de 08/10/2026, mantido):** a regra de "pequeno valor e pouca durabilidade" e o valor do limite precisam ser conferidos com a contabilidade e com a norma do município (Portaria STN 448/2002 e MCASP). Por isso o limite fica em Configurações.
 
 ---
 
@@ -324,3 +365,44 @@ Use **Desfazer** na lista de importações feitas (seção 2.4 para bens, seçã
 
 **Quem pode importar?**
 Com servidor, só administrador e gestor. O perfil "consulta" vê as telas, mas não importa, e o banco também recusa a gravação.
+
+---
+
+## 7. Estado de conservação, inservível e imprestável
+
+*Novo em 08/10/2026, pela escala do livro de controle patrimonial.*
+
+**Estado de conservação** (8 níveis): **Novo, Ótimo, Muito bom, Bom, Regular, Ruim, Péssimo, Imprestável**.
+
+- Os dados que já existiam (escala antiga de 6) são convertidos **uma vez só**, ao abrir o sistema: Novo → Novo, Ótimo → Ótimo, Bom → Bom, Regular → Regular, Ruim → Ruim, Péssimo → Péssimo (os nomes continuam; muda só o número por trás). O valor antigo fica guardado no próprio registro. Vale para bens, itens de controle, vistorias, inventários e o aplicativo de campo.
+- O **aplicativo de campo** mostra os 8 estados com o nome escrito no botão.
+
+**Inservível não é estado: é a situação do bem.** Quer dizer que o bem não serve mais para o órgão, mas ainda pode ser **vendido (leilão), doado ou transferido**.
+
+- Na ficha do bem (ou na lista, com vários marcados): botão **Inservível**. Escolha o motivo (ocioso, antieconômico, irrecuperável, obsoleto) e o laudo. Fica no histórico.
+- A lista de bens filtra por **Situação → Inservível**. A central de pendências mostra quantos estão disponíveis.
+- Se o bem voltar a servir: **Volta ao uso**.
+- Na importação do sistema atual, "Inservível" na coluna Estado vira a situação.
+
+**Imprestável** é o estado 1: o bem não tem conserto (sucata). A ficha mostra o aviso com o botão **Iniciar baixa**, e a central de pendências mostra "Bens imprestáveis aguardando baixa".
+
+---
+
+## 8. Baixa em lote (leilão)
+
+*Novo em 08/10/2026.* Os bens inservíveis normalmente saem por leilão. Menu **Baixa em lote**:
+
+1. **+ Novo lote**: número (automático, ex.: 1/2026), tipo de baixa (padrão "Alienação (leilão)"), descrição, edital ou processo, data do leilão, motivo, avaliação prévia (laudo) e justificativa.
+2. **Incluir os bens**:
+   - digite as **plaquetas** (separadas por espaço, vírgula ou uma por linha), ou
+   - clique em **Incluir todos os inservíveis**, ou
+   - na lista de bens, marque vários e use **Incluir em lote de baixa**.
+
+   O sistema avisa o que não entrou e por quê (plaqueta que não existe, bem já baixado, bem que já está em outro lote).
+3. Informe o **valor arrematado** de cada bem, se quiser.
+4. **Anexar ata**: foto ou PDF da ata do leilão. É obrigatória para confirmar.
+5. Até confirmar, **dá para mudar tudo**: tirar bens, editar dados, trocar a ata (a ata tirada fica guardada no histórico do lote).
+6. **Confirmar baixa do lote**: o sistema mostra o valor contábil que sai e pede confirmação. Cada bem recebe a baixa e **sai da lista de bens em uso**, mas **nunca é apagado**: continua consultável (filtro "Mostrar baixados"), com a baixa, o lote e o valor arrematado no histórico, e a ficha mostra "Baixado no lote …". No fim, **Imprimir termo de baixa**.
+
+Venda, doação e permuta exigem **avaliação prévia e justificativa** (Lei 14.133/2021, art. 76). Imóvel não entra por lote: a baixa de imóvel é feita pela ficha, porque exige lei autorizativa. Um lote em montagem pode ir para a **Lixeira** (os bens continuam como estavam).
+

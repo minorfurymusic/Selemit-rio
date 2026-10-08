@@ -72,7 +72,7 @@
     return l.length;
   };
   C.abaModelo = () => ({ nome: 'Itens de controle', cabecalho: C.CAMPOS.map((c) => c.t), linhas: [C.CAMPOS.map((c) => ({ descricao: 'EXEMPLO — apague esta linha', quantidade: 10, valorUnitario: 25.9, unidadeId: VP.db.lista('unidades')[0]?.nome || '', dataEntrada: '15/03/2024', vidaUtilAnos: 2, estado: 'Novo' }[c.k] ?? ''))] });
-  C.instrucoes = () => [['Itens de controle', `Bens de pequeno valor (abaixo de ${u.moeda(VP.config().limiteControle)}) ou pouca durabilidade. Não ganham plaqueta, não depreciam e não entram no balancete. Código C-000001: vazio = item novo; preenchido = atualiza o item.`]]
+  C.instrucoes = () => [['Itens de controle', `Bens de pequeno valor (até ${u.moeda(VP.config().limiteControle)}) e pouca durabilidade (até ${VP.config().limiteControleMeses} meses). Não ganham plaqueta, não depreciam e não entram no balancete. Código C-000001: vazio = item novo; preenchido = atualiza o item.`]]
     .concat(C.CAMPOS.map((c) => [c.t + (c.obrig ? ' (obrigatória para item novo)' : ''), c.ajuda || '']));
 
   // ------------------------------------------------------------------ importação (chamada pela tela Exportar e importar)
@@ -120,7 +120,7 @@
       try {
         if (it.classe === 'novo') {
           const v = it.valores;
-          const x = { id: u.id(), codigo: 'C-' + String(n++).padStart(6, '0'), descricao: v.descricao, quantidade: v.quantidade || 1, valorUnitario: v.valorUnitario || 0, unidadeId: v.unidadeId || '', localizacao: v.localizacao || '', responsavelId: v.responsavelId || VP.db.pega('unidades', v.unidadeId)?.responsavelId || '', dataEntrada: v.dataEntrada || hoje(), vidaUtilAnos: v.vidaUtilAnos || null, estado: v.estado || 6, fornecedorId: v.fornecedorId || '', nf: { numero: v['nf.numero'] || '' }, observacao: v.observacao || '', situacao: 'ativo', fotos: [], anexos: [], historico: [], criadoEm: VP.Plataforma.agoraISO() };
+          const x = { id: u.id(), codigo: 'C-' + String(n++).padStart(6, '0'), descricao: v.descricao, quantidade: v.quantidade || 1, valorUnitario: v.valorUnitario || 0, unidadeId: v.unidadeId || '', localizacao: v.localizacao || '', responsavelId: v.responsavelId || VP.db.pega('unidades', v.unidadeId)?.responsavelId || '', dataEntrada: v.dataEntrada || hoje(), vidaUtilAnos: v.vidaUtilAnos || null, estado: v.estado || 8, fornecedorId: v.fornecedorId || '', nf: { numero: v['nf.numero'] || '' }, observacao: v.observacao || '', situacao: 'ativo', fotos: [], anexos: [], historico: [], criadoEm: VP.Plataforma.agoraISO() };
           hist(x, 'Incluído pela importação de planilha');
           extra.bensControle.push(x); reg.controleNovos.push(x.id);
           sucesso.push(`Item de controle novo: ${x.codigo} · ${x.descricao}`);
@@ -159,25 +159,31 @@
     { chave: 'localizacao', rotulo: 'Local na unidade', placeholder: 'Ex.: Almoxarifado, Sala 3', largura: 'meia' },
     { chave: 'dataEntrada', rotulo: 'Data de entrada', tipo: 'data', padrao: hoje(), largura: 'meia' },
     { chave: 'vidaUtilAnos', rotulo: 'Vida útil prevista (anos)', tipo: 'numero', largura: 'meia', ajuda: 'Para avisar quando deve ser trocado.' },
-    { chave: 'estado', rotulo: 'Estado', tipo: 'select', opcoes: Object.entries(L.estados).reverse(), padrao: 6, vazio: false, largura: 'meia' },
+    { chave: 'estado', rotulo: 'Estado', tipo: 'select', opcoes: Object.entries(L.estados).reverse(), padrao: 8, vazio: false, largura: 'meia' },
     { chave: 'fornecedorId', rotulo: 'Fornecedor', tipo: 'select', opcoes: opc('fornecedores'), largura: 'meia' },
     { chave: 'nf.numero', rotulo: 'Nota fiscal', largura: 'meia' },
     { chave: 'observacao', rotulo: 'Observação', tipo: 'area' }];
   C.novo = (depois, valores = {}) => ui.formulario({
     titulo: 'Novo item de controle', largura: 'media', valores,
-    intro: `<p class="ajuda">Para bens de pequeno valor (abaixo de ${u.moeda(VP.config().limiteControle)}) ou pouca durabilidade. Não ganha plaqueta, não deprecia e não entra no balancete.</p>`,
+    intro: `<p class="ajuda">Para bens de pequeno valor (até ${u.moeda(VP.config().limiteControle)}) <b>e</b> pouca durabilidade (até ${VP.config().limiteControleMeses} meses). Se passar de um dos dois, é patrimônio com plaqueta. Não ganha plaqueta, não deprecia e não entra no balancete.</p>`,
     campos: campos(true).concat([{ chave: 'arquivos', rotulo: 'Foto ou nota (opcional)', tipo: 'arquivo', multiplo: true }]),
     salvar: async (v) => {
       if (!(v.quantidade > 0)) return 'Quantidade deve ser maior que zero.';
       const anexos = v.arquivos?.length ? await ui.lerArquivos(v.arquivos) : [];
       for (const a of anexos) a.tipoAnexo = VP.anexos ? VP.anexos.tipoSugerido(a.nome, a.tipo) : 'Outro';
-      const x = { id: u.id(), codigo: C.proximoCodigo(), descricao: v.descricao, quantidade: v.quantidade, valorUnitario: v.valorUnitario || 0, unidadeId: v.unidadeId, responsavelId: v.responsavelId || VP.db.pega('unidades', v.unidadeId)?.responsavelId || '', localizacao: v.localizacao || '', dataEntrada: v.dataEntrada || hoje(), vidaUtilAnos: v.vidaUtilAnos || null, estado: Number(v.estado || 6), fornecedorId: v.fornecedorId || '', nf: v.nf || {}, observacao: v.observacao || '', situacao: 'ativo', fotos: [], anexos, historico: [], criadoEm: VP.Plataforma.agoraISO() };
+      const x = { id: u.id(), codigo: C.proximoCodigo(), descricao: v.descricao, quantidade: v.quantidade, valorUnitario: v.valorUnitario || 0, unidadeId: v.unidadeId, responsavelId: v.responsavelId || VP.db.pega('unidades', v.unidadeId)?.responsavelId || '', localizacao: v.localizacao || '', dataEntrada: v.dataEntrada || hoje(), vidaUtilAnos: v.vidaUtilAnos || null, estado: Number(v.estado || 8), fornecedorId: v.fornecedorId || '', nf: v.nf || {}, observacao: v.observacao || '', situacao: 'ativo', fotos: [], anexos, historico: [], criadoEm: VP.Plataforma.agoraISO() };
       hist(x, 'Incluído');
       await VP.db.gravar('bensControle', x);
       ui.aviso(`Item ${x.codigo} incluído.`);
       depois && depois(x);
     }
   });
+  // Monta um item de controle sem gravar (nota fiscal e importação de bens mandam para cá o que a pessoa escolheu)
+  C.montar = (v, codigo, texto) => {
+    const x = { id: u.id(), codigo, descricao: v.descricao, quantidade: v.quantidade || 1, valorUnitario: v.valorUnitario || 0, unidadeId: v.unidadeId || '', localizacao: v.localizacao || '', responsavelId: v.responsavelId || VP.db.pega('unidades', v.unidadeId)?.responsavelId || '', dataEntrada: v.dataEntrada || hoje(), vidaUtilAnos: v.vidaUtilAnos || null, estado: Number(v.estado || 8), fornecedorId: v.fornecedorId || '', nf: v.nf || {}, observacao: v.observacao || '', situacao: 'ativo', fotos: [], anexos: [], historico: [], criadoEm: VP.Plataforma.agoraISO() };
+    hist(x, texto);
+    return x;
+  };
   C.editar = (x, depois) => ui.formulario({
     titulo: `Editar ${x.codigo}`, largura: 'media', valores: x, campos: campos(false),
     salvar: async (v) => {
@@ -253,7 +259,7 @@
     return {
       titulo: 'Itens de controle',
       acoes: `<a class="botao" href="#planilhas/exportar">Exportar / importar</a> ${pode() ? '<button class="botao primario" data-novo-controle>+ Novo item</button>' : ''}`,
-      html: `<p class="ajuda">Bens de pequeno valor (abaixo de ${u.moeda(VP.config().limiteControle)}, ajustável em Configurações) ou de pouca durabilidade. São controlados aqui, <b>sem plaqueta, sem depreciação e fora do balancete</b>.</p>
+      html: `<p class="ajuda">Bens de pequeno valor (até ${u.moeda(VP.config().limiteControle)}) <b>e</b> de pouca durabilidade (até ${VP.config().limiteControleMeses} meses) — regra ajustável em Configurações. Se passar de um dos dois, é patrimônio com plaqueta. São controlados aqui, <b>sem plaqueta, sem depreciação e fora do balancete</b>.</p>
         <div class="resumo-linha">${G.numero('Itens em uso', u.inteiro(ativos.length))}${G.numero('Quantidade', u.inteiro(ativos.reduce((t, x) => t + (Number(x.quantidade) || 0), 0)))}${G.numero('Valor total (informativo)', u.moeda(ativos.reduce((t, x) => t + C.total(x), 0)))}${G.numero('Fim da vida útil', u.inteiro(vencidos.length), 'para avaliar troca')}</div>
         <div class="linha-filtros">
           <label>Unidade <select data-fc="unidadeId"><option value="">Todas</option>${opc('unidades').map(([id, n]) => `<option value="${esc(id)}" ${id === f.unidadeId ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></label>

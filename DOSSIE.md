@@ -39,6 +39,7 @@ Documento interno — não distribuir a terceiros
 | 1.6 | 07/10/2026 | **Etapa 2 da Gestão do Cemitério construída:** vistorias (V1–V5), triagem de possível abandono pela seção B2 (o sistema só sugere; a pessoa decide; trava de segurança para "Abandono em apuração"), ordens de serviço e app de campo ampliado. Situação dos itens do B7 registrada logo abaixo da tabela do B7. |
 | 1.7 | 07/10/2026 | **Etapa 3 da Gestão do Cemitério construída:** concessões, sepultamentos com agenda e funerárias, exumações com travas (prazo mínimo, abandono declarado, 2 testemunhas), ossário e painel de vagas. Prazos ajustáveis por município; D1 automático. Situação dos itens 7 e 8 do B7 registrada abaixo da tabela do B7. |
 | 1.8 | 07/10/2026 | **Etapa 4 da Gestão do Cemitério construída (fluxo B2-D):** processo administrativo com notificação por e-mail e WhatsApp (carta com AR opcional, pendência jurídica), aviso no túmulo, edital em lote, prazos, defesa e termo de compromisso, decisão da autoridade e dossiê. Decisão do usuário: coluna "Data" da lista de chãos = data do título de aforamento. |
+| 1.13 | 08/10/2026 | **Regras do livro de controle patrimonial** (documento enviado pelo usuário) resumidas na **nova seção A6**, com as lacunas do sistema. Decisões do usuário: **"A classificar" deprecia como "Demais bens"** (nada fica sem depreciar); **escala de estado de 8 níveis** (Novo, Ótimo, Muito bom, Bom, Regular, Ruim, Péssimo, Imprestável), com "Inservível" passando a ser **situação** do bem; **item de controle só quando valor até R$ 300 E vida útil até 24 meses** (regra local, ajustável); **nomes dos centros de custo** importados só com código e nome; **baixa em lote** (leilão) com ata; **classificador** que sugere item de controle × plaqueta e aprende com as decisões. A pesquisa de norma de SC pela internet falhou (sites bloqueados neste ambiente): nada foi confirmado em fonte oficial. |
 | 1.12 | 08/10/2026 | **Importação do sistema atual** (relatório "Consulta de Bem", 35 mil bens): leitura do formato do relatório; centro de custo = unidade; valor contábil como saldo inicial (decisão do usuário: bem migrado ou transferido entra já depreciado); "A classificar" sem depreciação até classificar. |
 | 1.11 | 08/10/2026 | **Patrimônio — exportar, importar e anexos** (pedido do usuário, `manual.md`): Excel em toda exportação; importação de bens (móveis, veículos, imóveis) pelo modelo Excel com prévia e desfazer; anexos com tipo e exportação/importação em lote pelo nome `plaqueta_descricao_01`; **itens de controle** fora do balancete (limite padrão R$ 300, [A conferir] base legal); leitura da matrícula do imóvel em PDF. |
 | 1.10 | 07/10/2026 | **Etapas 7 e 8 nos dois sistemas:** mapa sobre imagem com Leaflet (foto aérea do levantamento e/ou mapa de ruas do OpenStreetMap, que precisa de internet), link para o Google Maps e arquivo KML para o Google Earth; relatórios com fotos e mapa desenhado (funciona sem internet e sai na impressão). Patrimônio: mapa dos imóveis e localização na ficha. |
@@ -762,6 +763,45 @@ Estas funções já estavam no dossiê e foram ligadas ao sistema de gestão: pa
 ### A5.4 Onde está no código
 
 `patrimonio/gestao/` — **VitalPat Patrimônio · Gestão**. É HTML/CSS/JS puros, com dados guardados no navegador. Os dados de exemplo são fictícios e o envio a servidor ainda não existe. Ao entrar com o usuário `patrimonio`, abre a Gestão, que tem um botão para o aplicativo de campo.
+
+## A6. Regras do livro de controle patrimonial (novo na v1.13)
+
+Fonte: livro "Sistema de Controle Interno e Controle de Bens Patrimoniais", enviado pelo usuário em 08/10/2026 (Google Docs, lido por inteiro). As regras abaixo estão **no livro** [C — no livro]; as normas que o livro cita **não** foram conferidas no texto oficial [A conferir], porque a rede deste ambiente bloqueia os sites do governo (tentativa de 08/10/2026: IN SEA 3/2020, NTPC 004/2021 SEF/SC e Portaria STN 448/2002 — nenhuma abriu).
+
+### A6.1 O que o livro diz e como o sistema atende
+
+| Regra do livro | Base citada no livro | No VitalPat (08/10/2026) |
+|---|---|---|
+| Material permanente × consumo: durabilidade, fragilidade, perecibilidade, incorporabilidade e transformabilidade | Lei 4.320/64; Portaria STN 448/2002 [A conferir] | Classificador sugere item de controle × patrimônio; a pessoa decide (A6.3) |
+| Relação carga: cada responsável recebe a lista dos bens sob sua guarda, com quantidade, e a chefia assina | Livro | Termo de responsabilidade por unidade/responsável (já existia) |
+| Plaqueta nunca é reaproveitada | Livro | Código e plaqueta automática seguem o maior número já usado (contando baixados e Lixeira) + 1: nenhum número volta [deduzido pela leitura do código] |
+| Termo de responsabilidade com corresponsáveis | Livro | Responsável + responsáveis adicionais no bem; termo impresso |
+| Inventário anual (pode ser rotativo), por comissão | Livro; LC 101/2000 e Lei 4.320/64 [A conferir] | Inventário por unidade, com comissão e cruzamento com o app de campo |
+| Baixa com laudo/ata e termo de baixa | Livro; Lei 14.133/2021 art. 76 (alienação) | Baixa (um ou vários bens) e **baixa em lote** com ata anexada; termo de baixa |
+| Inservível = não serve mais para o órgão, mas pode ser vendido, doado ou transferido; imprestável = sem conserto, vira sucata | Livro | "Inservível" é **situação** do bem; "Imprestável" é o **estado 1** e leva à baixa (pendência + botão "Iniciar baixa") |
+| Escala de estado de conservação (1 Imprestável … 7 Ótimo) | Livro (escala do capítulo de avaliação) | Escala de 8: a do livro + "Novo" (8) |
+| Depreciação mensal; bem parado continua depreciando; um critério único de início | Livro; NBC TSP 07/37 | Depreciação mensal no fechamento do mês; bem em desuso continua depreciando |
+| Tabela de vida útil e valor residual (Anexo I do livro), incluindo "Demais bens" | Livro | "A classificar" usa os valores de "Demais bens": móveis 84 meses/10%, imóveis 360/30%, veículos 120/30%, domínio público 1.200/80% |
+| Avaliação inicial com data de corte; bens anteriores ao corte com 50% da vida útil | Livro | Importação aceita o **valor contábil** do sistema anterior como saldo inicial (decisão do usuário); a regra dos 50% não foi automatizada |
+
+### A6.2 Item de controle × patrimônio (regra de Rio do Sul, 08/10/2026)
+
+O livro não fixa valor. A regra informada pelo usuário: **tem plaqueta** se a vida útil passa de 2 anos **ou** o valor passa de R$ 300; **item de controle** (sem plaqueta, fora do balancete) só quando a vida útil é de até 2 anos **e** o valor é de até R$ 300. Muitos itens de menos de R$ 100 que duram 2–3 anos têm plaqueta. Os dois limites ficam em Configurações, porque cada município tem a sua regra. [D] A lista inicial de vida útil por tipo de item é **sugestão do sistema**, não norma: deve ser ajustada pelo município.
+
+### A6.3 Classificador (sugestão, nunca decisão)
+
+Para cada item barato (nota fiscal, planilha sem plaqueta, novo bem), o sistema procura a vida útil na lista "Vida útil dos itens" (Cadastros), aplica a regra da A6.2 e **mostra a sugestão com o motivo**. A pessoa confirma ou muda item a item. A decisão fica guardada e vira a sugestão da próxima vez que o mesmo item aparecer. Na dúvida (vida útil desconhecida), a sugestão é plaqueta, com aviso para conferir.
+
+### A6.4 Lacunas em relação ao livro (para decidir depois; não entram nesta etapa)
+
+- Relação carga **dentro** do inventário (hoje é o termo de responsabilidade, separado).
+- Campo de **afetação** do imóvel com histórico de mudanças.
+- **Suspender movimentações** (transferências) durante o inventário.
+- Termo de baixa com o **destino da sucata** (imprestável).
+- Conferir se a regra "plaqueta nunca reaproveitada" vale também para plaqueta digitada à mão.
+- Corresponsáveis com **assinatura** própria no termo.
+- Regra dos **50% da vida útil** para bens anteriores à data de corte (hoje entra o valor contábil informado).
+- Normas de SC citadas (IN SEA 3/2020, NTPC 004/2021 SEF/SC) e anexos da Portaria STN 448/2002: obter os PDFs e conferir [A conferir].
 
 # PARTE B — PRODUTO 2: GESTÃO DE CEMITÉRIO
 

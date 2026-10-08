@@ -122,10 +122,10 @@
       const faixas = [['Até 2 anos', 0, 2], ['3 a 5 anos', 3, 5], ['6 a 10 anos', 6, 10], ['11 a 20 anos', 11, 20], ['Mais de 20 anos', 21, 999]];
       const anos = [...new Set(bens.map((b) => (b.dataAquisicao || '').slice(0, 4)))].filter(Boolean).sort();
       const conta = (fn) => (lista) => [...u.agruparSoma(lista, fn)].map(([k, n]) => ({ rotulo: k || '—', valor: n })).sort((a, b) => b.valor - a.valor);
-      const bons = bens.filter((b) => b.estado >= 4).length;
+      const bons = bens.filter((b) => b.estado >= 5).length; // Bom ou melhor (escala de 8)
       const baixas = bens.filter((b) => b.status === 'baixado').map((b) => VP.eventosDoBem(b.id).find((e) => e.tipo === 'baixa')).filter(Boolean);
       return {
-        resumo: [G.numero('Bens', u.inteiro(bens.length)), G.numero('Idade média', `${(bens.reduce((t, b) => t + idade(b), 0) / (bens.length || 1)).toLocaleString('pt-BR', { maximumFractionDigits: 1 })} anos`), G.numero('Em bom ou ótimo estado', u.pct(bens.length ? bons / bens.length : 0)), G.numero('Totalmente depreciados', u.inteiro(bens.filter((b) => { const s = VP.saldo(b); return s.vidaUtilMeses && s.consumido >= 1; }).length))],
+        resumo: [G.numero('Bens', u.inteiro(bens.length)), G.numero('Idade média', `${(bens.reduce((t, b) => t + idade(b), 0) / (bens.length || 1)).toLocaleString('pt-BR', { maximumFractionDigits: 1 })} anos`), G.numero('Em bom estado ou melhor', u.pct(bens.length ? bons / bens.length : 0)), G.numero('Totalmente depreciados', u.inteiro(bens.filter((b) => { const s = VP.saldo(b); return s.vidaUtilMeses && s.consumido >= 1; }).length))],
         graficos: [
           { titulo: 'Por estado de conservação', html: G.barrasH(Object.entries(L.estados).reverse().map(([k, n]) => ({ rotulo: n, valor: bens.filter((b) => String(b.estado) === k).length })), { mostrarZeros: true }) },
           { titulo: 'Por tipo', html: G.barrasH(conta((b) => L.tiposBem[b.tipo])(bens)) },

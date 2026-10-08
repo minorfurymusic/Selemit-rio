@@ -5,7 +5,7 @@
   const esc = VP.u.esc;
 
   const MENU = [
-    ['painel', 'Painel', '◧'], ['bens/moveis', 'Bens móveis', '▦'], ['bens/imoveis', 'Bens imóveis', '⌂'], ['frota', 'Frota', '⛟'], ['controle', 'Itens de controle', '◫'], ['entradas', 'Entradas', '⇩'], ['transferencias', 'Transferências', '⇄'],
+    ['painel', 'Painel', '◧'], ['bens/moveis', 'Bens móveis', '▦'], ['bens/imoveis', 'Bens imóveis', '⌂'], ['frota', 'Frota', '⛟'], ['controle', 'Itens de controle', '◫'], ['entradas', 'Entradas', '⇩'], ['transferencias', 'Transferências', '⇄'], ['baixa-lote', 'Baixa em lote', '⊟'],
     ['inventario', 'Inventário', '☑'], ['manutencao', 'Manutenção', '⚒'], ['financeiro/fechamento', 'Financeiro', '＄'], ['relatorios', 'Relatórios', '▤'],
     ['historico', 'Histórico', '◷'], ['cadastros/unidades', 'Cadastros', '☰'], ['configuracoes', 'Configurações', '⚙'], ['planilhas', 'Exportar e importar', '⇅'], ['lixeira', 'Lixeira', '🗑']
   ];
@@ -100,6 +100,12 @@
         await VP.db.limparTudo();
         await VP.criarDadosExemplo();
       }
+      // Escala de estado de 6 para 8 níveis: converte uma vez só. Quem só consulta vê convertido sem gravar.
+      const podeGravar = !VP.servidor.ativo || VP.servidor.podeAlterar();
+      const qtd = await VP.converterEscalaEstados({ gravar: podeGravar });
+      await VP.corrigirAClassificar({ gravar: podeGravar });
+      await VP.classificador.garantirLista({ gravar: podeGravar });
+      if (qtd && (qtd.bens || qtd.bensControle) && VP.db.pega('meta', 'escalaEstados')) setTimeout(() => VP.ui.aviso(`Estado de conservação passou para a escala nova (8 níveis): ${VP.u.inteiro(qtd.bens + qtd.bensControle)} registro(s) convertidos. O valor antigo ficou guardado.`), 800);
     } catch (e) {
       carregando.innerHTML = VP.servidor.ativo
         ? `<p>Não foi possível abrir os dados do servidor. Confira a internet e tente de novo.<br><small>${esc(e.message || e)}</small></p><p><a href="../../index.html?motivo=saiu">Voltar ao login</a></p>`

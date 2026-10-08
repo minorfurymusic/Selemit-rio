@@ -376,7 +376,7 @@
         const b = VP.db.lista('bens').find((x) => x.plaqueta === String(r.dados.plaqueta));
         if (!un) { falhas.push({ item: `Plaqueta ${r.dados.plaqueta}`, motivo: 'Unidade do aplicativo não encontrada nos cadastros' }); continue; }
         if (!b) { inv.sobras.push({ id: u.id(), plaqueta: r.dados.plaqueta, descricao: r.dados.descricao || 'Sem descrição', unidadeId: un.id, data: r.criadoEm.slice(0, 10), origem: 'app' }); sucesso.push(`Plaqueta ${r.dados.plaqueta}: sobra em ${un.nome}`); continue; }
-        registrarLeitura(inv, b, un.id, r.dados.estado, 'app');
+        registrarLeitura(inv, b, un.id, VP.estadoDoCampo(r.dados), 'app');
         sucesso.push(`Plaqueta ${b.plaqueta}: conferido em ${un.nome}`);
       } else if (r.tipo === 'abastecimento' || r.tipo === 'viagem') {
         const b = VP.db.lista('bens').find((x) => x.veiculo?.placa === r.dados.placa);

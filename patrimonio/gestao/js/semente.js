@@ -339,6 +339,8 @@
     const ic = (n, descricao, quantidade, valorUnitario, unidadeId, localizacao, diasAtras, vidaUtilAnos) => ({ id: 'IC' + n, codigo: 'C-' + String(n).padStart(6, '0'), descricao, quantidade, valorUnitario, unidadeId, localizacao, responsavelId: '', dataEntrada: u.somaDias(hoje, -diasAtras), vidaUtilAnos, estado: 4, fornecedorId: '', nf: {}, observacao: '', situacao: 'ativo', fotos: [], anexos: [], historico: [{ data: VP.Plataforma.agoraISO(), descricao: 'Incluído (dados de exemplo)', usuario: 'demonstração' }], criadoEm: VP.Plataforma.agoraISO() });
     await VP.db.gravarVarias({ bensControle: [ic(1, 'Grampeador de mesa', 12, 38.9, 'U5', 'Protocolo', 400, 3), ic(2, 'Lixeira com pedal 50 L', 8, 119, 'U1', 'Corredores', 900, 2), ic(3, 'Ventilador de mesa 30 cm', 4, 189.9, 'U3', 'Recepção', 200, 3), ic(4, 'Garrafa térmica 1 L', 6, 45, 'U2', 'Copa', 1200, 2)] });
     await VP.salvarConfig(Object.assign({}, VP.CONFIG_PADRAO, { usuarioResponsavelId: 'R6', unidadePatrimonio: 'U6', unidadeSolicitacaoBaixa: 'U6' }));
+    // Os exemplos foram escritos na escala antiga (6 níveis): passam para a de 8 aqui mesmo
+    await VP.converterEscalaEstados();
     await VP.db.gravar('meta', { id: 'semente', criadoEm: VP.Plataforma.agoraISO(), ficticio: true });
     VP.invalidarIndice();
   };

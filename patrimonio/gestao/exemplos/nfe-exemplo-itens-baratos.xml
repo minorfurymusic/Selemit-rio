@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Nota fiscal FICTÍCIA, só para testar a sugestão "item de controle" x "patrimônio" no VitalPat. Nenhum dado real.
+     4 dos 10 itens custam pouco e duram pouco (mouse, vassoura, balde, copo): o sistema sugere "item de controle". -->
+<nfeProc xmlns="http://www.portalfiscal.inf.br/nfe" versao="4.00">
+  <NFe>
+    <infNFe Id="NFe42261011222333000181550010000078901000078905" versao="4.00">
+      <ide><cUF>42</cUF><natOp>Venda</natOp><mod>55</mod><serie>1</serie><nNF>7890</nNF><dhEmi>2026-10-06T09:00:00-03:00</dhEmi></ide>
+      <emit><CNPJ>99888777000166</CNPJ><xNome>Comércio Exemplo de Utilidades Ltda.</xNome></emit>
+      <dest><CNPJ>00000000000000</CNPJ><xNome>Prefeitura Municipal de Exemplo</xNome></dest>
+      <det nItem="1"><prod><cProd>IT-01</cProd><xProd>Mouse óptico USB</xProd><NCM>84716053</NCM><CFOP>5102</CFOP><uCom>UN</uCom><qCom>10.0000</qCom><vUnCom>9.9000000000</vUnCom><vProd>99.00</vProd></prod></det>
+      <det nItem="2"><prod><cProd>IT-02</cProd><xProd>Vassoura de pelo</xProd><NCM>96031000</NCM><CFOP>5102</CFOP><uCom>UN</uCom><qCom>6.0000</qCom><vUnCom>9.5000000000</vUnCom><vProd>57.00</vProd></prod></det>
+      <det nItem="3"><prod><cProd>IT-03</cProd><xProd>Balde plástico 10 L</xProd><NCM>39249000</NCM><CFOP>5102</CFOP><uCom>UN</uCom><qCom>6.0000</qCom><vUnCom>8.0000000000</vUnCom><vProd>48.00</vProd></prod></det>
+      <det nItem="4"><prod><cProd>IT-04</cProd><xProd>Copo de vidro 300 ml</xProd><NCM>70133700</NCM><CFOP>5102</CFOP><uCom>UN</uCom><qCom>24.0000</qCom><vUnCom>3.2000000000</vUnCom><vProd>76.80</vProd></prod></det>
+      <det nItem="5"><prod><cProd>IT-05</cProd><xProd>Cadeira fixa empilhável</xProd><NCM>94017100</NCM><CFOP>5102</CFOP><uCom>UN</uCom><qCom>8.0000</qCom><vUnCom>250.0000000000</vUnCom><vProd>2000.00</vProd></prod></det>
+      <det nItem="6"><prod><cProd>IT-06</cProd><xProd>Mesa de reunião</xProd><NCM>94033000</NCM><CFOP>5102</CFOP><uCom>UN</uCom><qCom>1.0000</qCom><vUnCom>900.0000000000</vUnCom><vProd>900.00</vProd></prod></det>
+      <det nItem="7"><prod><cProd>IT-07</cProd><xProd>Notebook</xProd><NCM>84713012</NCM><CFOP>5102</CFOP><uCom>UN</uCom><qCom>1.0000</qCom><vUnCom>4100.0000000000</vUnCom><vProd>4100.00</vProd></prod></det>
+      <det nItem="8"><prod><cProd>IT-08</cProd><xProd>Monitor 24 polegadas</xProd><NCM>85285200</NCM><CFOP>5102</CFOP><uCom>UN</uCom><qCom>2.0000</qCom><vUnCom>899.9000000000</vUnCom><vProd>1799.80</vProd></prod></det>
+      <det nItem="9"><prod><cProd>IT-09</cProd><xProd>Armário de aço 2 portas</xProd><NCM>94031000</NCM><CFOP>5102</CFOP><uCom>UN</uCom><qCom>1.0000</qCom><vUnCom>1200.0000000000</vUnCom><vProd>1200.00</vProd></prod></det>
+      <det nItem="10"><prod><cProd>IT-10</cProd><xProd>Teclado mecânico</xProd><NCM>84716052</NCM><CFOP>5102</CFOP><uCom>UN</uCom><qCom>2.0000</qCom><vUnCom>350.0000000000</vUnCom><vProd>700.00</vProd></prod></det>
+      <total><ICMSTot><vNF>10980.60</vNF></ICMSTot></total>
+    </infNFe>
+  </NFe>
+</nfeProc>

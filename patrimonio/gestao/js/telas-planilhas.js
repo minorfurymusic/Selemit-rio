@@ -20,7 +20,7 @@
     veiculo: { nome: 'Veículos', tipos: ['veiculo'], tipoPadrao: 'veiculo' },
     imovel: { nome: 'Imóveis', tipos: ['imovel', 'infraestrutura'], tipoPadrao: 'imovel' }
   };
-  P.conjuntoDaAba = (nome) => { const n = u.normalizar(nome); return /veic/.test(n) ? 'veiculo' : /imov|terreno|predio/.test(n) ? 'imovel' : /controle/.test(n) ? 'controle' : /movel|moveis|bens/.test(n) ? 'movel' : null; };
+  P.conjuntoDaAba = (nome) => { const n = u.normalizar(nome); return /centros? de custo|^unidades$/.test(n) ? 'unidades' : /veic/.test(n) ? 'veiculo' : /imov|terreno|predio/.test(n) ? 'imovel' : /controle/.test(n) ? 'controle' : /movel|moveis|bens/.test(n) ? 'movel' : null; };
 
   // ------------------------------------------------------------------ referências (unidade, classificação…) por nome ou código
   const norm = (t) => u.normalizar(t).replace(/\s+/g, ' ');
@@ -50,7 +50,7 @@
     { k: '_tipo', t: 'Tipo do bem', tipo: 'tipoBem', g: TODOS, naoExporta: true, naoModelo: true, apelidos: ['tipo', 'tipo de bem', 'tipo do bem'], soNovo: true, ajuda: 'Bens Móveis, Bens Imóveis, Veículo ou Bens de Domínio Público. Se vier preenchido, vale para a linha (o arquivo pode misturar tipos).' },
     { k: 'status', t: 'Situação', tipo: 'status', g: TODOS, naoExporta: true, naoModelo: true, apelidos: ['status', 'situacao do bem'], soNovo: true, ajuda: 'Disponível / Em uso, Cedido, Em desuso, Manutenção.' },
     { k: 'detalhes.caracteristicas', t: 'Características', tipo: 'texto', g: TODOS, apelidos: ['caracteristicas', 'especificacao', 'especificacoes'], ajuda: 'Texto livre; vai junto com o complemento do bem.' },
-    { k: 'estado', t: 'Estado', tipo: 'estado', g: TODOS, ajuda: 'Novo, Ótimo, Bom, Regular, Ruim ou Péssimo (ou 6 a 1).' },
+    { k: 'estado', t: 'Estado', tipo: 'estado', g: TODOS, ajuda: 'Novo, Ótimo, Muito bom, Bom, Regular, Ruim, Péssimo ou Imprestável (ou 8 a 1). "Inservível" vira a situação do bem.' },
     { k: 'situacaoAquisicao', t: 'Como entrou', tipo: 'opcao', opcoes: () => L.situacoesAquisicao, g: TODOS, soNovo: true, ajuda: 'Compra, Doação recebida… (aba Listas). Vazio = Compra.' },
     { k: 'fornecedorId', t: 'Fornecedor', tipo: 'ref', ref: 'fornecedores', g: TODOS, ajuda: 'Nome ou CNPJ do fornecedor já cadastrado.' },
     { k: 'nf.numero', t: 'Nota fiscal', tipo: 'texto', g: TODOS },
@@ -129,11 +129,13 @@
       case 'estado': {
         const n = Number(s); if (L.estados[n]) return { v: n };
         const k = Object.entries(L.estados).find(([, nome]) => norm(nome) === norm(s));
-        if (/^inserv/.test(norm(s))) return { v: 1, aviso: 'Estado "Inservível" entrou como Péssimo; avalie a baixa' };
-        return k ? { v: Number(k[0]) } : { erro: `estado "${s}" não existe (use Novo, Ótimo, Bom, Regular, Ruim ou Péssimo)` };
+        // "Inservível" não é estado: é situação do bem (pode ser alienado ou transferido). O estado fica em branco.
+        if (/^inserv/.test(norm(s))) return { vazio: true, situacao: 'inservivel', aviso: '"Inservível" virou a situação do bem (disponível para leilão, doação ou transferência)' };
+        if (/^(otimo|excelente)$/.test(norm(s))) return { v: 7 };
+        return k ? { v: Number(k[0]) } : { erro: `estado "${s}" não existe (use ${Object.values(L.estados).join(', ')})` };
       }
       case 'tipoBem': { const n = norm(s); const r = /veic/.test(n) ? 'veiculo' : /dominio|infra/.test(n) ? 'infraestrutura' : /imove/.test(n) ? 'imovel' : /intang|software|licen/.test(n) ? 'intangivel' : /move/.test(n) ? 'movel' : null; return r ? { v: r } : { erro: `tipo "${s}" não reconhecido (use Bens Móveis, Bens Imóveis, Veículo ou Bens de Domínio Público)` }; }
-      case 'status': { const n = norm(s); const r = /dispon|uso|ativ|orcament/.test(n) && !/desuso/.test(n) ? 'ativo' : /desuso/.test(n) ? 'desuso' : /cedid/.test(n) ? 'cedido' : /manut|consert/.test(n) ? 'manutencao' : /baix/.test(n) ? 'baixado' : null; return r ? (r === 'baixado' ? { erro: 'bem baixado no sistema anterior: não entra (baixa é registrada pela tela de Baixa)' } : { v: r }) : { erro: `situação "${s}" não reconhecida` }; }
+      case 'status': { const n = norm(s); const r = /dispon|uso|ativ|orcament/.test(n) && !/desuso/.test(n) ? 'ativo' : /desuso/.test(n) ? 'desuso' : /cedid/.test(n) ? 'cedido' : /manut|consert/.test(n) ? 'manutencao' : /inserv/.test(n) ? 'inservivel' : /baix/.test(n) ? 'baixado' : null; return r ? (r === 'baixado' ? { erro: 'bem baixado no sistema anterior: não entra (baixa é registrada pela tela de Baixa)' } : { v: r }) : { erro: `situação "${s}" não reconhecida` }; }
       case 'bool': return /^(s|sim|x|1|true|verdadeiro)$/i.test(s) ? { v: true } : /^(n|nao|não|0|false|falso)$/i.test(s) ? { v: false } : { erro: `"${s}": use Sim ou Não` };
       case 'opcao': { const o = c.opcoes().find((x) => norm(x) === norm(s)); return o ? { v: o } : { erro: `"${s}" não está na lista (${c.opcoes().join(', ')})` }; }
       case 'ref': {
@@ -228,7 +230,7 @@
   // ================================================================== IMPORTAR: ler arquivo, De/Para, prévia
   const st = () => (VP.estado.impBens = VP.estado.impBens || { abas: null, previa: null });
   const limpa = (s) => norm(s).replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
-  const camposImp = (cj) => (cj === 'controle' && VP.controle ? VP.controle.CAMPOS : P.camposDe(cj));
+  const camposImp = (cj) => (cj === 'controle' && VP.controle ? VP.controle.CAMPOS : cj === 'unidades' && VP.importaUnidades ? VP.importaUnidades.CAMPOS : P.camposDe(cj));
   // Liga cada coluna do arquivo a um campo: primeiro pelo título exato, depois pelos apelidos (ex.: "Código" do sistema antigo = plaqueta).
   // Cada campo é usado uma vez só: se o arquivo tem "Plaqueta", a coluna "Código" não vira plaqueta.
   const sugerirMapa = (cab, cj) => {
@@ -245,9 +247,15 @@
     const modelos = ui.pref.ler('depara-bens', {});
     s.abas = abas.filter((a) => !/^(instru|listas)/.test(norm(a.nome))).map((a) => {
       const todas = a.linhas.filter((l) => l.some((x) => x !== '' && x != null));
-      const cj = P.conjuntoDaAba(a.nome) || 'movel';
+      let cj = P.conjuntoDaAba(a.nome) || 'movel';
       // relatórios trazem linhas de título antes do cabeçalho: o cabeçalho é a 1ª linha (entre as 15 primeiras) com 2 ou mais títulos conhecidos
       let h = todas.slice(0, 15).findIndex((l) => reconhecidos(l, cj) >= 2);
+      // arquivo só com código e nome de centro de custo ("Classificação" + "Descrição", sem colunas de bem): é lista de unidades
+      if (cj === 'movel' && VP.importaUnidades) {
+        const hu = todas.slice(0, 15).findIndex((l) => reconhecidos(l, 'unidades') >= 2);
+        const soDeBem = (l) => l.filter((t) => { const n = limpa(t); return n && P.camposDe('movel').some((c) => !['classificacaoId', 'descricao', 'unidadeId'].includes(c.k) && (limpa(c.t) === n || (c.apelidos || []).includes(n))); }).length;
+        if (hu >= 0 && !soDeBem(todas[hu])) { cj = 'unidades'; h = hu; }
+      }
       if (h < 0) h = 0;
       const cab = (todas[h] || []).map((x) => String(x ?? '').trim());
       const salvo = modelos[cj];
@@ -273,7 +281,7 @@
     P.cacheRef = new Map();
     s.novasUnidades = new Map(); s.ignoradas = 0; s.gruposSemClasse = new Set();
     const campo = (k) => P.CAMPOS.find((x) => x.k === k);
-    for (const a of s.abas.filter((x) => x.usar && x.cj !== 'controle')) {
+    for (const a of s.abas.filter((x) => x.usar && x.cj !== 'controle' && x.cj !== 'unidades')) {
       a.linhas.forEach((lin, i) => {
         const nLinha = i + 2 + (a.titulos || 0);
         const it = { aba: a.nome, cj: a.cj, linha: nLinha, valores: {}, erros: [], avisos: [], mudancas: [] };
@@ -281,6 +289,7 @@
           if (!k) return;
           const c = campo(k); if (!c) return;
           const r = P.converter(c, lin[col]);
+          if (r.situacao) { it.valores._situacao = r.situacao; it.avisos.push(r.aviso); }
           if (r.erro) it.erros.push(`${c.t}: ${r.erro}`); else if (!r.vazio) { it.valores[k] = r.v; if (r.aviso) it.avisos.push(r.aviso); if (r.novaUnidade) s.novasUnidades.set(r.novaUnidade, (s.novasUnidades.get(r.novaUnidade) || 0) + 1); }
         });
         const v = it.valores;
@@ -306,6 +315,7 @@
           if (existe.status === 'baixado') it.avisos.push('Bem baixado: só os dados descritivos são atualizados');
           for (const [k, x] of Object.entries(v)) {
             if (k === 'plaqueta' || (k === 'descricao' && it.descricaoDerivada)) continue;
+            if (k === '_situacao') { if (!['baixado', x].includes(existe.status)) it.mudancas.push({ k: 'status', t: 'Situação', antes: existe.status, depois: x }); continue; }
             const c = campo(k);
             if (c.soNovo) continue;
             const antes = c.ler ? c.ler(existe) : pega(existe, k);
@@ -324,6 +334,12 @@
           if ((v.valor ?? v._valorContabil) < 0) it.erros.push('Valor negativo');
           if (!v.classificacaoId) { it.classePadrao = grupoDoTipo(tp); s.gruposSemClasse.add(it.classePadrao); }
           it.classe = it.erros.length ? 'erro' : 'novo';
+          // Classificador: bem novo SEM plaqueta, barato, pode ser item de controle. Só sugere; a pessoa decide na prévia.
+          const valorRef = v.valor ?? v._valorContabil;
+          if (it.classe === 'novo' && !it.plaqueta && tp === 'movel' && VP.classificador && VP.controle && valorRef != null && valorRef <= VP.config().limiteControle) {
+            it.analise = VP.classificador.analisar({ descricao: it.descricao, valor: valorRef, classificacaoId: v.classificacaoId, tipo: tp });
+            it.destino = it.analise.sugestao;
+          }
         }
         it.marcado = it.classe === 'novo' || it.classe === 'alterado';
         itens.push(it);
@@ -334,12 +350,13 @@
     s.classesPadrao = s.classesPadrao || {};
     for (const g of s.gruposSemClasse) if (!s.classesPadrao[g]) s.classesPadrao[g] = P.ACLASSIFICAR;
     if (VP.controle) for (const a of s.abas.filter((x) => x.usar && x.cj === 'controle')) itens.push(...VP.controle.previaImportacao(a));
+    if (VP.importaUnidades) for (const a of s.abas.filter((x) => x.usar && x.cj === 'unidades')) itens.push(...VP.importaUnidades.previa(a));
     s.previa = { itens, criadoEm: VP.Plataforma.agoraISO() };
     return s.previa;
   };
 
   // ================================================================== IMPORTAR: aplicar e desfazer
-  const mostrarValor = (c, v) => (v == null || v === '' ? '—' : c?.tipo === 'ref' ? REFS[c.ref].mostrar(VP.db.pega(c.ref, v) || { nome: v }) : c?.tipo === 'data' ? u.data(v) : c?.tipo === 'estado' ? L.estados[v] || v : c?.tipo === 'moeda' ? u.moeda(v) : c?.tipo === 'bool' ? (v ? 'Sim' : 'Não') : String(v));
+  const mostrarValor = (c, v) => (v == null || v === '' ? '—' : c?.tipo === 'ref' ? REFS[c.ref].mostrar(VP.db.pega(c.ref, v) || { nome: v }) : c?.tipo === 'data' ? u.data(v) : c?.tipo === 'status' ? L.status[v] || v : c?.tipo === 'estado' ? L.estados[v] || v : c?.tipo === 'moeda' ? u.moeda(v) : c?.tipo === 'bool' ? (v ? 'Sim' : 'Não') : String(v));
   // barra de progresso para arquivos grandes (milhares de bens)
   P.progresso = (texto) => {
     let el = document.getElementById('progresso-imp');
@@ -374,13 +391,25 @@
       const nome = `A classificar (importação) — ${P.NOMES_GRUPO[g]}`;
       const ja = VP.db.lista('classificacoes').find((c) => c.nome === nome);
       if (ja) { idClasse[g] = ja.id; continue; }
-      const c = { id: u.id(), codigo: 'AC-' + g, nome, paiId: '', nivel: 'grupo', tipoBem: g, naoDeprecia: true, vidaUtilMeses: 0, residualPct: 0, contaId: '', aClassificar: true };
+      const dm = VP.DEMAIS_BENS[g] || VP.DEMAIS_BENS.movel;
+      const c = { id: u.id(), codigo: 'AC-' + g, nome, paiId: '', nivel: 'grupo', tipoBem: g, naoDeprecia: false, vidaUtilMeses: dm.vidaUtilMeses, residualPct: dm.residualPct, contaId: '', aClassificar: true };
       prep.classificacoes.push(c); idClasse[g] = c.id; reg.classesCriadas.push(c.id);
     }
     if (prep.unidades.length || prep.classificacoes.length) await VP.db.gravarVarias(prep);
     // 2) monta os bens
     let codigo = VP.proximoCodigo();
-    for (const it of marcados.filter((x) => x.cj !== 'controle')) {
+    // Linhas que a pessoa mandou para Itens de controle (sem plaqueta, fora do balancete)
+    const extraC = [], sucC = [];
+    let nC = VP.controle ? Number(VP.controle.proximoCodigo().replace(/\D/g, '')) : 0;
+    for (const it of marcados.filter((x) => x.cj !== 'controle' && x.cj !== 'unidades' && x.analise && x.destino === 'controle')) {
+      const v = it.valores;
+      const unidadeId = typeof v.unidadeId === 'string' && v.unidadeId.startsWith('__nova:') ? idUnidade.get(v.unidadeId.slice(7)) : v.unidadeId;
+      const x = VP.controle.montar({ descricao: v.descricao, quantidade: 1, valorUnitario: v.valor ?? v._valorContabil, unidadeId, localizacao: v.localizacao, responsavelId: v.responsavelId, dataEntrada: v.dataAquisicao, estado: v.estado, vidaUtilAnos: it.analise.vidaUtilMeses ? Math.round(it.analise.vidaUtilMeses / 12 * 10) / 10 : null, nf: v['nf.numero'] ? { numero: v['nf.numero'] } : {} }, 'C-' + String(nC++).padStart(6, '0'), `Incluído pela importação de planilha (${s.arquivo}), aba ${it.aba}, linha ${it.linha}`);
+      extraC.push(x); reg.controleNovos.push(x.id);
+      sucC.push(`Item de controle novo: ${x.codigo} · ${x.descricao}`);
+    }
+    const decisoes = marcados.filter((x) => x.analise).map((x) => ({ descricao: x.descricao, escolha: x.destino, valor: x.valores.valor ?? x.valores._valorContabil, sugerido: x.analise.sugestao }));
+    for (const it of marcados.filter((x) => x.cj !== 'controle' && x.cj !== 'unidades' && !(x.analise && x.destino === 'controle'))) {
       try {
         if (it.classe === 'novo') {
           const v = it.valores;
@@ -388,11 +417,12 @@
           const unidadeId = typeof v.unidadeId === 'string' && v.unidadeId.startsWith('__nova:') ? idUnidade.get(v.unidadeId.slice(7)) : v.unidadeId;
           const classificacaoId = v.classificacaoId || idClasse[it.classePadrao];
           const complemento = [v.complemento || v.descricao, v['detalhes.caracteristicas']].filter(Boolean).join(' — ');
-          const { bens: bb, eventos: ee } = VP.montarBens({ tipo: it.tipoBem, descricao: v.descricao, complemento, classificacaoId, unidadeId, responsavelId: v.responsavelId, localizacao: v.localizacao, dataAquisicao: v.dataAquisicao, dataIncorporacao: hoje(), valor: contabil ? v._valorContabil : v.valor, estado: v.estado || 5, situacaoAquisicao: contabil ? 'Saldo inicial' : v.situacaoAquisicao || 'Compra', fornecedorId: v.fornecedorId, quantidade: 1, origemTexto: contabil ? 'importação de outro sistema (valor contábil, já depreciado)' : 'importação por planilha' }, codigo);
+          const { bens: bb, eventos: ee } = VP.montarBens({ tipo: it.tipoBem, descricao: v.descricao, complemento, classificacaoId, unidadeId, responsavelId: v.responsavelId, localizacao: v.localizacao, dataAquisicao: v.dataAquisicao, dataIncorporacao: hoje(), valor: contabil ? v._valorContabil : v.valor, estado: v.estado || 7, situacaoAquisicao: contabil ? 'Saldo inicial' : v.situacaoAquisicao || 'Compra', fornecedorId: v.fornecedorId, quantidade: 1, origemTexto: contabil ? 'importação de outro sistema (valor contábil, já depreciado)' : 'importação por planilha' }, codigo);
           const b = bb[0];
           b.tipo = it.tipoBem;
           if (it.plaqueta) b.plaqueta = it.plaqueta;
           if (v.status) b.status = v.status;
+          if (v._situacao) b.status = v._situacao; // "Inservível" na coluna de estado vale mais que "Disponível" na de situação
           for (const [k, x] of Object.entries(v)) if (/^(nf|origem|detalhes|veiculo|imovel|endereco)\./.test(k)) poe(b, k, x);
           if (v._dataInicioDep) b.detalhes.inicioDepreciacaoAnterior = v._dataInicioDep;
           if (contabil) b.detalhes.valorContabilImportado = v._valorContabil;
@@ -411,8 +441,9 @@
         }
       } catch (e) { falhas.push({ item: `${it.aba}, linha ${it.linha}`, motivo: e.message }); }
     }
-    const extra = { bensControle: [] };
+    const extra = { bensControle: extraC };
     if (VP.controle) VP.controle.aplicarImportacao(marcados.filter((x) => x.cj === 'controle'), reg, extra, sucesso, falhas);
+    if (VP.importaUnidades) VP.importaUnidades.aplicar(marcados.filter((x) => x.cj === 'unidades'), reg, extra, sucesso, falhas);
     // 3) grava em lotes, com progresso; se um lote falhar, para e mostra o que foi e o que não foi gravado
     let gravados = 0;
     try {
@@ -425,6 +456,9 @@
         gravados += lote.length;
       }
       if (extra.bensControle.length) await VP.db.gravarVarias({ bensControle: extra.bensControle });
+      if (extra.unidades?.length) await VP.db.gravarVarias({ unidades: extra.unidades });
+      sucesso.push(...sucC);
+      if (decisoes.length) await VP.classificador.registrarDecisoes(decisoes);
     } catch (e) {
       const faltam = pacotes.length - gravados;
       sucesso.splice(gravados);
@@ -435,7 +469,7 @@
     reg.qtd = sucesso.length;
     if (sucesso.length || reg.unidadesCriadas.length) await VP.db.gravarVarias({ importacoesPlanilha: [reg] });
     s.previa = null; s.abas = null;
-    ui.resultado({ titulo: 'Resultado da importação', sucesso, falhas, extra: (reg.unidadesCriadas.length ? `<p class="ajuda">${u.inteiro(reg.unidadesCriadas.length)} unidade(s) criada(s) pelo código do centro de custo, com nome provisório "Centro de custo …". Corrija os nomes em Cadastros → Unidades.</p>` : '') + (reg.classesCriadas.length || Object.keys(idClasse).length ? '<p class="ajuda">Bens sem classificação entraram em "A classificar (importação)", sem depreciação. Classifique-os em lote pela lista de bens (filtro por classificação → Edição em lote).</p>' : '') + (sucesso.length ? '<p class="ajuda">Se algo saiu errado, use "Desfazer" na lista de importações feitas.</p>' : '') });
+    ui.resultado({ titulo: 'Resultado da importação', sucesso, falhas, extra: (reg.unidadesCriadas.length ? `<p class="ajuda">${u.inteiro(reg.unidadesCriadas.length)} unidade(s) criada(s) pelo código do centro de custo, com nome provisório "Centro de custo …". Corrija os nomes em Cadastros → Unidades.</p>` : '') + (reg.classesCriadas.length || Object.keys(idClasse).length ? '<p class="ajuda">Bens sem classificação entraram em "A classificar (importação)", depreciando como "Demais bens" (móveis 84 meses e 10%, imóveis 360 e 30%, veículos 120 e 30%, domínio público 1.200 e 80%). Classifique-os em lote pela lista de bens (filtro por classificação → Edição em lote).</p>' : '') + (sucesso.length ? '<p class="ajuda">Se algo saiu errado, use "Desfazer" na lista de importações feitas.</p>' : '') });
     return { sucesso, falhas, reg };
   };
   P.desfazer = async (reg) => {
@@ -468,6 +502,7 @@
     const unids = (reg.unidadesCriadas || []).map((id) => VP.db.pega('unidades', id)).filter((x) => x && !VP.db.lista('bens').some((b) => b.unidadeId === x.id));
     if (unids.length) { for (const x of unids) { x.excluido = true; x.excluidoEm = VP.Plataforma.agoraISO(); } grava.unidades = unids; sucesso.push(`${unids.length} unidade(s) criada(s) pela importação foram para a Lixeira`); }
     if (VP.controle) VP.controle.desfazerImportacao(reg, grava, sucesso, falhas);
+    if (VP.importaUnidades) VP.importaUnidades.desfazer(reg, grava, sucesso, falhas);
     reg.desfeitoEm = VP.Plataforma.agoraISO();
     grava.importacoesPlanilha = [reg];
     await VP.db.gravarVarias(grava);
@@ -542,14 +577,15 @@
   const telaImportar = (nav) => {
     const s = st();
     const hist = VP.db.lista('importacoesPlanilha').sort((a, b) => String(b.data).localeCompare(String(a.data)));
-    const camposDoCj = (cj) => (cj === 'controle' && VP.controle ? VP.controle.CAMPOS : P.camposDe(cj));
-    const cjs = Object.assign({}, Object.fromEntries(Object.entries(P.CONJUNTOS).map(([k, x]) => [k, x.nome])), VP.controle ? { controle: 'Itens de controle' } : {});
+    const camposDoCj = camposImp;
+    const cjs = Object.assign({}, Object.fromEntries(Object.entries(P.CONJUNTOS).map(([k, x]) => [k, x.nome])), VP.controle ? { controle: 'Itens de controle' } : {}, VP.importaUnidades ? { unidades: VP.importaUnidades.NOME + ' (só código e nome)' } : {});
     let corpo = '';
     if (s.previa) {
       const it = s.previa.itens;
       const n = (c) => it.filter((x) => x.classe === c).length;
       const MAX = 300;
-      const filtrados = it.map((x, i) => [x, i]).filter(([x]) => !s.filtro || x.classe === s.filtro);
+      const filtrados = it.map((x, i) => [x, i]).filter(([x]) => !s.filtro || (s.filtro === 'analisados' ? !!x.analise : x.classe === s.filtro));
+      const nAnalisados = it.filter((x) => x.analise).length, nSugControle = it.filter((x) => x.analise?.sugestao === 'controle').length;
       const marcados = it.filter((x) => x.marcado && (x.classe === 'novo' || x.classe === 'alterado')).length;
       const novasUn = [...(s.novasUnidades || new Map()).entries()].sort((a, b) => a[0].localeCompare(b[0], 'pt-BR', { numeric: true }));
       const opcUn = VP.db.lista('unidades').sort((a, b) => String(a.codigo).localeCompare(String(b.codigo), 'pt-BR', { numeric: true })).map((x) => [x.id, `${x.codigo} · ${x.nome}`]);
@@ -558,11 +594,12 @@
         <p class="ajuda">Nada foi gravado ainda. Confira, desmarque o que não quiser e clique em <b>Importar o que está marcado</b>.${s.ignoradas ? ` ${u.inteiro(s.ignoradas)} linha(s) de título ou rodapé do relatório foram ignoradas.` : ''}</p>
         <div class="resumo-linha">${VP.graficos.numero('Novos', u.inteiro(n('novo')))}${VP.graficos.numero('Alterados', u.inteiro(n('alterado')))}${VP.graficos.numero('Iguais', u.inteiro(n('igual')))}${VP.graficos.numero('Com erro', u.inteiro(n('erro')))}${novasUn.length ? VP.graficos.numero('Unidades novas', u.inteiro(novasUn.length), 'pelo código do centro de custo') : ''}</div>
         ${[...(s.gruposSemClasse || [])].length ? `<div class="cartao secao" id="classe-padrao"><h4>Classificação dos bens que vieram sem classificação</h4>
-          <p class="ajuda">A planilha não traz a classificação (ou veio vazia). Escolha uma para cada grupo. O padrão <b>"A classificar"</b> não deprecia até você classificar os bens (depois, em lote, pela lista de bens).</p>
-          <div class="grade-depara">${[...s.gruposSemClasse].map((g) => `<label>${esc(P.NOMES_GRUPO[g])} (${u.inteiro(it.filter((x) => x.classePadrao === g).length)}) <select data-imp-classe="${g}"><option value="${P.ACLASSIFICAR}">A classificar (importação) — sem depreciação</option>${opcClasse(g).map(([id, nm]) => `<option value="${esc(id)}" ${s.classesPadrao[g] === id ? 'selected' : ''}>${esc(nm)}</option>`).join('')}</select></label>`).join('')}</div></div>` : ''}
+          <p class="ajuda">A planilha não traz a classificação (ou veio vazia). Escolha uma para cada grupo. O padrão <b>"A classificar"</b> deprecia como "Demais bens" (tabela do livro de controle patrimonial) até você classificar os bens (depois, em lote, pela lista de bens).</p>
+          <div class="grade-depara">${[...s.gruposSemClasse].map((g) => `<label>${esc(P.NOMES_GRUPO[g])} (${u.inteiro(it.filter((x) => x.classePadrao === g).length)}) <select data-imp-classe="${g}"><option value="${P.ACLASSIFICAR}">A classificar (importação) — deprecia como "Demais bens"</option>${opcClasse(g).map(([id, nm]) => `<option value="${esc(id)}" ${s.classesPadrao[g] === id ? 'selected' : ''}>${esc(nm)}</option>`).join('')}</select></label>`).join('')}</div></div>` : ''}
         ${novasUn.length ? `<details class="cartao secao" id="novas-unidades"><summary><b>${u.inteiro(novasUn.length)} código(s) de centro de custo ainda não cadastrado(s)</b> — viram unidades novas com nome provisório "Centro de custo …" (corrija depois em Cadastros → Unidades), ou ligue a uma unidade que já existe</summary>
           <div class="tabela-rolagem"><table class="tabela" data-sem-planilha><thead><tr><th>Código</th><th class="num">Bens</th><th>Ligar a</th></tr></thead><tbody>${novasUn.map(([cod, q]) => `<tr><td>${esc(cod)}</td><td class="num">${u.inteiro(q)}</td><td><select data-imp-liga="${esc(cod)}"><option value="">Criar unidade nova</option>${opcUn.map(([id, nm]) => `<option value="${esc(id)}" ${s.ligaUnidade[cod] === id ? 'selected' : ''}>${esc(nm)}</option>`).join('')}</select></td></tr>`).join('')}</tbody></table></div></details>` : ''}
-        <div class="linha-botoes"><label>Mostrar <select data-imp-filtro><option value="">Todos</option>${Object.entries(CLASSE).map(([k, [, nm]]) => `<option value="${k}" ${s.filtro === k ? 'selected' : ''}>${nm}</option>`).join('')}</select></label>
+        ${nAnalisados ? `<p class="aviso-inline" id="aviso-sug-controle-imp"><b>${u.inteiro(nAnalisados)} bem(ns) novo(s) sem plaqueta</b> custam até ${u.moeda(VP.config().limiteControle)}. Destes, <b>${u.inteiro(nSugControle)}</b> foram sugeridos como <b>item de controle</b> (sem plaqueta, fora do balancete). Confira em "Vai para" (filtro "Valor baixo: conferir destino") e mude se precisar.</p>` : ''}
+        <div class="linha-botoes"><label>Mostrar <select data-imp-filtro><option value="">Todos</option>${Object.entries(CLASSE).map(([k, [, nm]]) => `<option value="${k}" ${s.filtro === k ? 'selected' : ''}>${nm}</option>`).join('')}${nAnalisados ? `<option value="analisados" ${s.filtro === 'analisados' ? 'selected' : ''}>Valor baixo: conferir destino</option>` : ''}</select></label>
           <button type="button" class="botao pequeno" data-imp-marcar="1">Marcar todos os válidos</button><button type="button" class="botao pequeno" data-imp-marcar="0">Desmarcar todos</button>
           <button type="button" class="botao pequeno" data-imp-baixar-previa>Baixar prévia completa (Excel)</button>
           <span class="ajuda" id="imp-marcados">${u.inteiro(marcados)} marcado(s) para importar</span></div>
@@ -572,7 +609,8 @@
           <td><span class="selo-status ${CLASSE[x.classe][0]}">${CLASSE[x.classe][1]}</span></td><td>${esc(x.aba)}, ${x.linha}</td><td>${esc(x.plaqueta || (x.classe === 'novo' ? '(automática)' : ''))}</td><td>${esc(x.descricao || (x.bemId ? VP.db.pega('bens', x.bemId)?.descricao : '') || x.codigoControle || '')}</td>
           <td>${x.erros.length ? `<span class="erro-txt">${esc(x.erros.join('; '))}</span>` : x.classe === 'novo' ? `Será incluído${x.tipoBem && x.tipoBem !== 'movel' ? ` (${esc(L.tiposBem[x.tipoBem])})` : ''}${x.valores?._valorContabil != null && x.valores.valor == null ? ' com o valor contábil, como saldo inicial' : ''}` : x.classe === 'igual' ? 'Nada muda' : ''}
             ${x.mudancas.length ? `<ul class="lista-mudancas">${x.mudancas.map((m) => { const c = camposDoCj(x.cj).find((y) => y.k === m.k) || P.CAMPOS.find((y) => y.k === m.k); return `<li><b>${esc(m.t)}</b>: ${esc(mostrarValor(c, m.antes))} → ${esc(mostrarValor(c, m.depois))}</li>`; }).join('')}</ul>` : ''}
-            ${x.avisos.length ? `<div class="aviso-txt">${esc(x.avisos.join('; '))}</div>` : ''}</td></tr>`).join('')}
+            ${x.avisos.length ? `<div class="aviso-txt">${esc(x.avisos.join('; '))}</div>` : ''}
+            ${x.analise ? VP.classificador.seletor(Object.assign({}, x.analise, { sugestao: x.analise.sugestao }), `data-imp-destino="${i}"`).replace(/(<option value="(controle|patrimonio)") (selected)?/g, (m, a, k) => `${a} ${x.destino === k ? 'selected' : ''}`) : ''}</td></tr>`).join('')}
         </tbody></table></div>
         <p class="linha-botoes"><button class="botao primario" data-imp-aplicar>Importar o que está marcado</button> <button class="botao" data-imp-descartar>Descartar</button></p></section>`;
     } else if (s.abas) {
@@ -593,7 +631,7 @@
           ${pode() ? '<label class="botao primario">Escolher arquivo (.xlsx ou .csv)<input type="file" accept=".xlsx,.csv,.txt" data-imp-arquivo hidden></label>' : '<p class="aviso-inline">Seu acesso é só de consulta.</p>'}
         </section>
         ${corpo}
-        <section class="cartao"><h3>Importações feitas</h3>${hist.length ? `<div class="tabela-rolagem"><table class="tabela"><thead><tr><th>Data</th><th>Arquivo</th><th>Quem</th><th class="num">Novos</th><th class="num">Alterados</th><th></th></tr></thead><tbody>${hist.map((h) => `<tr><td>${esc(new Date(h.data).toLocaleString('pt-BR'))}</td><td>${esc(h.arquivo || '')}</td><td>${esc(h.usuario || '')}</td><td class="num">${u.inteiro(h.novos.length + (h.controleNovos || []).length)}</td><td class="num">${u.inteiro(h.alterados.length + (h.controleAlterados || []).length)}</td><td>${h.desfeitoEm ? `Desfeita em ${u.data(h.desfeitoEm.slice(0, 10))}` : pode() ? `<button class="botao pequeno" data-imp-desfazer="${esc(h.id)}">Desfazer</button>` : ''}</td></tr>`).join('')}</tbody></table></div>` : '<p class="vazio">Nenhuma ainda.</p>'}</section>`,
+        <section class="cartao"><h3>Importações feitas</h3>${hist.length ? `<div class="tabela-rolagem"><table class="tabela"><thead><tr><th>Data</th><th>Arquivo</th><th>Quem</th><th class="num">Novos</th><th class="num">Alterados</th><th></th></tr></thead><tbody>${hist.map((h) => `<tr><td>${esc(new Date(h.data).toLocaleString('pt-BR'))}</td><td>${esc(h.arquivo || '')}</td><td>${esc(h.usuario || '')}</td><td class="num">${u.inteiro(h.novos.length + (h.controleNovos || []).length + (h.unidadesNovasCC || []).length)}</td><td class="num">${u.inteiro(h.alterados.length + (h.controleAlterados || []).length + (h.unidadesRenomeadas || []).length)}</td><td>${h.desfeitoEm ? `Desfeita em ${u.data(h.desfeitoEm.slice(0, 10))}` : pode() ? `<button class="botao pequeno" data-imp-desfazer="${esc(h.id)}">Desfazer</button>` : ''}</td></tr>`).join('')}</tbody></table></div>` : '<p class="vazio">Nenhuma ainda.</p>'}</section>`,
       ligar() {
         const re = () => VP.app.render();
         document.querySelector('[data-modelo-imp]').addEventListener('click', P.baixarModelo);
@@ -622,6 +660,7 @@
         // marcar/desmarcar vale para o arquivo inteiro, não só para as linhas na tela
         document.querySelectorAll('[data-imp-marcar]').forEach((b) => b.addEventListener('click', () => { const v = b.dataset.impMarcar === '1'; s.previa.itens.forEach((x) => { if (x.classe === 'novo' || x.classe === 'alterado') x.marcado = v; }); document.querySelectorAll('[data-imp-item]').forEach((i) => { i.checked = v; }); contaMarcados(); }));
         document.querySelector('[data-imp-filtro]')?.addEventListener('change', (e) => { s.filtro = e.target.value; re(); });
+        document.querySelectorAll('[data-imp-destino]').forEach((el) => el.addEventListener('change', () => { s.previa.itens[el.dataset.impDestino].destino = el.value; }));
         document.querySelectorAll('[data-imp-classe]').forEach((el) => { el.value = s.classesPadrao[el.dataset.impClasse] || P.ACLASSIFICAR; el.addEventListener('change', () => { s.classesPadrao[el.dataset.impClasse] = el.value; }); });
         document.querySelectorAll('[data-imp-liga]').forEach((el) => el.addEventListener('change', () => { if (el.value) s.ligaUnidade[el.dataset.impLiga] = el.value; else delete s.ligaUnidade[el.dataset.impLiga]; }));
         document.querySelector('[data-imp-baixar-previa]')?.addEventListener('click', () => {

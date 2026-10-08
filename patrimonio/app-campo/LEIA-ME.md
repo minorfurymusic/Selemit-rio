@@ -10,7 +10,7 @@ O aplicativo só abre depois do login na tela inicial do VitalPat (`index.html`,
 
 ## O que ele faz
 
-- **Conferir bem:** inventário e vistoria. Você lê o QR Code ou digita o número da plaqueta e informa onde o bem está, o estado de conservação (de 1 a 5) e tira fotos. Se o bem já foi conferido em outro local, o aplicativo pergunta se ele foi levado para lá ou se foi uma leitura repetida, para que nenhum bem seja contado duas vezes.
+- **Conferir bem:** inventário e vistoria. Você lê o QR Code ou digita o número da plaqueta e informa onde o bem está, o estado de conservação (Novo, Ótimo, Muito bom, Bom, Regular, Ruim, Péssimo ou Imprestável) e tira fotos. Se o bem já foi conferido em outro local, o aplicativo pergunta se ele foi levado para lá ou se foi uma leitura repetida, para que nenhum bem seja contado duas vezes.
 - **Abastecimento:** registra veículo, motorista, quilometragem, litros, valor, posto e a foto do cupom. Avisa quando a quilometragem é menor que a anterior, quando os litros passam da capacidade do tanque ou quando o combustível é diferente do veículo. Para salvar mesmo com o aviso, é preciso escrever uma explicação.
 - **Saída e retorno de veículo:** registra quilometragem, destino, motivo, checklist (pneus, luzes, lataria e documento) e fotos.
 - **Registros:** mostra tudo o que está guardado no aparelho. Daqui você baixa uma cópia completa (com fotos) ou uma planilha simples, escolhendo o tipo de registro e marcando só as colunas que quer. O aparelho lembra a última escolha.

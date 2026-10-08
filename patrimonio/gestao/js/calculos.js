@@ -139,7 +139,7 @@
     const custo = evs.filter((e) => (e.tipo === 'manutencao' || e.tipo === 'despesa') && e.data >= umAno)
       .reduce((t, e) => t + (e.valor || 0), 0);
     const vistoriaRecente = evs.some((e) => (e.tipo === 'vistoria' || e.tipo === 'inventario') && e.data >= umAno);
-    const estado = Math.min(5, Number(bem.estado) || 3) / 5; // "Novo" (6) conta como o máximo
+    const estado = (Math.min(7, Number(bem.estado) || 4) - 1) / 6; // escala de 8: Ótimo e Novo contam como o máximo; Imprestável = 0
     const vida = VP.naoDeprecia(bem) ? 0.5 : 1 - s.consumido;
     const custoRel = 1 - Math.min(1, custo / Math.max(1, s.base));
     const v = Math.round(100 * (0.40 * estado + 0.30 * vida + 0.20 * custoRel + 0.10 * (vistoriaRecente ? 1 : 0.3)));
@@ -211,8 +211,11 @@
     const add = (chave, nivel, titulo, qtd, link, detalhe = '') => { if (qtd > 0) p.push({ chave, nivel, titulo, qtd, link, detalhe }); };
 
     const aClassificar = new Set(VP.db.lista('classificacoes').filter((c) => c.aClassificar).map((c) => c.id));
-    if (aClassificar.size) add('a-classificar', 'atencao', 'Bens importados a classificar (sem depreciação até classificar)', bens.filter((b) => aClassificar.has(b.classificacaoId)).length, '#bens', 'Na lista de bens, filtre pela classificação "A classificar" e use a edição em lote.');
+    if (aClassificar.size) add('a-classificar', 'atencao', 'Bens importados a classificar (depreciando como "Demais bens" até classificar)', bens.filter((b) => aClassificar.has(b.classificacaoId)).length, '#bens', 'Na lista de bens, filtre pela classificação "A classificar" e use a edição em lote.');
     const limiteSeguro = u.somaDias(hoje, cfg.avisoSeguroDias);
+    add('imprestaveis', 'critico', 'Bens imprestáveis aguardando baixa', bens.filter((b) => Number(b.estado) === 1).length, '#bens?estado=1', 'Bem em estado "Imprestável" não tem conserto: abra a ficha e use "Iniciar baixa".');
+    add('inserviveis', 'info', 'Bens inservíveis disponíveis (para leilão, doação ou transferência)', bens.filter((b) => b.status === 'inservivel').length, '#bens?status=inservivel');
+    add('lotes-baixa', 'info', 'Lotes de baixa em montagem (falta confirmar)', VP.db.lista('lotesBaixa').filter((l) => l.situacao === 'rascunho').length, '#baixa-lote');
     add('seguro-vencido', 'critico', 'Seguros vencidos', bens.filter((b) => b.seguro?.termino && b.seguro.termino < hoje).length, '#relatorio/seguros');
     add('seguro-vence', 'atencao', `Seguros vencendo em até ${cfg.avisoSeguroDias} dias`, bens.filter((b) => b.seguro?.termino && b.seguro.termino >= hoje && b.seguro.termino <= limiteSeguro).length, '#relatorio/seguros');
     const limiteGar = u.somaDias(hoje, cfg.avisoGarantiaDias);

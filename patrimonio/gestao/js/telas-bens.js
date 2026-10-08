@@ -99,6 +99,8 @@
     if (query.semResponsavel) { for (const k of Object.keys(v)) delete v[k]; v.semResponsavel = true; }
     if (query.depreciados) { for (const k of Object.keys(v)) delete v[k]; v.depreciados = true; }
     if (query.unidade) { for (const k of Object.keys(v)) delete v[k]; v.unidadeId = query.unidade; }
+    if (query.estado) { for (const k of Object.keys(v)) delete v[k]; v.estado = String(query.estado); }
+    if (query.status) { for (const k of Object.keys(v)) delete v[k]; v.status = String(query.status); }
     const desenhar = () => {
       const bens = aplicarFiltros(v, grupo);
       VP.estado.listaAtual = bens.map((b) => b.id);
@@ -148,7 +150,9 @@
         <button class="botao pequeno" data-lote="transferir">Transferir</button>
         <button class="botao pequeno" data-lote="desuso">Desuso</button>
         <button class="botao pequeno" data-lote="retorno">Volta ao uso</button>
+        <button class="botao pequeno" data-lote="inservivel">Inservível</button>
         <button class="botao pequeno" data-lote="baixa">Baixa</button>
+        <button class="botao pequeno" data-lote="loteBaixa">Incluir em lote de baixa</button>
         <button class="botao pequeno" data-lote="reavaliar">Reavaliar</button>
         <button class="botao pequeno" data-lote="complementares">Dados complementares</button>
         <button class="botao pequeno" data-lote="seguro">Seguro e garantia</button>
@@ -172,8 +176,8 @@
   // Ações em lote (também usadas pela ficha com 1 bem)
   A.lote = (acao, bens, depois) => {
     const mapa = {
-      transferir: () => A.transferir(bens, depois), desuso: () => A.desuso(bens, depois), retorno: () => A.retorno(bens, depois),
-      baixa: () => A.baixa(bens, depois), reavaliar: () => { VP.estado.reavaliarIds = bens.map((b) => b.id); VP.app.ir('#financeiro/reavaliacao'); },
+      transferir: () => A.transferir(bens, depois), desuso: () => A.desuso(bens, depois), retorno: () => A.retorno(bens, depois), inservivel: () => A.inservivel(bens, depois),
+      baixa: () => A.baixa(bens, depois), loteBaixa: () => VP.baixaLote.escolherLote(bens, depois), reavaliar: () => { VP.estado.reavaliarIds = bens.map((b) => b.id); VP.app.ir('#financeiro/reavaliacao'); },
       complementares: () => A.complementares(bens, depois), seguro: () => A.seguroGarantia(bens, depois), vistoria: () => A.vistoria(bens, depois),
       etiquetas: () => { VP.estado.etiquetasIds = bens.map((b) => b.id); VP.app.ir('#relatorio/etiquetas'); },
       termo: () => VP.documentos.termoResponsabilidade(bens), excluir: () => A.excluir(bens, depois)
@@ -218,10 +222,14 @@
         </div>
         <div class="ficha-qr" title="QR Code da plaqueta">${G.qr(b.plaqueta, 3)}<small>${esc(b.plaqueta)}</small></div>
       </div>
+      ${b.status !== 'baixado' && Number(b.estado) === 1 ? '<p class="aviso-inline">Este bem está <b>Imprestável</b> (sem conserto). O caminho é a baixa. <button class="botao pequeno perigo" data-acao="baixa">Iniciar baixa</button></p>' : ''}
+      ${b.loteBaixaId ? `<p class="aviso-inline">Baixado no lote <a href="#baixa-lote/${esc(b.loteBaixaId)}">${esc(VP.db.pega('lotesBaixa', b.loteBaixaId)?.numero || '')}</a> (ata no lote).</p>` : ''}
+      ${b.status === 'inservivel' ? '<p class="aviso-inline">Bem <b>inservível</b>: disponível para leilão, doação ou transferência. Inclua num lote em <a href="#baixa-lote">Baixa em lote (leilão)</a> ou use “Volta ao uso” se voltar a servir.</p>' : ''}
       <div class="barra-acoes">
         ${b.status === 'baixado' ? '<span class="aviso-inline">Bem baixado: só consulta e impressão.</span>' : `
         <button class="botao" data-acao="transferir">Transferir</button>
-        ${b.status === 'desuso' || b.status === 'cedido' || b.status === 'manutencao' ? '<button class="botao" data-acao="retorno">Volta ao uso</button>' : '<button class="botao" data-acao="desuso">Desuso</button>'}
+        ${['desuso', 'cedido', 'manutencao', 'inservivel'].includes(b.status) ? '<button class="botao" data-acao="retorno">Volta ao uso</button>' : '<button class="botao" data-acao="desuso">Desuso</button>'}
+        ${b.status !== 'inservivel' ? '<button class="botao" data-acao="inservivel">Inservível</button>' : ''}
         <button class="botao" data-acao="manutencao">Manutenção / despesa</button>
         <button class="botao" data-acao="vistoria">Vistoria</button>
         <button class="botao" data-acao="observacao">Observação</button>
@@ -501,7 +509,7 @@
       { chave: 'quantidade', rotulo: 'Quantidade (gera um bem para cada)', tipo: 'numero', padrao: 1, largura: 'meia' },
       { chave: 'situacaoAquisicao', rotulo: 'Como entrou', tipo: 'select', opcoes: L.situacoesAquisicao.map((x) => [x, x]), padrao: 'Compra', vazio: false, largura: 'meia' },
       { chave: 'fornecedorId', rotulo: 'Fornecedor', tipo: 'select', opcoes: opc('fornecedores'), largura: 'meia' },
-      { chave: 'estado', rotulo: 'Estado', tipo: 'select', opcoes: Object.entries(L.estados).reverse(), padrao: 6, vazio: false, largura: 'meia' }
+      { chave: 'estado', rotulo: 'Estado', tipo: 'select', opcoes: Object.entries(L.estados).reverse(), padrao: 8, vazio: false, largura: 'meia' }
     ];
     if (cfg.codigoManual) campos.splice(0, 0, { chave: 'codigo', rotulo: 'Código do bem', tipo: 'numero', obrigatorio: true });
     if (!cfg.tombamentoAutomatico) campos.push({ chave: 'plaqueta', rotulo: 'Plaqueta (primeira, as próximas seguem a sequência)' });
@@ -559,15 +567,21 @@
           box.innerHTML = `<span>Já cadastrado: <b>${esc(info.nome)}</b>${partes.length ? ` (${esc(partes.join(', '))})` : ''}.</span> <button type="button" class="botao pequeno primario" data-usar-anterior>Usar as informações</button>`;
           box.querySelector('[data-usar-anterior]').addEventListener('click', () => usarAnterior(info));
         };
+        let ultimaAnalise = null;
         const previa = () => {
           const { valores: v } = ui.lerCampos(f, campos);
           const texto = el('classificacaoTexto').value.trim();
           const dc = texto ? dadosPrevistos(texto, document.querySelector('#achado-classe [data-mae]')?.value, tipo) : null;
           const qtd = Math.max(1, Math.floor(v.quantidade || 1));
           const lim = VP.config().limiteControle;
-          const dica = VP.controle && v.valor > 0 && v.valor < lim && tipo === 'movel' ? `<p class="aviso-inline" id="dica-controle">Valor abaixo de ${u.moeda(lim)}: se for item de pequeno valor ou pouca durabilidade, pode ser cadastrado em <b>Itens de controle</b> (sem plaqueta, fora do balancete). <button type="button" class="botao pequeno" data-ir-controle>Cadastrar como item de controle</button></p>` : '';
+          // Classificador: item barato E de pouca durabilidade pode ser item de controle. Só sugere; a pessoa decide.
+          const an = VP.controle && VP.classificador && tipo === 'movel' && v.valor > 0 && v.valor <= lim ? VP.classificador.analisar({ descricao: el('descricao').value, valor: v.valor, classificacaoId: texto ? acharClassificacao(texto, tipo)?.id : '', tipo }) : null;
+          ultimaAnalise = an;
+          const dica = !an ? '' : an.sugestao === 'controle'
+            ? `<p class="aviso-inline" id="dica-controle">Sugestão: <b>item de controle</b> (sem plaqueta, fora do balancete) — ${esc(an.motivo)}${an.fonteVida ? ` (${esc(an.fonteVida)})` : ''}. Você decide. <button type="button" class="botao pequeno" data-ir-controle>Cadastrar como item de controle</button></p>`
+            : !an.certeza ? `<p class="ajuda" id="dica-controle">Valor até ${u.moeda(lim)}, mas o sistema não sabe quanto este item dura. Se durar até ${VP.config().limiteControleMeses} meses, pode ser <b>item de controle</b>. <button type="button" class="botao pequeno" data-ir-controle>Cadastrar como item de controle</button></p>` : '';
           document.getElementById('previa-novo').innerHTML = dica + (dc ? `<b>Prévia:</b> ${qtd} bem(ns) a partir do código ${cfg.codigoManual ? (v.codigo || '?') : VP.proximoCodigo()} · conta ${esc(VP.nome('contas', dc.contaId))} · ${dc.naoDeprecia ? 'não deprecia' : `vida útil ${dc.vidaUtilMeses || '?'} meses, residual ${dc.residualPct ?? 0}%`}${v.valor ? ` · total ${u.moeda(v.valor * qtd)}` : ''}` : '');
-          document.querySelector('[data-ir-controle]')?.addEventListener('click', () => VP.controle.novo((x) => VP.app.ir('#controle'), { descricao: el('descricao').value, quantidade: v.quantidade || 1, valorUnitario: v.valor, unidadeId: v.unidadeId, responsavelId: v.responsavelId, fornecedorId: v.fornecedorId, estado: v.estado }));
+          document.querySelector('[data-ir-controle]')?.addEventListener('click', () => VP.controle.novo(async (x) => { await VP.classificador.registrarDecisoes([{ descricao: x.descricao, escolha: 'controle', valor: x.valorUnitario, sugerido: ultimaAnalise?.sugestao }]); VP.app.ir('#controle'); }, { descricao: el('descricao').value, quantidade: v.quantidade || 1, valorUnitario: v.valor, unidadeId: v.unidadeId, responsavelId: v.responsavelId, fornecedorId: v.fornecedorId, estado: v.estado }));
         };
         el('descricao').addEventListener('input', mostrarNome);
         el('classificacaoTexto').addEventListener('input', () => { mostrarClasse(); previa(); });
@@ -592,6 +606,7 @@
           if (cfg.obrigaContas && !dadosPrevistos(textoCl, paiId, tipo).contaId) { erro.textContent = 'Esta classificação não tem conta contábil. Escolha em "Fica dentro de" uma classe com conta, ou ajuste em Cadastros → Classificações.'; return; }
           const cad = await garantirCadastros({ tipo, nome: v.descricao, classificacaoTexto: textoCl, paiId });
           const criados = await VP.criarBens(Object.assign({}, v, { produtoId: cad.produto.id, classificacaoId: cad.classificacao.id, tipo, quantidade: Math.max(1, Math.floor(v.quantidade || 1)) }));
+          if (ultimaAnalise && VP.classificador) await VP.classificador.registrarDecisoes([{ descricao: v.descricao, escolha: 'patrimonio', valor: v.valor, sugerido: ultimaAnalise.sugestao }]);
           ui.resultado({ titulo: 'Bens incluídos', sucesso: criados.map((b) => `${b.codigo} · plaqueta ${b.plaqueta} · ${b.descricao}`).concat(cad.criados) });
           VP.estado.listaAtual = criados.map((b) => b.id);
           VP.app.ir('#bem/' + criados[0].id);
@@ -636,21 +651,26 @@
         if (ant.ncm && it.ncm && ant.ncm !== it.ncm) difs.push({ campo: 'ncm', rotulo: 'NCM', nota: it.ncm, anterior: ant.ncm });
         if (ant.unidadeMedida && it.unidade && u.normalizar(ant.unidadeMedida) !== u.normalizar(it.unidade)) difs.push({ campo: 'unidade', rotulo: 'Unidade de medida', nota: it.unidade, anterior: ant.unidadeMedida });
       }
-      return { it, ant, difs };
+      // Classificador: sugere item de controle (barato E pouca durabilidade) ou patrimônio. A pessoa decide em cada item.
+      const an = VP.classificador && VP.controle ? VP.classificador.analisar({ descricao: it.nome, valor: it.valorUnitario, classificacaoId: ant?.classificacaoId, tipo }) : null;
+      return { it, ant, difs, an };
     });
+    const nSugControle = linhas.filter((l) => l.an?.sugestao === 'controle').length;
     const corpo = `
       <p><b>Nota ${esc(nf.numero)}${nf.serie ? '/' + esc(nf.serie) : ''}</b> · ${esc(nf.emitente.nome)} (${esc(nf.emitente.cnpj)}) · emitida em ${u.data(nf.emissao)} · ${nf.itens.length} item(ns)</p>
       ${fornecedor ? '' : '<p class="aviso-inline">Fornecedor ainda não cadastrado: será incluído em Cadastros → Fornecedores.</p>'}
       <div class="form-grade">${ui.campos([
         { chave: 'unidadeId', rotulo: 'Unidade que recebe', tipo: 'select', opcoes: opc('unidades'), largura: 'meia' },
-        { chave: 'estado', rotulo: 'Estado', tipo: 'select', opcoes: Object.entries(L.estados).reverse(), padrao: 6, vazio: false, largura: 'meia' },
+        { chave: 'estado', rotulo: 'Estado', tipo: 'select', opcoes: Object.entries(L.estados).reverse(), padrao: 8, vazio: false, largura: 'meia' },
         { chave: 'empenho', rotulo: 'Empenho (ano/número)', largura: 'meia' }, { chave: 'dataIncorporacao', rotulo: 'Data de incorporação', tipo: 'data', padrao: VP.Plataforma.hoje(), largura: 'meia' }])}</div>
+      ${nSugControle ? `<p class="aviso-inline" id="aviso-sug-controle"><b>${nSugControle} de ${linhas.length} item(ns)</b> foram sugeridos como <b>item de controle</b> (sem plaqueta, fora do balancete): custam até ${u.moeda(VP.config().limiteControle)} e duram até ${VP.config().limiteControleMeses} meses. Confira em cada item o campo "Vai para" e mude se precisar.</p>` : ''}
       <p class="ajuda">Os dados da nota valem. Quando um item já existe no cadastro e alguma informação mudou, ela aparece em destaque: confira e escolha, em cada uma, se fica a da nota ou a anterior.</p>
       <datalist id="dl-classes-nf">${classes.map((n) => `<option value="${esc(n)}">`).join('')}</datalist>
       <div class="itens-nf">${linhas.map((l, i) => `
-        <div class="item-nf" data-i="${i}">
+        <div class="item-nf ${l.an?.sugestao === 'controle' ? 'vai-controle' : ''}" data-i="${i}">
           <label class="linha-check"><input type="checkbox" data-incluir checked> <b>${esc(l.it.nome)}</b></label>
           <div class="item-nf-dados">${u.inteiro(l.it.quantidade)} ${esc(l.it.unidade || 'un')} × ${u.moeda(l.it.valorUnitario)} = <b>${u.moeda(l.it.valorTotal || l.it.quantidade * l.it.valorUnitario)}</b>${l.it.ncm ? ` · NCM ${esc(l.it.ncm)}` : ''}</div>
+          ${l.an ? VP.classificador.seletor(l.an, 'data-destino') : ''}
           <div class="item-nf-sit">${l.ant ? `<span class="selo-status s-ativo">Já cadastrado</span>` : '<span class="selo-status t-pendente">Novo: entra no catálogo</span>'}</div>
           <label class="item-nf-classe">Classificação <input data-classe list="dl-classes-nf" value="${esc(l.ant?.classificacaoId ? caminhoClassificacao(VP.db.pega('classificacoes', l.ant.classificacaoId) || {}) : '')}" placeholder="Digite para procurar ou criar"></label>
           <label class="item-nf-classe">Se a classificação for nova, fica dentro de <select data-mae>${opcMaes(tipo).map(([id, n]) => `<option value="${esc(id)}" ${id === maeSugerida(tipo) ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></label>
@@ -660,18 +680,31 @@
               <label><input type="radio" name="d-${i}-${k}" value="anterior"> Anterior: ${esc(d.anterior)}</label></div>`).join('')}</div>` : ''}
         </div>`).join('')}</div>
       <p class="erro-form" role="alert"></p>`;
+    // item de controle não precisa de classificação: os campos somem quando "Vai para" é item de controle
+    setTimeout(() => document.querySelectorAll('.item-nf [data-destino]').forEach((el) => el.addEventListener('change', () => el.closest('.item-nf').classList.toggle('vai-controle', el.value === 'controle'))), 0);
     ui.modal({ titulo: 'Conferir itens da nota fiscal', largura: 'grande', corpo, botoes: [{ texto: 'Cancelar' }, { texto: 'Incluir bens', classe: 'primario', fecha: false, acao: async (d, fechar) => {
       const geral = ui.lerCampos(d, [{ chave: 'unidadeId' }, { chave: 'estado' }, { chave: 'empenho' }, { chave: 'dataIncorporacao' }]).valores;
       const escolhidos = linhas.map((l, i) => ({ l, box: d.querySelector(`.item-nf[data-i="${i}"]`) })).filter((x) => x.box.querySelector('[data-incluir]').checked);
       if (!escolhidos.length) { d.querySelector('.erro-form').textContent = 'Marque pelo menos um item.'; return false; }
-      const semClasse = escolhidos.filter((x) => !x.box.querySelector('[data-classe]').value.trim());
+      const destino = (x) => x.box.querySelector('[data-destino]')?.value || 'patrimonio';
+      const paraControle = escolhidos.filter((x) => destino(x) === 'controle');
+      const paraBens = escolhidos.filter((x) => destino(x) !== 'controle');
+      const semClasse = paraBens.filter((x) => !x.box.querySelector('[data-classe]').value.trim());
       if (semClasse.length) { d.querySelector('.erro-form').textContent = `Informe a classificação de: ${semClasse.map((x) => x.l.it.nome).join(', ')}`; return false; }
-      const semConta = VP.config().obrigaContas ? escolhidos.filter((x) => !dadosPrevistos(x.box.querySelector('[data-classe]').value, x.box.querySelector('[data-mae]').value, tipo).contaId) : [];
+      const semConta = VP.config().obrigaContas ? paraBens.filter((x) => !dadosPrevistos(x.box.querySelector('[data-classe]').value, x.box.querySelector('[data-mae]').value, tipo).contaId) : [];
       if (semConta.length) { d.querySelector('.erro-form').textContent = `Sem conta contábil: ${semConta.map((x) => x.l.it.nome).join(', ')}. Escolha uma classe com conta em "fica dentro de".`; return false; }
       let forn = fornecedor;
       const sucesso = [], falhas = [], avisos = [];
       if (!forn) { forn = { id: u.id(), nome: nf.emitente.nome, documento: nf.emitente.cnpj, criadoPelaNota: true }; await VP.db.gravar('fornecedores', forn); avisos.push(`Fornecedor "${forn.nome}" incluído nos Cadastros.`); }
-      for (const { l, box } of escolhidos) {
+      // Itens de controle: sem plaqueta, sem classificação, fora do balancete
+      if (paraControle.length) {
+        let n = Number(VP.controle.proximoCodigo().replace(/\D/g, ''));
+        const itensC = paraControle.map(({ l }) => VP.controle.montar({ descricao: l.it.nome, quantidade: Math.max(1, Math.round(l.it.quantidade)), valorUnitario: l.it.valorUnitario, unidadeId: geral.unidadeId, dataEntrada: geral.dataIncorporacao || nf.emissao, estado: Number(geral.estado || 8), fornecedorId: forn.id, nf: { numero: nf.numero, serie: nf.serie, emissao: nf.emissao, chave: nf.chave }, vidaUtilAnos: l.an?.vidaUtilMeses ? Math.round(l.an.vidaUtilMeses / 12 * 10) / 10 : null }, 'C-' + String(n++).padStart(6, '0'), `Incluído pela nota fiscal ${nf.numero} (item ${l.it.n})`));
+        await VP.db.gravar('bensControle', itensC);
+        for (const x of itensC) sucesso.push(`Item de controle ${x.codigo} · ${x.descricao} (${u.inteiro(x.quantidade)} un., sem plaqueta)`);
+      }
+      await VP.classificador?.registrarDecisoes(escolhidos.filter(({ l }) => l.an).map((x) => ({ descricao: x.l.it.nome, escolha: destino(x), valor: x.l.it.valorUnitario, sugerido: x.l.an.sugestao })));
+      for (const { l, box } of paraBens) {
         const escolha = (campo) => { const k = l.difs.findIndex((x) => x.campo === campo); return k < 0 ? 'nota' : box.querySelector(`input[name="d-${box.dataset.i}-${k}"]:checked`).value; };
         const cad = await garantirCadastros({ tipo, nome: l.it.nome, classificacaoTexto: box.querySelector('[data-classe]').value, paiId: box.querySelector('[data-mae]').value, ncm: escolha('ncm') === 'nota' ? l.it.ncm : l.ant?.ncm, unidadeMedida: escolha('unidade') === 'nota' ? l.it.unidade : l.ant?.unidadeMedida });
         avisos.push(...cad.criados);
@@ -679,13 +712,13 @@
         const fornecedorId = escolha('fornecedor') === 'nota' ? forn.id : l.ant.fornecedorId;
         const qtd = Math.max(1, Math.round(l.it.quantidade));
         try {
-          const criados = await VP.criarBens({ descricao: l.it.nome, produtoId: cad.produto.id, classificacaoId: cad.classificacao.id, tipo, unidadeId: geral.unidadeId, dataAquisicao: nf.emissao || VP.Plataforma.hoje(), dataIncorporacao: geral.dataIncorporacao, valor, quantidade: qtd, situacaoAquisicao: 'Compra', fornecedorId, estado: geral.estado || 6,
+          const criados = await VP.criarBens({ descricao: l.it.nome, produtoId: cad.produto.id, classificacaoId: cad.classificacao.id, tipo, unidadeId: geral.unidadeId, dataAquisicao: nf.emissao || VP.Plataforma.hoje(), dataIncorporacao: geral.dataIncorporacao, valor, quantidade: qtd, situacaoAquisicao: 'Compra', fornecedorId, estado: geral.estado || 8,
             nf: { numero: nf.numero, serie: nf.serie, emissao: nf.emissao, chave: nf.chave }, origem: { empenho: geral.empenho || '' }, detalhes: l.ant ? { marca: l.ant.marca, modelo: l.ant.modelo } : {}, origemTexto: `NF ${nf.numero} item ${l.it.n}` });
           sucesso.push(`${l.it.nome}: ${criados.length} bem(ns), códigos ${criados[0].codigo}${criados.length > 1 ? ' a ' + criados[criados.length - 1].codigo : ''}${l.difs.length ? ' (diferenças conferidas)' : ''}`);
         } catch (e) { falhas.push({ item: l.it.nome, motivo: e.message }); }
       }
       fechar();
-      ui.resultado({ titulo: `Nota ${nf.numero}: bens incluídos`, sucesso: sucesso.concat(avisos), falhas });
+      ui.resultado({ titulo: `Nota ${nf.numero}: ${paraControle.length ? 'bens e itens de controle incluídos' : 'bens incluídos'}`, sucesso: sucesso.concat(avisos), falhas });
       VP.app.ir('#bens/' + (GRUPO_DO_TIPO[tipo] === 'frota' ? 'moveis' : GRUPO_DO_TIPO[tipo]));
     } }] });
   };
@@ -708,7 +741,7 @@
     for (let i = 0; i < (v.quantidade || 1); i++) {
       const pl = plaqueta ? String(plaqueta + i) : String(1000 + codigo);
       const b = {
-        id: u.id(), codigo, plaqueta: pl, plaquetaAnterior: '', tipo: v.tipo || dc.tipoBem || grupo?.tipoBem || 'movel', status: 'ativo', estado: Number(v.estado || 5),
+        id: u.id(), codigo, plaqueta: pl, plaquetaAnterior: '', tipo: v.tipo || dc.tipoBem || grupo?.tipoBem || 'movel', status: 'ativo', estado: Number(v.estado || 7),
         descricao: v.descricao, complemento: v.complemento || v.descricao, produtoId: v.produtoId || '', classificacaoId: v.classificacaoId,
         unidadeId: v.unidadeId || '', localizacao: v.localizacao || '', responsavelId: v.responsavelId || unidade?.responsavelId || '', responsaveisAdicionais: [],
         dataAquisicao: v.dataAquisicao, dataIncorporacao: v.dataIncorporacao || VP.Plataforma.hoje(), situacaoAquisicao: v.situacaoAquisicao || 'Compra',
@@ -824,6 +857,13 @@
     { chave: 'observacao', rotulo: 'Observação', tipo: 'area' }],
   (b, v) => { const antes = b.status; b.status = 'ativo'; return VP.novoEvento(b.id, 'retorno', { data: v.data, descricao: (v.observacao || 'Bem voltou ao uso') + ` (estava: ${L.status[antes]})` }); },
   { filtro: (b) => (b.status === 'ativo' ? 'Já está em uso' : null) });
+  // Inservível (livro de controle patrimonial): não serve mais para a unidade, mas pode ser vendido, doado ou transferido
+  A.inservivel = acaoSimples('Declarar inservível', [
+    { chave: 'motivo', rotulo: 'Por que não serve mais', tipo: 'select', opcoes: [['Ocioso', 'Ocioso (em condições de uso, sem aproveitamento)'], ['Antieconômico', 'Antieconômico (manutenção cara ou rendimento baixo)'], ['Irrecuperável', 'Irrecuperável (conserto não compensa)'], ['Obsoleto', 'Obsoleto']], obrigatorio: true },
+    { chave: 'data', rotulo: 'Data', tipo: 'data', padrao: VP.Plataforma.hoje(), obrigatorio: true },
+    { chave: 'laudo', rotulo: 'Laudo / parecer (número ou observação)', tipo: 'area' }],
+  (b, v) => { const antes = b.status; b.status = 'inservivel'; return VP.novoEvento(b.id, 'inservivel', { data: v.data, descricao: `Declarado inservível: ${v.motivo}${v.laudo ? ' · ' + v.laudo : ''} (estava: ${L.status[antes]})`, extra: { motivo: v.motivo, laudo: v.laudo || '' } }); },
+  { filtro: (b) => (b.status === 'inservivel' ? 'Já está como inservível' : null) });
   A.vistoria = acaoSimples('Vistoria', [
     { chave: 'estado', rotulo: 'Estado encontrado', tipo: 'select', opcoes: Object.entries(L.estados).reverse(), obrigatorio: true },
     { chave: 'data', rotulo: 'Data', tipo: 'data', padrao: VP.Plataforma.hoje(), obrigatorio: true },

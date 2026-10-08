@@ -147,7 +147,7 @@
         const erro = (t) => { d.querySelector('.erro-form').textContent = t; return false; };
         const desc = d.querySelector('[data-mat-desc]').value.trim(), cl = d.querySelector('[data-mat-classe]').value, un = d.querySelector('[data-mat-unidade]').value, data = d.querySelector('[data-mat-data]').value, valor = u.num(d.querySelector('[data-mat-valor-aq]').value);
         if (!desc || !cl || !un || !data || !(valor > 0)) return erro('Preencha descrição, classificação, unidade, data e valor.');
-        const { bens, eventos } = VP.montarBens({ tipo: 'imovel', descricao: desc, complemento: desc, classificacaoId: cl, unidadeId: un, dataAquisicao: data, valor, estado: 4, quantidade: 1, situacaoAquisicao: 'Compra', origemTexto: 'cadastro pela matrícula (PDF)' });
+        const { bens, eventos } = VP.montarBens({ tipo: 'imovel', descricao: desc, complemento: desc, classificacaoId: cl, unidadeId: un, dataAquisicao: data, valor, estado: 5, quantidade: 1, situacaoAquisicao: 'Compra', origemTexto: 'cadastro pela matrícula (PDF)' });
         const b = bens[0];
         b.tipo = VP.dadosDaClassificacao(cl).tipoBem === 'infraestrutura' ? 'infraestrutura' : 'imovel';
         b.imovel = { situacaoRegistro: d.querySelector('[data-mat-sit]').value };

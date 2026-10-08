@@ -132,10 +132,16 @@ function ligarFotos(estado) {
   });
 }
 
+// Estado de conservação: escala do livro de controle patrimonial + "Novo" (8 Novo … 1 Imprestável)
+const ESTADOS_NOMES = ['Novo', 'Ótimo', 'Muito bom', 'Bom', 'Regular', 'Ruim', 'Péssimo', 'Imprestável'];
+const ESTADOS = { 8: 'Novo', 7: 'Ótimo', 6: 'Muito bom', 5: 'Bom', 4: 'Regular', 3: 'Ruim', 2: 'Péssimo', 1: 'Imprestável' };
+const ESCALA_ANTIGA = { 6: 'Novo', 5: 'Ótimo', 4: 'Bom', 3: 'Regular', 2: 'Ruim', 1: 'Péssimo' }; // registros feitos antes de 08/10/2026
+const nomeEstado = (d) => (Number(d.escala) === 8 ? ESTADOS : ESCALA_ANTIGA)[d.estado] || `estado ${d.estado}`;
+
 // Escala de botões (ex.: estado de conservação 1 a 5)
-function escala(id, valores, rotulos) {
-  return `<div class="escala" id="${id}" role="group">` +
-    valores.map((v, i) => `<button type="button" data-valor="${v}" aria-pressed="false" title="${esc(rotulos ? rotulos[i] : v)}">${esc(v)}</button>`).join('') +
+function escala(id, valores, rotulos, comNome = false) {
+  return `<div class="escala${comNome ? ' com-nome' : ''}" id="${id}" role="group">` +
+    valores.map((v, i) => `<button type="button" data-valor="${v}" aria-pressed="false" title="${esc(rotulos ? rotulos[i] : v)}">${comNome ? esc(rotulos[i]) : esc(v)}</button>`).join('') +
     '</div>';
 }
 function ligarEscala(id) {
@@ -238,7 +244,7 @@ Telas.bens = async () => {
         <label for="unidade">Onde o bem está agora</label>
         <select id="unidade">${opcoesUnidades()}</select>
         <label>Estado de conservação</label>
-        ${escala('estado', ['1', '2', '3', '4', '5', '6'], ['Péssimo', 'Ruim', 'Regular', 'Bom', 'Ótimo', 'Novo'])}
+        ${escala('estado', ['8', '7', '6', '5', '4', '3', '2', '1'], ESTADOS_NOMES, true)}
         <p class="ajuda">1 = péssimo · 2 = ruim · 3 = regular · 4 = bom · 5 = ótimo · 6 = novo (sem uso)</p>
         <label for="obs">Observação</label>
         <textarea id="obs" placeholder="Opcional"></textarea>
@@ -294,7 +300,7 @@ Telas.bens = async () => {
           unidadeCadastro: b.unidade || '', unidade,
           foraDoLocal: !!b.unidade && b.unidade !== unidade,
           movidoDuranteInventario: estado.movido,
-          estado: valorEscala('estado'), observacao: $('#obs').value.trim()
+          estado: valorEscala('estado'), escala: 8, observacao: $('#obs').value.trim()
         });
         ir('bens');
       });
@@ -454,7 +460,7 @@ Telas.viagem = async () => {
 function resumo(r) {
   const d = r.dados;
   switch (r.tipo) {
-    case 'bem': return `Plaqueta ${d.plaqueta}${d.descricao ? ' — ' + d.descricao : ''} · ${nomeUnidade(d.unidade)} · estado ${d.estado}` +
+    case 'bem': return `Plaqueta ${d.plaqueta}${d.descricao ? ' — ' + d.descricao : ''} · ${nomeUnidade(d.unidade)} · ${esc(nomeEstado(d))}` +
       (d.semCadastro ? ' · sem cadastro' : '') + (d.foraDoLocal ? ` · fora do local (cadastro: ${nomeUnidade(d.unidadeCadastro)})` : '');
     case 'abastecimento': return `${d.placa} · ${d.litros} L de ${d.combustivel} · R$ ${d.valor.toFixed(2).replace('.', ',')} · km ${d.km}` +
       (d.kmPorLitro ? ` · ${String(d.kmPorLitro).replace('.', ',')} km/L` : '') + (d.alertas ? ' · COM AVISO' : '');
@@ -602,7 +608,7 @@ function baixar(nome, conteudo, tipo) {
 const ROTULOS = {
   plaqueta: 'Plaqueta', descricao: 'Descrição', semCadastro: 'Sem cadastro', unidadeCadastro: 'Unidade no cadastro',
   unidade: 'Unidade onde foi encontrado', foraDoLocal: 'Fora do local', movidoDuranteInventario: 'Movido durante o inventário',
-  estado: 'Estado de conservação', observacao: 'Observação',
+  estado: 'Estado de conservação', escala: 'Escala do estado (8 níveis)', observacao: 'Observação',
   placa: 'Placa', tipoVeiculo: 'Tipo do veículo', motorista: 'Motorista', km: 'Quilometragem', litros: 'Litros', valor: 'Valor (R$)',
   combustivel: 'Combustível', posto: 'Posto', tanqueCheio: 'Tanque cheio', explicacao: 'Explicação do aviso', alertas: 'Avisos',
   kmAnterior: 'Quilometragem anterior', kmRodado: 'Km rodados', kmPorLitro: 'Km por litro', precoLitro: 'Preço do litro',

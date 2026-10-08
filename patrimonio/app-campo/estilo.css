@@ -80,6 +80,8 @@ textarea { min-height: 80px; resize: vertical; }
   flex: 1; min-height: 48px; font: inherit; border-radius: 10px; border: 1px solid var(--borda);
   background: var(--cartao); color: var(--texto); cursor: pointer;
 }
+.escala.com-nome { display: grid; grid-template-columns: repeat(4, 1fr); }
+.escala.com-nome button { font-size: 14px; padding: 4px; }
 .escala button[aria-pressed="true"] { background: var(--primaria); color: var(--primaria-texto); border-color: var(--primaria); font-weight: 700; }
 .ajuda { font-size: 14px; color: var(--suave); margin: 4px 0 0; }
 .alerta { background: var(--alerta-fundo); color: var(--texto); border-left: 4px solid var(--alerta); border-radius: 8px; padding: 12px; margin: 12px 0; }

@@ -108,8 +108,9 @@ VP.u = {
 // ---------------------------------------------------------------------------
 VP.LISTAS = {
   tiposBem: { movel: 'Bem móvel', imovel: 'Bem imóvel', veiculo: 'Veículo', intangivel: 'Intangível (software, licença)', infraestrutura: 'Infraestrutura (ruas, redes, pontes)' },
-  status: { ativo: 'Em uso', desuso: 'Em desuso', cedido: 'Fora (cedido/emprestado)', manutencao: 'Em conserto', baixado: 'Baixado' },
-  estados: { 6: 'Novo', 5: 'Ótimo', 4: 'Bom', 3: 'Regular', 2: 'Ruim', 1: 'Péssimo' },
+  status: { ativo: 'Em uso', desuso: 'Em desuso', inservivel: 'Inservível', cedido: 'Fora (cedido/emprestado)', manutencao: 'Em conserto', baixado: 'Baixado' },
+  // Escala do livro de controle patrimonial + "Novo". 1 = Imprestável (vai para baixa).
+  estados: { 8: 'Novo', 7: 'Ótimo', 6: 'Muito bom', 5: 'Bom', 4: 'Regular', 3: 'Ruim', 2: 'Péssimo', 1: 'Imprestável' },
   situacoesAquisicao: ['Compra', 'Doação recebida', 'Cessão recebida', 'Permuta', 'Construção / obra', 'Desapropriação', 'Dação em pagamento', 'Loteamento (área pública)', 'Saldo inicial'],
   metodos: { linear: 'Cotas constantes (linear)', somaDigitos: 'Soma dos dígitos', unidades: 'Unidades produzidas' },
   tiposBaixa: ['Inservível', 'Alienação (leilão)', 'Doação', 'Furto / roubo', 'Extravio', 'Sinistro', 'Permuta', 'Fim da vida útil'],
@@ -124,6 +125,7 @@ VP.LISTAS = {
     estorno: { nome: 'Estorno', grupo: 'financeiro' },
     transferencia: { nome: 'Transferência', grupo: 'fisico' },
     desuso: { nome: 'Desuso', grupo: 'fisico' },
+    inservivel: { nome: 'Declarado inservível', grupo: 'fisico' },
     retorno: { nome: 'Volta ao uso', grupo: 'fisico' },
     saida_externa: { nome: 'Saída externa', grupo: 'fisico' },
     vistoria: { nome: 'Vistoria', grupo: 'registro' },
@@ -182,7 +184,8 @@ VP.CONFIG_PADRAO = {
   avisoSeguroIntervalo: 7,
   avisoGarantiaDias: 30,
   reavaliacaoAnos: 4,
-  limiteControle: 300, // itens de controle: valor abaixo do qual o bem pode ser só controlado (fora do balancete) — [A conferir] base legal
+  limiteControle: 300, // itens de controle: valor até o qual o bem pode ser só controlado (fora do balancete) — regra local, ajustável
+  limiteControleMeses: 24, // …e vida útil até este número de meses. Passou de um dos dois limites: tem plaqueta (regra de Rio do Sul, 08/10/2026)
   avisoImovelDias: 60, // documentos e cessões de imóveis: avisar com esta antecedência
   // Usuário de demonstração (para "minha responsabilidade")
   usuarioResponsavelId: ''
@@ -201,8 +204,10 @@ VP.COLECOES = ['bens', 'eventos', 'unidades', 'responsaveis', 'classificacoes', 
   'documentosImovel', 'cessoesImovel', 'pendenciasImovel',
   // Exportar e importar (planilhas)
   'importacoesPlanilha', 'importacoesAnexos',
-  // Itens de controle (fora do balancete)
-  'bensControle',
+  // Itens de controle (fora do balancete) e o classificador (vida útil dos itens e decisões guardadas)
+  'bensControle', 'vidaUtilItens', 'decisoesItens',
+  // Baixa em lote (leilão)
+  'lotesBaixa',
   // Manutenção, vistorias e equipes (etapa 6)
   'chamados', 'planosPreventiva', 'vistoriasPat', 'equipes',
   // Frota, segunda parte
@@ -275,6 +280,68 @@ VP.db = {
     await new Promise((ok) => { t.oncomplete = ok; });
     for (const c of VP.COLECOES) this.dados[c] = new Map();
   }
+};
+
+// ---------------------------------------------------------------------------
+// Escala de estado: até 08/10/2026 era de 6 níveis (6 Novo … 1 Péssimo); agora são 8 (8 Novo … 1 Imprestável).
+// Os dados antigos são convertidos UMA vez só (marca em meta/escalaEstados). O valor anterior fica guardado no próprio registro.
+// ---------------------------------------------------------------------------
+VP.ESCALA_ANTIGA_PARA_NOVA = { 6: 8, 5: 7, 4: 5, 3: 4, 2: 3, 1: 2 };
+VP.estadoDaEscalaAntiga = (n) => VP.ESCALA_ANTIGA_PARA_NOVA[Number(n)] || null;
+// Registro do aplicativo de campo: os novos trazem escala 8; os antigos (sem escala) são convertidos ao ler
+VP.estadoDoCampo = (d) => (d?.estado == null || d.estado === '' ? null : Number(d.escala) === 8 ? Number(d.estado) : VP.estadoDaEscalaAntiga(d.estado));
+VP.converterEscalaEstados = async ({ gravar = true } = {}) => {
+  if (Number(VP.db.pega('meta', 'escalaEstados')?.versao) >= 2) return null;
+  const conv = (n) => VP.estadoDaEscalaAntiga(n);
+  const mapa = { bens: [], bensControle: [], inventarios: [], eventos: [] };
+  for (const col of ['bens', 'bensControle']) {
+    for (const x of VP.db.lista(col, true)) {
+      const novo = conv(x.estado);
+      if (!novo || x.escalaAntiga) continue; // já convertido antes: não converte de novo
+      x.escalaAntiga = { estado: x.estado, convertidoEm: VP.Plataforma.hoje() };
+      x.estado = novo;
+      mapa[col].push(x);
+    }
+  }
+  for (const inv of VP.db.lista('inventarios', true)) {
+    let mudou = false;
+    for (const l of Object.values(inv.leituras || {})) {
+      const novo = conv(l.estado);
+      if (novo && l.estadoEscalaAntiga == null) { l.estadoEscalaAntiga = l.estado; l.estado = novo; mudou = true; }
+    }
+    if (mudou) mapa.inventarios.push(inv);
+  }
+  for (const e of VP.db.lista('eventos', true)) {
+    const novo = conv(e.dados?.estado);
+    if (novo && e.dados.estadoEscalaAntiga == null) { e.dados.estadoEscalaAntiga = e.dados.estado; e.dados.estado = novo; mapa.eventos.push(e); }
+  }
+  const qtd = Object.fromEntries(Object.entries(mapa).map(([k, v]) => [k, v.length]));
+  if (gravar) {
+    for (const k of Object.keys(mapa)) if (!mapa[k].length) delete mapa[k];
+    await VP.db.gravarVarias(Object.assign(mapa, { meta: [{ id: 'escalaEstados', versao: 2, convertidoEm: VP.Plataforma.agoraISO(), quantidade: qtd, regra: 'antiga→nova: 6→8, 5→7, 4→5, 3→4, 2→3, 1→2' }] }));
+  }
+  return qtd;
+};
+
+// "Demais bens" (tabela de vida útil do livro de controle patrimonial): usada pelos bens importados "A classificar",
+// para nenhum bem ficar sem depreciar enquanto não é classificado (decisão do usuário, 08/10/2026)
+VP.DEMAIS_BENS = {
+  movel: { vidaUtilMeses: 84, residualPct: 10 },
+  imovel: { vidaUtilMeses: 360, residualPct: 30 },
+  veiculo: { vidaUtilMeses: 120, residualPct: 30 },
+  infraestrutura: { vidaUtilMeses: 1200, residualPct: 80 }
+};
+// Classificações "A classificar" criadas antes de 08/10/2026 não depreciavam: passam a depreciar como "Demais bens".
+// O que estava antes fica guardado na própria classificação.
+VP.corrigirAClassificar = async ({ gravar = true } = {}) => {
+  const lista = VP.db.lista('classificacoes', true).filter((c) => c.aClassificar && c.naoDeprecia);
+  for (const c of lista) {
+    const dm = VP.DEMAIS_BENS[c.tipoBem] || VP.DEMAIS_BENS.movel;
+    c.antesDemaisBens = { naoDeprecia: c.naoDeprecia, vidaUtilMeses: c.vidaUtilMeses, residualPct: c.residualPct, alteradoEm: VP.Plataforma.hoje() };
+    Object.assign(c, { naoDeprecia: false, vidaUtilMeses: dm.vidaUtilMeses, residualPct: dm.residualPct });
+  }
+  if (gravar && lista.length) await VP.db.gravar('classificacoes', lista);
+  return lista.length;
 };
 
 VP.config = () => Object.assign({}, VP.CONFIG_PADRAO, (VP.db.pega('meta', 'config') || {}).valores || {});

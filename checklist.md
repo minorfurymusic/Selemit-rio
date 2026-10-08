@@ -223,7 +223,9 @@ Explicado no `manual.md` (raiz), seções 1 a 5. Plano aprovado: exportar e impo
     - Mudança de regra: bem novo sem classificação agora entra em "A classificar" (antes era erro).
 - [ ] Os 5 códigos repetidos no relatório do sistema atual (22945, 23284, 23291, 23294, 23296): conferir no sistema atual qual é o certo.
 - [ ] Nomes dos 159 centros de custo: o relatório traz só o código. Importar a lista de nomes (Cadastros → Unidades), ou corrigir à mão.
+  - 08/10/2026: importação de nomes pronta (`manual.md` 2.6). A lista enviada (Relatorio_1.csv) tem 140 centros e cobre 62 dos códigos do relatório de bens; **faltam os nomes de cerca de 96 códigos** (47 deles têm o código "pai" na lista). Falta a lista completa.
 - [ ] Classificar os bens importados (hoje em "A classificar", sem depreciação). Precisa da tabela de classificação e vida útil do município.
+  - 08/10/2026 (decisão do usuário): "A classificar" agora **deprecia como "Demais bens"** (tabela do livro). Continua pendente classificar de verdade.
 - [ ] **[A conferir]** Base legal e valor do limite dos itens de controle (Portaria STN 448/2002, MCASP, norma do município). Validar com a contabilidade.
 - [ ] Matrícula **escaneada** (imagem): ler exige reconhecimento de texto (OCR). Hoje o sistema avisa e pede para digitar.
 - [ ] Leitura da matrícula: as regras de texto foram testadas só com PDF fictício. Testar com matrículas reais de 2 ou 3 cartórios (fora do repositório, sem dados pessoais) e ajustar.
@@ -232,6 +234,33 @@ Explicado no `manual.md` (raiz), seções 1 a 5. Plano aprovado: exportar e impo
   - fotos são reduzidas e viram JPEG ao entrar no sistema (o .zip sai com .jpg);
   - anexo até 10 MB;
   - listas em formato de lista (não tabela), como "para resolver" dos imóveis, não têm botão próprio: os mesmos dados saem pelas listas de documentos, cessões, pendências e demonstrativo.
+
+## Pedido de 08/10/2026 (2) — livro de controle patrimonial, centros de custo, leilão e classificador
+
+Explicado no `manual.md` (2.5, 2.6, 2.7, 4, 4.1, 7 e 8) e no `DOSSIE.md` (seção A6, v1.13). A pesquisa de norma de SC pela internet (agente) **falhou**: 13 páginas bloqueadas pela rede deste ambiente; nada foi confirmado em fonte oficial.
+- [x] **"A classificar" deprecia como "Demais bens"** (móveis 84 meses/10%, imóveis 360/30%, veículos 120/30%, domínio público 1.200/80%). As classificações antigas sem depreciação são corrigidas ao abrir o sistema (o anterior fica guardado).
+- [x] **Escala de estado de 8 níveis** (Novo, Ótimo, Muito bom, Bom, Regular, Ruim, Péssimo, Imprestável), com conversão **única** dos dados antigos (marca `meta/escalaEstados`; valor antigo guardado no registro) em bens, itens de controle, vistorias, inventários e registros do app de campo. App de campo com 8 botões com nome (cache v8).
+- [x] **"Inservível" virou situação** (botão na ficha e na lista, filtro, pendência, importação). **"Imprestável"**: aviso na ficha com "Iniciar baixa" e pendência.
+- [x] **Regra do item de controle**: plaqueta se vida útil > 24 meses **ou** valor > R$ 300; item de controle só se até 24 meses **e** até R$ 300. Os dois limites em Configurações.
+- [x] **Classificador**: lista "Vida útil dos itens" (91 itens iniciais, sugestão do sistema, editável) e "Decisões guardadas" em Cadastros; sugestão com motivo na nota fiscal (campo "Vai para" por item; itens de controle vão para Itens de controle com a quantidade da nota), na importação por planilha (só bens novos sem plaqueta) e no Novo bem. A pessoa sempre decide; a decisão vira a sugestão da próxima vez.
+- [x] **Importar nomes de centros de custo** (só código + nome; colunas de servidores não são lidas): prévia novo/renomear/igual/conflito, resultado e desfazer. Arquivo real, só no ambiente de teste e fora do repositório: 140 centros lidos e gravados; **0 nomes e 0 matrículas de servidores** encontrados no banco depois (344 nomes e 325 matrículas no arquivo).
+- [x] **Baixa em lote (leilão)**: menu "Baixa em lote"; lote em montagem (editável), incluir por plaqueta, "todos os inservíveis" ou pela lista de bens; valor arrematado; ata (foto ou PDF) obrigatória; confirmar → bens baixados, nunca apagados, com o lote no histórico; termo de baixa; lote pode ir para a Lixeira antes de confirmar.
+- [x] Testes novos (fictícios): escala e classificador `TUDO PASSOU` (29), centros de custo `TUDO PASSOU` (11), baixa em lote `TUDO PASSOU` (16).
+  - Regressão do Patrimônio do zero (08/10/2026), depois de todas as mudanças:
+
+    | Teste | Resultado |
+    |---|---|
+    | Gestão | 34 passou, 0 falhou (`TODOS PASSARAM`) |
+    | App de campo | 43/0 |
+    | Exportar/importar, itens de controle, relatório do sistema atual, matrícula, novo bem, depreciação | 25, 15, 21, 11, 16, 5 — `TUDO PASSOU` |
+    | Anexos, listas simples, imóveis, manutenção, mapas, plaquetas | 16, 7, 23, 22, 16, 16 — `TUDO PASSOU` |
+    | Frota | 21/1 na 1ª rodada: o teste ainda conferia a escala antiga ("6 = Novo"); teste atualizado para 8 níveis e rodado de novo: `TUDO PASSOU` |
+    | Fumaça | `ERROS: []` |
+    | Com servidor (banco local com regras reais): patrimônio, campo, planilhas, login | 15, 3, 9, 13 — `TUDO PASSOU` |
+  - Testes antigos ajustados à regra nova: "Inservível" vira situação (antes: estado Péssimo); estado padrão do novo bem = 8; "A classificar" deprecia (antes: não depreciava).
+- [ ] Lacunas do livro para decidir depois (`DOSSIE.md` A6.4): relação carga no inventário, afetação com histórico, travar transferências durante o inventário, destino da sucata no termo de baixa, plaqueta digitada à mão não reaproveitada, assinatura de corresponsáveis, regra dos 50% da vida útil.
+- [ ] Obter os PDFs das normas citadas (IN SEA 3/2020, NTPC 004/2021 SEF/SC, anexos da Portaria STN 448/2002) para conferir [A conferir]. A rede deste ambiente bloqueia os sites do governo; o usuário pode baixar e enviar.
+- [ ] Revisar a lista inicial "Vida útil dos itens" com a regra do município (é sugestão do sistema, não norma).
 
 ## Histórico
 

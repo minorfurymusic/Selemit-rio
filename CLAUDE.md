@@ -37,6 +37,9 @@ A referência de público-alvo é a Prefeitura de Rio do Sul/SC.
 
 - (08/10/2026) **Manual de uso em `manual.md`** (raiz). Cada função nova ganha uma seção; o documento é atualizado, nunca recriado.
 - (08/10/2026) Patrimônio: **itens de controle** (baixo valor ou pouca durabilidade; padrão abaixo de R$ 300) ficam fora do balancete, sem plaqueta. Os anexos exportados e importados usam o nome `plaqueta_descricao_01.ext`.
+- (08/10/2026) Regras do **livro de controle patrimonial** (enviado pelo usuário) em `DOSSIE.md` A6. Decisões: "A classificar" **deprecia como "Demais bens"**; estado em **8 níveis** (Novo, Ótimo, Muito bom, Bom, Regular, Ruim, Péssimo, Imprestável), conversão única dos dados antigos; **"Inservível" é situação**, não estado; "Imprestável" leva à baixa.
+- (08/10/2026) **Item de controle só se vida útil até 24 meses E valor até R$ 300** (regra de Rio do Sul; os dois limites ajustáveis). O sistema **sugere** (classificador com lista de vida útil e decisões guardadas) e a pessoa sempre decide.
+- (08/10/2026) **Baixa em lote** (leilão) com ata obrigatória; bem baixado nunca é apagado. **Nomes dos centros de custo**: importar só código + nome; nunca ler nem guardar nomes ou matrículas de servidores.
 
 ## Bloqueador legal (ler antes de qualquer coisa comercial)
 
