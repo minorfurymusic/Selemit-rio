@@ -1,0 +1,7 @@
+# saídas dos testes (prints, logs, planilhas baixadas) e o programa PostgREST (baixado à parte)
+*-prints/
+prints/
+saida*.txt
+regressao-saida*.txt
+*.log
+postgrest/

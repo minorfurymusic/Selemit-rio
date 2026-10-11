@@ -277,6 +277,16 @@ Explicado no `manual.md` (2.5, 2.6, 2.7, 4, 4.1, 7 e 8) e no `DOSSIE.md` (seçã
 - [ ] **Futuro — fim da sessão por inatividade.** Hoje (deduzido pela leitura do código) a sessão não expira por tempo parado, nem na demonstração nem com o servidor.
 - [ ] Pergunta ao usuário: "Inservíveis" como **tabela especial sem depreciação e com o valor contábil congelado**? Hoje (decisão de 08/10/2026) "Inservível" é situação do bem e continua depreciando.
 
+## Como continuar numa conversa nova (11/10/2026)
+
+Os robôs de teste agora ficam no repositório, em `testes/` (só dados fictícios; ver `testes/LEIA-ME.md`). Prova: `testes/regressao.sh` rodado de dentro do repositório em 11/10/2026: 26 suítes, 0 falhas (inclui os 4 testes com servidor local). Texto para colar na conversa nova:
+
+> Projeto VitalPat, repositório minorfurymusic/Selemit-rio, branch claude/quirky-galileo-rmr246.
+> Antes de qualquer coisa: confira `git remote -v`, `git log --oneline -5` e `git status`; leia `CLAUDE.md`, `checklist.md` e `manual.md`.
+> Os testes estão em `testes/` (leia `testes/LEIA-ME.md`); rode a regressão para conferir que está tudo verde antes de mexer.
+> Pendências abertas: ver `checklist.md`. Pergunta minha em aberto: "Inservível" como tabela sem depreciação?
+> Depois me diga em 5 linhas onde paramos e espere meu pedido.
+
 ## Histórico
 
 - 23/09/2026: dossiê v1.0 criado (Cowork).

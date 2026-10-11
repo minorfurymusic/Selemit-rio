@@ -1,0 +1,20 @@
+const { chromium } = require('/opt/node22/lib/node_modules/playwright');
+const { execSync } = require('child_process');
+const simular = require('./simulador-supabase.js');
+let falhas = 0;
+const ok = (c, m) => { console.log((c ? 'PASSOU ' : 'FALHOU ') + m); if (!c) falhas++; };
+const sql = (q) => execSync(`psql -h /tmp/vitalpat-pg -p 5499 -U postgres -d s_unico -tAc "${q.replace(/"/g, '\\"')}"`).toString().trim();
+const BANCOS = { patrimonio: { url: 'https://pat-teste.supabase.co', porta: 3001, pessoas: { 'davi@ex.gov.br': { id: '00000000-0000-0000-0000-0000000000d1', senha: 'segredo123' }, 'bia@ex.gov.br': { id: '00000000-0000-0000-0000-0000000000b1', senha: 'segredo123' } } } };
+(async () => {
+  const b = await chromium.launch(); const erros = [];
+  const ctx = await b.newContext({ locale: 'pt-BR', viewport: { width: 390, height: 844 }, isMobile: true }); await simular(ctx, BANCOS);
+  const p = await ctx.newPage(); p.on('pageerror', (e) => erros.push(e.message));
+  await p.goto('http://localhost:8765/'); await p.fill('#usuario', 'davi@ex.gov.br'); await p.fill('#senha', 'segredo123'); await p.click('#entrar');
+  await p.waitForURL('**/patrimonio/app-campo/**'); await p.waitForSelector('[data-ir]');
+  ok((await p.textContent('.aviso-demo')).includes('Conectado ao servidor'), 'patrimônio: app de campo conectado (papel campo)');
+  await p.evaluate(async () => { await salvarRegistro('bem', { fotos: [], gps: null }, { plaqueta: '1001', unidade: 'U1', estado: 'bom', descricao: 'Mesa' }); });
+  await p.evaluate(() => { location.hash = 'registros'; }); await p.waitForSelector('#enviar'); await p.click('#enviar'); await p.waitForSelector('.resultado-envio');
+  ok(sql("select count(*) from patrimonio.docs where colecao='registrosCampo'") === '1' && sql("select dados->'dados'->>'plaqueta' from patrimonio.docs where colecao='registrosCampo'") === '1001', 'patrimônio: registro de inventário enviado ao banco');
+  ok(erros.length === 0, 'sem erros ' + JSON.stringify(erros));
+  console.log(falhas ? `\n${falhas} FALHA(S)` : '\nTUDO PASSOU'); await b.close(); process.exit(falhas ? 1 : 0);
+})();
