@@ -181,6 +181,7 @@
   // Monta um item de controle sem gravar (nota fiscal e importação de bens mandam para cá o que a pessoa escolheu)
   C.montar = (v, codigo, texto) => {
     const x = { id: u.id(), codigo, descricao: v.descricao, quantidade: v.quantidade || 1, valorUnitario: v.valorUnitario || 0, unidadeId: v.unidadeId || '', localizacao: v.localizacao || '', responsavelId: v.responsavelId || VP.db.pega('unidades', v.unidadeId)?.responsavelId || '', dataEntrada: v.dataEntrada || hoje(), vidaUtilAnos: v.vidaUtilAnos || null, estado: Number(v.estado || 8), fornecedorId: v.fornecedorId || '', nf: v.nf || {}, observacao: v.observacao || '', situacao: 'ativo', fotos: [], anexos: [], historico: [], criadoEm: VP.Plataforma.agoraISO() };
+    if (v.centroCustoPendente) x.centroCustoPendente = v.centroCustoPendente;
     hist(x, texto);
     return x;
   };

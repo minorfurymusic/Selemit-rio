@@ -390,3 +390,6 @@ body.papel-consulta [data-nova-equipe], body.papel-campo [data-nova-equipe], bod
 .destino-item small { flex: 1 1 260px; color: var(--suave); overflow-wrap: anywhere; }
 .s-inservivel { color: #a35a00; }
 .item-nf.vai-controle .item-nf-classe { display: none; }
+.tabela-unir tr.difere td, .tabela-unir tr.difere th { background: color-mix(in srgb, #a35a00 10%, transparent); }
+.tabela-unir td label { display: flex; gap: 6px; align-items: flex-start; }
+.paginador { align-items: center; }

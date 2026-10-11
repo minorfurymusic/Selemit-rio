@@ -5,7 +5,7 @@
   const esc = VP.u.esc;
 
   const MENU = [
-    ['painel', 'Painel', '◧'], ['bens/moveis', 'Bens móveis', '▦'], ['bens/imoveis', 'Bens imóveis', '⌂'], ['frota', 'Frota', '⛟'], ['controle', 'Itens de controle', '◫'], ['entradas', 'Entradas', '⇩'], ['transferencias', 'Transferências', '⇄'], ['baixa-lote', 'Baixa em lote', '⊟'],
+    ['painel', 'Painel', '◧'], ['bens/moveis', 'Bens móveis', '▦'], ['bens/imoveis', 'Bens imóveis', '⌂'], ['frota', 'Frota', '⛟'], ['controle', 'Itens de controle', '◫'], ['entradas', 'Entradas', '⇩'], ['transferencias', 'Transferências', '⇄'], ['baixa-lote', 'Baixa em lote', '⊟'], ['termos', 'Termos', '✍'],
     ['inventario', 'Inventário', '☑'], ['manutencao', 'Manutenção', '⚒'], ['financeiro/fechamento', 'Financeiro', '＄'], ['relatorios', 'Relatórios', '▤'],
     ['historico', 'Histórico', '◷'], ['cadastros/unidades', 'Cadastros', '☰'], ['configuracoes', 'Configurações', '⚙'], ['planilhas', 'Exportar e importar', '⇅'], ['lixeira', 'Lixeira', '🗑']
   ];

@@ -160,7 +160,7 @@
 
   VP.textoBusca = (b) => {
     if (!b._busca) {
-      b._busca = u.normalizar([b.codigo, b.plaqueta, b.plaquetaAnterior, b.descricao, b.complemento,
+      b._busca = u.normalizar([b.codigo, b.plaqueta, b.plaquetaAnterior, ...(b.plaquetasAnteriores || []).map((a) => a.plaqueta), b.descricao, b.complemento,
         VP.nome('unidades', b.unidadeId), VP.nome('responsaveis', b.responsavelId), b.localizacao,
         b.detalhes?.marca, b.detalhes?.modelo, b.detalhes?.serie, b.veiculo?.placa, b.endereco?.logradouro, b.endereco?.bairro].join(' | '));
     }
@@ -173,7 +173,10 @@
     if (!f.baixados) lista = lista.filter((b) => b.status !== 'baixado');
     if (f.busca) {
       const faixa = u.faixas(f.busca);
-      if (faixa) lista = lista.filter((b) => faixa(b.codigo));
+      const umNumero = /^\s*\d+\s*$/.test(f.busca) ? String(f.busca).trim() : null;
+      // um número sozinho: código, plaqueta atual ou plaqueta anterior (com 35 mil bens importados, código e plaqueta não coincidem)
+      if (umNumero) lista = lista.filter((b) => String(b.codigo) === umNumero || String(b.plaqueta) === umNumero || String(b.plaquetaAnterior || '') === umNumero || (b.plaquetasAnteriores || []).some((a) => String(a.plaqueta) === umNumero));
+      else if (faixa) lista = lista.filter((b) => faixa(b.codigo));
       else {
         const termos = u.normalizar(f.busca).split(/\s+/).filter(Boolean);
         lista = lista.filter((b) => { const t = VP.textoBusca(b); return termos.every((x) => t.includes(x)); });
@@ -213,6 +216,9 @@
     const aClassificar = new Set(VP.db.lista('classificacoes').filter((c) => c.aClassificar).map((c) => c.id));
     if (aClassificar.size) add('a-classificar', 'atencao', 'Bens importados a classificar (depreciando como "Demais bens" até classificar)', bens.filter((b) => aClassificar.has(b.classificacaoId)).length, '#bens', 'Na lista de bens, filtre pela classificação "A classificar" e use a edição em lote.');
     const limiteSeguro = u.somaDias(hoje, cfg.avisoSeguroDias);
+    const semCentro = bens.filter((b) => b.centroCustoPendente).length + VP.db.lista('bensControle').filter((x) => x.centroCustoPendente && x.situacao !== 'baixado').length;
+    add('sem-centro-custo', 'critico', 'Bens sem centro de custo (código não cadastrado na importação)', semCentro, '#centros-pendentes', 'Ligue cada código a uma unidade (ou cadastre a unidade com esse código).');
+    if (VP.termos) { const ag = VP.termos.lista().filter((t) => t.situacao === 'aguardando'); const venc = ag.filter(VP.termos.vencido); add('termos-vencidos', 'critico', 'Termos de responsabilidade vencidos (não voltaram assinados no prazo)', venc.length, '#termos?situacao=vencidos'); add('termos-aguardando', 'atencao', 'Termos de responsabilidade aguardando assinatura', ag.length - venc.length, '#termos'); }
     add('imprestaveis', 'critico', 'Bens imprestáveis aguardando baixa', bens.filter((b) => Number(b.estado) === 1).length, '#bens?estado=1', 'Bem em estado "Imprestável" não tem conserto: abra a ficha e use "Iniciar baixa".');
     add('inserviveis', 'info', 'Bens inservíveis disponíveis (para leilão, doação ou transferência)', bens.filter((b) => b.status === 'inservivel').length, '#bens?status=inservivel');
     add('lotes-baixa', 'info', 'Lotes de baixa em montagem (falta confirmar)', VP.db.lista('lotesBaixa').filter((l) => l.situacao === 'rascunho').length, '#baixa-lote');
@@ -345,5 +351,34 @@
     return evs.length;
   };
 
+  // Plaquetas em uso (bens ativos, baixados, na Lixeira e plaquetas anteriores): nenhuma é reaproveitada.
+  // A plaqueta automática é a maior já usada + 1 (pula as que existirem). extras: plaquetas que ainda vão entrar (ex.: linhas da planilha).
+  VP.contextoPlaquetas = (extras = []) => {
+    const usadas = new Set();
+    let max = 1000;
+    const add = (p) => { if (p == null || p === '') return; const s = String(p).trim(); usadas.add(s); const n = Number(s); if (Number.isInteger(n) && n > max && n < 1e9) max = n; };
+    for (const b of VP.db.lista('bens', true)) { add(b.plaqueta); add(b.plaquetaAnterior); for (const a of b.plaquetasAnteriores || []) add(a.plaqueta); }
+    extras.forEach(add);
+    return {
+      usadas,
+      emUso: (p) => usadas.has(String(p).trim()),
+      proxima() { let n = max + 1; while (usadas.has(String(n))) n++; max = n; usadas.add(String(n)); return String(n); },
+      reservar(p) { add(p); }
+    };
+  };
+  // Plaquetas anteriores do bem (registro com data e motivo; inclui o campo antigo "plaqueta anterior")
+  VP.plaquetasAnteriores = (b) => {
+    const l = (b.plaquetasAnteriores || []).slice();
+    if (b.plaquetaAnterior && !l.some((a) => String(a.plaqueta) === String(b.plaquetaAnterior))) l.unshift({ plaqueta: b.plaquetaAnterior, data: '', motivo: 'Registrada antes (campo "Plaqueta anterior")' });
+    return l;
+  };
+  // Registra uma plaqueta no histórico de plaquetas do bem (nunca apaga)
+  VP.registrarPlaquetaAnterior = (b, dados) => {
+    b.plaquetasAnteriores = VP.plaquetasAnteriores(b).concat([Object.assign({ data: VP.Plataforma.hoje(), usuario: VP.sessao?.usuario || 'demonstração', registradoEm: VP.Plataforma.agoraISO() }, dados)]);
+    b.plaquetaAnterior = String(dados.plaqueta); // o campo antigo mostra a mais recente
+    b._busca = null;
+  };
+  // Quem usa esta plaqueta (agora ou como plaqueta anterior)
+  VP.donoDaPlaqueta = (p) => { const s = String(p).trim(); return VP.db.lista('bens', true).find((b) => String(b.plaqueta) === s || String(b.plaquetaAnterior || '') === s || (b.plaquetasAnteriores || []).some((a) => String(a.plaqueta) === s)) || null; };
   VP.proximoCodigo = () => VP.db.lista('bens', true).reduce((m, b) => Math.max(m, b.codigo || 0), 0) + 1;
 })();

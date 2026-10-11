@@ -76,6 +76,66 @@
     }
   };
 
+  // ------------------------------------------------------------------ bens que ficaram sem centro de custo
+  // A ligação código → unidade é sempre feita por uma pessoa, com confirmação. Fica no histórico de cada bem.
+  U.pendentes = () => {
+    const m = new Map();
+    for (const b of VP.db.lista('bens').filter((x) => x.centroCustoPendente && x.status !== 'baixado')) { const g = m.get(b.centroCustoPendente) || { codigo: b.centroCustoPendente, bens: [], controle: [] }; g.bens.push(b); m.set(g.codigo, g); }
+    for (const x of VP.db.lista('bensControle').filter((y) => y.centroCustoPendente && y.situacao !== 'baixado')) { const g = m.get(x.centroCustoPendente) || { codigo: x.centroCustoPendente, bens: [], controle: [] }; g.controle.push(x); m.set(g.codigo, g); }
+    return [...m.values()].sort((a, b) => a.codigo.localeCompare(b.codigo, 'pt-BR', { numeric: true }));
+  };
+  U.ligar = async (codigo, unidadeId) => {
+    const g = U.pendentes().find((x) => x.codigo === codigo); const un = VP.db.pega('unidades', unidadeId);
+    if (!g || !un) return 0;
+    const evs = [];
+    for (const b of g.bens) {
+      b.unidadeId = un.id; if (!b.responsavelId) b.responsavelId = un.responsavelId || '';
+      b.centroCustoImportado = codigo; delete b.centroCustoPendente;
+      evs.push(VP.novoEvento(b.id, 'alteracao', { descricao: `Centro de custo ${codigo} (da importação) ligado à unidade ${un.codigo} · ${un.nome}`, extra: { mudancas: [{ campo: 'Unidade', antes: `sem centro de custo (código ${codigo})`, depois: `${un.codigo} · ${un.nome}` }] } }));
+    }
+    for (const x of g.controle) {
+      x.unidadeId = un.id; x.centroCustoImportado = codigo; delete x.centroCustoPendente;
+      x.historico = (x.historico || []).concat([{ data: VP.Plataforma.agoraISO(), descricao: `Centro de custo ${codigo} ligado à unidade ${un.codigo} · ${un.nome}`, usuario: VP.sessao?.usuario || 'demonstração' }]);
+    }
+    await VP.db.gravarVarias({ bens: g.bens, eventos: evs, bensControle: g.controle });
+    return g.bens.length + g.controle.length;
+  };
+  VP.telas['centros-pendentes'] = () => {
+    const ui = VP.ui, esc = u.esc;
+    const pode = !VP.servidor?.ativo || VP.servidor.podeAlterar();
+    const lista = U.pendentes();
+    const unidades = VP.db.lista('unidades').sort((a, b) => String(a.codigo).localeCompare(String(b.codigo), 'pt-BR', { numeric: true }));
+    return {
+      titulo: 'Centros de custo pendentes',
+      html: `<p class="ajuda">Bens importados com um código de centro de custo que ainda não está cadastrado. Eles estão <b>sem centro de custo</b> (pendência grave). Para cada código, escolha a unidade certa e clique em <b>Ligar</b>, ou cadastre a unidade com esse código. Nada é ligado sozinho.</p>
+        ${lista.length ? `<div class="tabela-rolagem"><table class="tabela" data-sem-planilha><thead><tr><th>Código</th><th class="num">Bens</th><th class="num">Itens de controle</th><th>Ligar à unidade</th><th></th></tr></thead><tbody>
+        ${lista.map((g) => { const sug = unidades.find((x) => String(x.codigo) === g.codigo); return `<tr><td><b>${esc(g.codigo)}</b></td><td class="num">${u.inteiro(g.bens.length)}</td><td class="num">${u.inteiro(g.controle.length)}</td>
+          <td>${pode ? `<select data-cc-un="${esc(g.codigo)}"><option value="">Escolha…</option>${unidades.map((x) => `<option value="${esc(x.id)}" ${sug && sug.id === x.id ? 'selected' : ''}>${esc(x.codigo)} · ${esc(x.nome)}</option>`).join('')}</select>${sug ? ' <small>(mesmo código)</small>' : ''}` : ''}</td>
+          <td>${pode ? `<button class="botao pequeno primario" data-cc-ligar="${esc(g.codigo)}">Ligar</button> ${sug ? '' : `<button class="botao pequeno" data-cc-criar="${esc(g.codigo)}">Cadastrar unidade com este código</button>`}` : ''}</td></tr>`; }).join('')}
+        </tbody></table></div>` : '<p class="vazio">Nenhum bem sem centro de custo.</p>'}`,
+      ligar() {
+        document.querySelectorAll('[data-cc-ligar]').forEach((b) => b.addEventListener('click', async () => {
+          const cod = b.dataset.ccLigar; const unId = document.querySelector(`[data-cc-un="${CSS.escape(cod)}"]`).value;
+          if (!unId) return ui.aviso('Escolha a unidade.', 'erro');
+          const un = VP.db.pega('unidades', unId); const g = U.pendentes().find((x) => x.codigo === cod);
+          if (!await ui.confirmar(`Ligar <b>${g.bens.length + g.controle.length}</b> bem(ns) do código <b>${esc(cod)}</b> à unidade <b>${esc(un.codigo)} · ${esc(un.nome)}</b>?<br>Fica no histórico de cada bem. Se estiver errado, use Transferência depois.`, { sim: 'Ligar' })) return;
+          const n = await U.ligar(cod, unId);
+          ui.resultado({ titulo: 'Centro de custo ligado', sucesso: [`${u.inteiro(n)} bem(ns) do código ${cod} → ${un.codigo} · ${un.nome}`] });
+          VP.app.render();
+        }));
+        document.querySelectorAll('[data-cc-criar]').forEach((b) => b.addEventListener('click', () => ui.formulario({
+          titulo: `Cadastrar unidade ${b.dataset.ccCriar}`, largura: 'media', valores: { codigo: b.dataset.ccCriar },
+          campos: [{ chave: 'codigo', rotulo: 'Código', obrigatorio: true }, { chave: 'nome', rotulo: 'Nome do centro de custo', obrigatorio: true }],
+          salvar: async (v) => {
+            if (VP.db.lista('unidades', true).some((x) => String(x.codigo) === v.codigo)) return 'Já existe unidade com este código (veja a Lixeira).';
+            await VP.db.gravar('unidades', { id: u.id(), codigo: v.codigo, nome: v.nome, tipo: '', cidade: '', bairro: '', logradouro: '', responsavelId: '', historicoNomes: [] });
+            ui.aviso('Unidade cadastrada. Agora clique em Ligar.'); VP.app.render();
+          }
+        })));
+      }
+    };
+  };
+
   U.desfazer = (reg, grava, sucesso, falhas) => {
     const lista = [];
     for (const id of reg.unidadesNovasCC || []) {

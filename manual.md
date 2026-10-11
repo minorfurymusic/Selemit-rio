@@ -14,6 +14,8 @@ Como usar o sistema, passo a passo. Este manual vai crescer: cada função nova 
 6. [Perguntas comuns](#6-perguntas-comuns)
 7. [Estado de conservação, inservível e imprestável](#7-estado-de-conservação-inservível-e-imprestável)
 8. [Baixa em lote (leilão)](#8-baixa-em-lote-leilão)
+9. [Plaquetas: anteriores, troca e cadastros duplicados](#9-plaquetas-anteriores-troca-e-cadastros-duplicados)
+10. [Recebimento e termo de responsabilidade com prazo](#10-recebimento-e-termo-de-responsabilidade-com-prazo)
 
 ---
 
@@ -167,8 +169,12 @@ Para trazer de uma vez todos os bens do sistema que a prefeitura usa hoje (testa
      | Estado | Estado (*atualização 08/10/2026:* "Inservível" vira a **situação** do bem, não o estado — ver seção 7) |
 3. Clique em **Ver a prévia** e confira:
    - **Centros de custo**: cada código que ainda não existe vira uma **unidade nova** com o nome provisório "Centro de custo 84.003.001". Dá para ligar um código a uma unidade que já existe (uma escolha por código, não por bem). Os nomes se corrigem depois em Cadastros → Unidades.
+     - *Atualização 08/10/2026 (decisão do usuário):* código **não cadastrado não vira mais unidade provisória**. O bem entra **sem centro de custo**, guardando o código, e aparece como **pendência grave** no painel. Em **Centros de custo pendentes** (link na pendência), escolha a unidade de cada código e clique em **Ligar** (com confirmação; fica no histórico de cada bem), ou cadastre a unidade com aquele código. Nada é ligado sozinho. Dica: importe antes os nomes dos centros de custo (2.6).
    - **Classificação**: o relatório não traz. Escolha uma por grupo ou deixe **"A classificar (importação)"**. *Atualização 08/10/2026:* "A classificar" **deprecia como "Demais bens"** (tabela do livro de controle patrimonial: móveis 84 meses e 10% de valor residual, imóveis 360 e 30%, veículos 120 e 30%, domínio público 1.200 e 80%), para nenhum bem ficar sem depreciar. Classificações "A classificar" criadas antes passam a depreciar sozinhas ao abrir o sistema (o que estava antes fica guardado). A central de pendências mostra quantos faltam; classifique depois em lote pela lista de bens.
    - A grade mostra as primeiras 300 linhas. **Baixar prévia completa (Excel)** traz todas, com o motivo de cada erro.
+     - *Atualização 08/10/2026:* a prévia tem **páginas** (100, 300 ou 1.000 linhas por página; a tela mostra uma página por vez para o navegador não travar) e **filtros** por situação, **centro de custo** e tipo. Botões: **Salvar os marcados desta página** (grava só o que está na página da tela; o resto continua na prévia, e o que foi gravado aparece como "Já gravado") e **Salvar todos os marcados** (todas as páginas de uma vez, por exemplo depois de conferir tudo no Excel). Cada salvamento pode ser desfeito separadamente.
+     - A prévia fica guardada enquanto a aba estiver aberta, mesmo trocando de tela. Ela some se a página for atualizada (F5), fechada ou se a pessoa sair; aí basta escolher o arquivo de novo (nada foi gravado).
+     - Bem **sem plaqueta** no arquivo recebe a **próxima plaqueta livre** (a maior já usada + 1). Ela nunca repete uma plaqueta que já existe, nem as que estão no próprio arquivo, nem plaquetas antigas.
    - **Marcar todos os válidos** vale para o arquivo inteiro.
 4. **Importar o que está marcado**: o sistema grava em lotes, mostrando "Gravando X de Y bens…", e no fim mostra a tela de resultado. Para voltar atrás, use **Desfazer**: os bens e as unidades criadas vão para a Lixeira.
 
@@ -405,4 +411,38 @@ Com servidor, só administrador e gestor. O perfil "consulta" vê as telas, mas 
 6. **Confirmar baixa do lote**: o sistema mostra o valor contábil que sai e pede confirmação. Cada bem recebe a baixa e **sai da lista de bens em uso**, mas **nunca é apagado**: continua consultável (filtro "Mostrar baixados"), com a baixa, o lote e o valor arrematado no histórico, e a ficha mostra "Baixado no lote …". No fim, **Imprimir termo de baixa**.
 
 Venda, doação e permuta exigem **avaliação prévia e justificativa** (Lei 14.133/2021, art. 76). Imóvel não entra por lote: a baixa de imóvel é feita pela ficha, porque exige lei autorizativa. Um lote em montagem pode ir para a **Lixeira** (os bens continuam como estavam).
+
+---
+
+## 9. Plaquetas: anteriores, troca e cadastros duplicados
+
+*Novo em 08/10/2026.* Na ficha do bem, quadro **Plaquetas**:
+
+- **+ Plaqueta anterior**: registra uma plaqueta antiga do bem (por exemplo, a que caiu e foi substituída), com **data, motivo e observação**. Pode haver quantas forem preciso; nada é apagado. A plaqueta atual não muda.
+- **Trocar plaqueta**: informe a nova plaqueta e o motivo. A atual vai para o registro de plaquetas anteriores.
+- **Plaqueta nunca é reaproveitada**: o sistema recusa uma plaqueta que é (ou já foi) de outro bem, inclusive bens baixados ou na Lixeira.
+- A **busca** por um número acha o código, a plaqueta atual ou uma plaqueta antiga.
+
+**Unir cadastros (mesmo bem com duas plaquetas)** — botão **Unir cadastros** na ficha. Acontece muito: a plaqueta cai, alguém coloca outra, e no inventário descobre-se que as duas eram do mesmo bem.
+
+1. Digite a plaqueta do outro cadastro.
+2. Abre a tela de **conferência lado a lado**, dado por dado (descrição, classificação, unidade, local, responsável, estado, marca, modelo, série, data, fornecedor, nota). As diferenças aparecem em destaque. Escolha em cada linha o dado que fica e qual dos dois cadastros **continua ativo**.
+3. Escreva o **motivo** (obrigatório) e clique em **Unir e desativar o outro**.
+   - O cadastro ativo recebe os dados escolhidos, as fotos, os anexos e a plaqueta do outro no registro de plaquetas anteriores.
+   - O outro é **desativado** com a baixa "Cadastro duplicado (mesmo bem)". O valor contábil dele sai, porque o bem estava contado duas vezes. **[A conferir com a contabilidade.]**
+   - Os dois guardam no histórico que eram o mesmo bem, com o motivo. Nada é apagado.
+4. **Desfazer união**: na ficha do cadastro ativo. O outro volta ativo, com a baixa estornada, e os dados trazidos voltam ao que eram.
+
+---
+
+## 10. Recebimento e termo de responsabilidade com prazo
+
+*Novo em 08/10/2026.* Exemplo: o bem chega e Fernando recebe. Depois vai para a Saúde, no nome de João. Mais tarde muda para o CRAS, no nome de Josélia.
+
+- **Recebimento** (botão na ficha, na lista de bens com vários marcados, e o campo "Recebido por" na nota fiscal): quem recebeu, data, documento e a **foto do documento de recebimento assinado**. Fica no histórico e nos anexos do bem.
+- **Termo de responsabilidade com prazo**: quando alguém passa a ser responsável por bens (novo bem, nota fiscal, incorporação, transferência aceita ou troca do responsável na ficha), o sistema abre um termo **aguardando assinatura**. O prazo padrão é de **15 dias** (Configurações → Avisos).
+  - A ficha do bem mostra a pendência. O painel mostra "Termos aguardando assinatura" e, passado o prazo, **"Termos vencidos"** (pendência grave).
+  - Menu **Termos**: **Imprimir** o termo e, quando voltar assinado, **Anexar assinado** (foto ou PDF). A pendência fecha, e o termo assinado fica na ficha de cada bem.
+  - Se o bem muda de responsável antes da assinatura, o termo anterior fica "cancelado" (no histórico) e abre um novo para o novo responsável.
+- **Envio por e-mail (futuro):** o termo já preenchido será enviado automaticamente por e-mail ao responsável, que devolve assinado para um e-mail definido. **Ainda não está no sistema**: depende de um serviço de e-mail ligado ao servidor (decisão de 08/10/2026). Hoje o termo é impresso e entregue em mãos.
 

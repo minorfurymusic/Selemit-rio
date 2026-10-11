@@ -176,6 +176,7 @@
       ['validaEntidadeOrgao', 'bool', 'Conferir se a unidade pertence à entidade do bem', '']] },
     { secao: 'Avisos', itens: [
       ['limiteControle', 'numero', 'Item de controle: valor até (R$)', 'Item de controle (sem plaqueta, fora do balancete) só quando o valor é até este limite E a vida útil é até o limite de meses abaixo. Passou de um dos dois: patrimônio com plaqueta. O sistema só sugere; a pessoa decide. Regra local.'],
+      ['prazoTermoDias', 'numero', 'Termo de responsabilidade: prazo para devolver assinado (dias)', 'Quando alguém passa a ser responsável por bens, o sistema abre o termo com este prazo. Fica pendente até o termo assinado ser anexado.'],
       ['limiteControleMeses', 'numero', 'Item de controle: vida útil até (meses)', 'Padrão 24 meses (2 anos). A vida útil de cada item vem da lista em Cadastros → Vida útil dos itens.'],
       ['avisoSeguroDias', 'numero', 'Avisar vencimento de seguro com quantos dias de antecedência', ''],
       ['avisoSeguroIntervalo', 'numero', 'Repetir o aviso a cada quantos dias', ''],

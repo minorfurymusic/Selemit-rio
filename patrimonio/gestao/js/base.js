@@ -126,6 +126,7 @@ VP.LISTAS = {
     transferencia: { nome: 'Transferência', grupo: 'fisico' },
     desuso: { nome: 'Desuso', grupo: 'fisico' },
     inservivel: { nome: 'Declarado inservível', grupo: 'fisico' },
+    recebimento: { nome: 'Recebimento', grupo: 'registro' },
     retorno: { nome: 'Volta ao uso', grupo: 'fisico' },
     saida_externa: { nome: 'Saída externa', grupo: 'fisico' },
     vistoria: { nome: 'Vistoria', grupo: 'registro' },
@@ -185,6 +186,7 @@ VP.CONFIG_PADRAO = {
   avisoGarantiaDias: 30,
   reavaliacaoAnos: 4,
   limiteControle: 300, // itens de controle: valor até o qual o bem pode ser só controlado (fora do balancete) — regra local, ajustável
+  prazoTermoDias: 15, // termo de responsabilidade: prazo para devolver assinado (pendência até anexar)
   limiteControleMeses: 24, // …e vida útil até este número de meses. Passou de um dos dois limites: tem plaqueta (regra de Rio do Sul, 08/10/2026)
   avisoImovelDias: 60, // documentos e cessões de imóveis: avisar com esta antecedência
   // Usuário de demonstração (para "minha responsabilidade")
@@ -206,8 +208,8 @@ VP.COLECOES = ['bens', 'eventos', 'unidades', 'responsaveis', 'classificacoes', 
   'importacoesPlanilha', 'importacoesAnexos',
   // Itens de controle (fora do balancete) e o classificador (vida útil dos itens e decisões guardadas)
   'bensControle', 'vidaUtilItens', 'decisoesItens',
-  // Baixa em lote (leilão)
-  'lotesBaixa',
+  // Baixa em lote (leilão) e termos de responsabilidade com prazo
+  'lotesBaixa', 'termosResp',
   // Manutenção, vistorias e equipes (etapa 6)
   'chamados', 'planosPreventiva', 'vistoriasPat', 'equipes',
   // Frota, segunda parte

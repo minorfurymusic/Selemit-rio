@@ -39,6 +39,7 @@ Documento interno — não distribuir a terceiros
 | 1.6 | 07/10/2026 | **Etapa 2 da Gestão do Cemitério construída:** vistorias (V1–V5), triagem de possível abandono pela seção B2 (o sistema só sugere; a pessoa decide; trava de segurança para "Abandono em apuração"), ordens de serviço e app de campo ampliado. Situação dos itens do B7 registrada logo abaixo da tabela do B7. |
 | 1.7 | 07/10/2026 | **Etapa 3 da Gestão do Cemitério construída:** concessões, sepultamentos com agenda e funerárias, exumações com travas (prazo mínimo, abandono declarado, 2 testemunhas), ossário e painel de vagas. Prazos ajustáveis por município; D1 automático. Situação dos itens 7 e 8 do B7 registrada abaixo da tabela do B7. |
 | 1.8 | 07/10/2026 | **Etapa 4 da Gestão do Cemitério construída (fluxo B2-D):** processo administrativo com notificação por e-mail e WhatsApp (carta com AR opcional, pendência jurídica), aviso no túmulo, edital em lote, prazos, defesa e termo de compromisso, decisão da autoridade e dossiê. Decisão do usuário: coluna "Data" da lista de chãos = data do título de aforamento. |
+| 1.14 | 08/10/2026 | **Decisões do usuário:** código de centro de custo não cadastrado deixa o bem **sem centro de custo, com pendência grave** (sem unidade provisória); prévia da importação **com páginas e "salvar esta página"**; **plaquetas anteriores** em registro com data e motivo; **unir cadastros** do mesmo bem (conferência dado a dado, desativa o outro); **recebimento** e **termo de responsabilidade com prazo de 15 dias** (pendência até anexar o termo assinado). **Futuro (não está no código):** envio automático do termo por **e-mail** (seção A6.5) e **fim da sessão por inatividade**. Corrigidos: plaqueta automática podia repetir plaqueta importada; busca por número achava só o código. |
 | 1.13 | 08/10/2026 | **Regras do livro de controle patrimonial** (documento enviado pelo usuário) resumidas na **nova seção A6**, com as lacunas do sistema. Decisões do usuário: **"A classificar" deprecia como "Demais bens"** (nada fica sem depreciar); **escala de estado de 8 níveis** (Novo, Ótimo, Muito bom, Bom, Regular, Ruim, Péssimo, Imprestável), com "Inservível" passando a ser **situação** do bem; **item de controle só quando valor até R$ 300 E vida útil até 24 meses** (regra local, ajustável); **nomes dos centros de custo** importados só com código e nome; **baixa em lote** (leilão) com ata; **classificador** que sugere item de controle × plaqueta e aprende com as decisões. A pesquisa de norma de SC pela internet falhou (sites bloqueados neste ambiente): nada foi confirmado em fonte oficial. |
 | 1.12 | 08/10/2026 | **Importação do sistema atual** (relatório "Consulta de Bem", 35 mil bens): leitura do formato do relatório; centro de custo = unidade; valor contábil como saldo inicial (decisão do usuário: bem migrado ou transferido entra já depreciado); "A classificar" sem depreciação até classificar. |
 | 1.11 | 08/10/2026 | **Patrimônio — exportar, importar e anexos** (pedido do usuário, `manual.md`): Excel em toda exportação; importação de bens (móveis, veículos, imóveis) pelo modelo Excel com prévia e desfazer; anexos com tipo e exportação/importação em lote pelo nome `plaqueta_descricao_01`; **itens de controle** fora do balancete (limite padrão R$ 300, [A conferir] base legal); leitura da matrícula do imóvel em PDF. |
@@ -802,6 +803,17 @@ Para cada item barato (nota fiscal, planilha sem plaqueta, novo bem), o sistema 
 - Corresponsáveis com **assinatura** própria no termo.
 - Regra dos **50% da vida útil** para bens anteriores à data de corte (hoje entra o valor contábil informado).
 - Normas de SC citadas (IN SEA 3/2020, NTPC 004/2021 SEF/SC) e anexos da Portaria STN 448/2002: obter os PDFs e conferir [A conferir].
+
+### A6.5 Ciclo do bem: recebimento, responsável e termo (decisão de 08/10/2026)
+
+Exemplo do usuário: o bem é **recebido** por Fernando (foto do documento de recebimento assinado), etiquetado e enviado para a Saúde, no nome de João (centro de custo "Saúde Verdão"). Fica anexado o **termo de responsabilidade assinado** por João. Depois o bem vai para o Social, no nome de Josélia (CRAS Central), e o processo se repete. **O bem fica com pendência até a confirmação.**
+
+| Parte | Situação |
+|---|---|
+| Recebimento (quem, quando, documento, foto da assinatura) | No sistema (08/10/2026) |
+| Termo aberto ao indicar o responsável; prazo de 15 dias (ajustável); pendência até anexar o termo assinado; termo vencido = pendência grave | No sistema (08/10/2026); hoje o termo é impresso e entregue |
+| **Envio automático do termo preenchido por e-mail** ao responsável, com devolução assinada para um e-mail definido | **Futuro — não está no código.** Precisa de um serviço de e-mail ligado ao servidor (custo e configuração a decidir) |
+| Fim da sessão por inatividade (sair sozinho depois de X minutos parado) | **Futuro — não está no código** |
 
 # PARTE B — PRODUTO 2: GESTÃO DE CEMITÉRIO
 

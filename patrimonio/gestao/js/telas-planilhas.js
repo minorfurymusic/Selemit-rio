@@ -278,6 +278,7 @@
     const itens = [];
     const vistas = new Map(); // plaqueta → linha
     const porPlaqueta = new Map(VP.db.lista('bens', true).map((b) => [String(b.plaqueta).trim(), b]));
+    const porAnterior = new Map(); for (const b of VP.db.lista('bens', true)) for (const a of VP.plaquetasAnteriores(b)) porAnterior.set(String(a.plaqueta).trim(), b);
     P.cacheRef = new Map();
     s.novasUnidades = new Map(); s.ignoradas = 0; s.gruposSemClasse = new Set();
     const campo = (k) => P.CAMPOS.find((x) => x.k === k);
@@ -308,6 +309,7 @@
           else vistas.set(it.plaqueta, `${a.nome}, linha ${nLinha}`);
         }
         const existe = it.plaqueta ? porPlaqueta.get(it.plaqueta) : null;
+        if (!existe && it.plaqueta && porAnterior.has(it.plaqueta)) { const d = porAnterior.get(it.plaqueta); it.erros.push(`A plaqueta ${it.plaqueta} é uma plaqueta antiga do bem ${d.plaqueta} · ${d.descricao}. Plaqueta não é reaproveitada.`); }
         if (existe && existe.excluido) it.erros.push(`A plaqueta ${it.plaqueta} é de um bem que está na Lixeira; restaure-o antes`);
         else if (existe) {
           it.bemId = existe.id;
@@ -366,9 +368,10 @@
   };
   const pausa = () => new Promise((r) => setTimeout(r, 0));
   P.LOTE = 1000;
-  P.aplicar = async () => {
+  // soLista: só estes itens (ex.: os marcados da página na tela). A prévia continua com o resto.
+  P.aplicar = async (soLista = null) => {
     const s = st();
-    const marcados = s.previa.itens.filter((x) => x.marcado && (x.classe === 'novo' || x.classe === 'alterado'));
+    const marcados = (soLista || s.previa.itens).filter((x) => x.marcado && (x.classe === 'novo' || x.classe === 'alterado'));
     const reg = { id: u.id(), data: VP.Plataforma.agoraISO(), arquivo: s.arquivo, usuario: VP.sessao?.usuario || 'demonstração', novos: [], alterados: [], controleNovos: [], controleAlterados: [], unidadesCriadas: [], classesCriadas: [], qtd: 0 };
     const pacotes = [], sucesso = [], falhas = [];
     const prep = { unidades: [], classificacoes: [] };
@@ -380,10 +383,11 @@
       const cod = un.slice(7);
       if (idUnidade.has(cod)) continue;
       const ligada = s.ligaUnidade?.[cod];
-      if (ligada) { idUnidade.set(cod, ligada); continue; }
-      const nova = { id: u.id(), codigo: cod, nome: `Centro de custo ${cod}`, tipo: '', cidade: '', bairro: '', logradouro: '', responsavelId: '', criadaPorImportacao: true };
-      prep.unidades.push(nova); idUnidade.set(cod, nova.id); reg.unidadesCriadas.push(nova.id);
+      // Decisão do usuário (08/10/2026): código não cadastrado NÃO vira unidade provisória.
+      // O bem fica sem centro de custo, guardando o código, com pendência grave até alguém ligar o código a uma unidade.
+      idUnidade.set(cod, ligada || '');
     }
+    const semCentro = (v) => (typeof v.unidadeId === 'string' && v.unidadeId.startsWith('__nova:') && !idUnidade.get(v.unidadeId.slice(7)) ? v.unidadeId.slice(7) : '');
     const idClasse = {};
     for (const g of new Set(marcados.filter((x) => x.classePadrao).map((x) => x.classePadrao))) {
       const esc1 = s.classesPadrao?.[g] || P.ACLASSIFICAR;
@@ -398,13 +402,15 @@
     if (prep.unidades.length || prep.classificacoes.length) await VP.db.gravarVarias(prep);
     // 2) monta os bens
     let codigo = VP.proximoCodigo();
+    // plaquetas da planilha entram na conta antes: a automática nunca repete uma delas nem as que já existem
+    const ctxPl = VP.contextoPlaquetas(s.previa.itens.map((x) => x.plaqueta).filter(Boolean));
     // Linhas que a pessoa mandou para Itens de controle (sem plaqueta, fora do balancete)
     const extraC = [], sucC = [];
     let nC = VP.controle ? Number(VP.controle.proximoCodigo().replace(/\D/g, '')) : 0;
     for (const it of marcados.filter((x) => x.cj !== 'controle' && x.cj !== 'unidades' && x.analise && x.destino === 'controle')) {
       const v = it.valores;
       const unidadeId = typeof v.unidadeId === 'string' && v.unidadeId.startsWith('__nova:') ? idUnidade.get(v.unidadeId.slice(7)) : v.unidadeId;
-      const x = VP.controle.montar({ descricao: v.descricao, quantidade: 1, valorUnitario: v.valor ?? v._valorContabil, unidadeId, localizacao: v.localizacao, responsavelId: v.responsavelId, dataEntrada: v.dataAquisicao, estado: v.estado, vidaUtilAnos: it.analise.vidaUtilMeses ? Math.round(it.analise.vidaUtilMeses / 12 * 10) / 10 : null, nf: v['nf.numero'] ? { numero: v['nf.numero'] } : {} }, 'C-' + String(nC++).padStart(6, '0'), `Incluído pela importação de planilha (${s.arquivo}), aba ${it.aba}, linha ${it.linha}`);
+      const x = VP.controle.montar({ centroCustoPendente: semCentro(v),  descricao: v.descricao, quantidade: 1, valorUnitario: v.valor ?? v._valorContabil, unidadeId, localizacao: v.localizacao, responsavelId: v.responsavelId, dataEntrada: v.dataAquisicao, estado: v.estado, vidaUtilAnos: it.analise.vidaUtilMeses ? Math.round(it.analise.vidaUtilMeses / 12 * 10) / 10 : null, nf: v['nf.numero'] ? { numero: v['nf.numero'] } : {} }, 'C-' + String(nC++).padStart(6, '0'), `Incluído pela importação de planilha (${s.arquivo}), aba ${it.aba}, linha ${it.linha}`);
       extraC.push(x); reg.controleNovos.push(x.id);
       sucC.push(`Item de controle novo: ${x.codigo} · ${x.descricao}`);
     }
@@ -417,10 +423,11 @@
           const unidadeId = typeof v.unidadeId === 'string' && v.unidadeId.startsWith('__nova:') ? idUnidade.get(v.unidadeId.slice(7)) : v.unidadeId;
           const classificacaoId = v.classificacaoId || idClasse[it.classePadrao];
           const complemento = [v.complemento || v.descricao, v['detalhes.caracteristicas']].filter(Boolean).join(' — ');
-          const { bens: bb, eventos: ee } = VP.montarBens({ tipo: it.tipoBem, descricao: v.descricao, complemento, classificacaoId, unidadeId, responsavelId: v.responsavelId, localizacao: v.localizacao, dataAquisicao: v.dataAquisicao, dataIncorporacao: hoje(), valor: contabil ? v._valorContabil : v.valor, estado: v.estado || 7, situacaoAquisicao: contabil ? 'Saldo inicial' : v.situacaoAquisicao || 'Compra', fornecedorId: v.fornecedorId, quantidade: 1, origemTexto: contabil ? 'importação de outro sistema (valor contábil, já depreciado)' : 'importação por planilha' }, codigo);
+          const { bens: bb, eventos: ee } = VP.montarBens({ plaqueta: it.plaqueta || '', _plaquetaConferida: !!it.plaqueta, tipo: it.tipoBem, descricao: v.descricao, complemento, classificacaoId, unidadeId, responsavelId: v.responsavelId, localizacao: v.localizacao, dataAquisicao: v.dataAquisicao, dataIncorporacao: hoje(), valor: contabil ? v._valorContabil : v.valor, estado: v.estado || 7, situacaoAquisicao: contabil ? 'Saldo inicial' : v.situacaoAquisicao || 'Compra', fornecedorId: v.fornecedorId, quantidade: 1, origemTexto: contabil ? 'importação de outro sistema (valor contábil, já depreciado)' : 'importação por planilha' }, codigo, ctxPl);
           const b = bb[0];
           b.tipo = it.tipoBem;
           if (it.plaqueta) b.plaqueta = it.plaqueta;
+          if (semCentro(v)) { b.centroCustoPendente = semCentro(v); b.responsavelId = b.responsavelId || ''; }
           if (v.status) b.status = v.status;
           if (v._situacao) b.status = v._situacao; // "Inservível" na coluna de estado vale mais que "Disponível" na de situação
           for (const [k, x] of Object.entries(v)) if (/^(nf|origem|detalhes|veiculo|imovel|endereco)\./.test(k)) poe(b, k, x);
@@ -468,8 +475,11 @@
     for (const it of s.previa.itens.filter((x) => x.classe === 'erro')) falhas.push({ item: `${it.aba}, linha ${it.linha}${it.descricao ? ' · ' + it.descricao : ''}`, motivo: it.erros.join('; ') });
     reg.qtd = sucesso.length;
     if (sucesso.length || reg.unidadesCriadas.length) await VP.db.gravarVarias({ importacoesPlanilha: [reg] });
-    s.previa = null; s.abas = null;
-    ui.resultado({ titulo: 'Resultado da importação', sucesso, falhas, extra: (reg.unidadesCriadas.length ? `<p class="ajuda">${u.inteiro(reg.unidadesCriadas.length)} unidade(s) criada(s) pelo código do centro de custo, com nome provisório "Centro de custo …". Corrija os nomes em Cadastros → Unidades.</p>` : '') + (reg.classesCriadas.length || Object.keys(idClasse).length ? '<p class="ajuda">Bens sem classificação entraram em "A classificar (importação)", depreciando como "Demais bens" (móveis 84 meses e 10%, imóveis 360 e 30%, veículos 120 e 30%, domínio público 1.200 e 80%). Classifique-os em lote pela lista de bens (filtro por classificação → Edição em lote).</p>' : '') + (sucesso.length ? '<p class="ajuda">Se algo saiu errado, use "Desfazer" na lista de importações feitas.</p>' : '') });
+    // gravou só uma parte: a prévia continua, com o que foi gravado marcado como "Já gravado"
+    const restam = soLista ? s.previa.itens.filter((x) => (x.classe === 'novo' || x.classe === 'alterado') && !marcados.includes(x)).length : 0;
+    if (soLista && restam) { for (const x of marcados) { x.classe = 'gravado'; x.marcado = false; } }
+    else { s.previa = null; s.abas = null; }
+    ui.resultado({ titulo: 'Resultado da importação', sucesso, falhas, extra: (pacotes.some((x) => x.bem.centroCustoPendente) ? `<p class="aviso-inline">${u.inteiro(pacotes.filter((x) => x.bem.centroCustoPendente).length)} bem(ns) ficaram <b>sem centro de custo</b> (código ainda não cadastrado). É uma pendência grave: ligue cada código a uma unidade em <a href="#centros-pendentes">Centros de custo pendentes</a>.</p>` : '') + (reg.classesCriadas.length || Object.keys(idClasse).length ? '<p class="ajuda">Bens sem classificação entraram em "A classificar (importação)", depreciando como "Demais bens" (móveis 84 meses e 10%, imóveis 360 e 30%, veículos 120 e 30%, domínio público 1.200 e 80%). Classifique-os em lote pela lista de bens (filtro por classificação → Edição em lote).</p>' : '') + (sucesso.length ? '<p class="ajuda">Se algo saiu errado, use "Desfazer" na lista de importações feitas.</p>' : '') });
     return { sucesso, falhas, reg };
   };
   P.desfazer = async (reg) => {
@@ -573,7 +583,7 @@
     };
   };
 
-  const CLASSE = { novo: ['im-bom', 'Novo'], igual: ['im-neutro', 'Igual (nada muda)'], alterado: ['im-regular', 'Alterado'], erro: ['im-ruim', 'Erro'] };
+  const CLASSE = { gravado: ['im-neutro', 'Já gravado'], novo: ['im-bom', 'Novo'], igual: ['im-neutro', 'Igual (nada muda)'], alterado: ['im-regular', 'Alterado'], erro: ['im-ruim', 'Erro'] };
   const telaImportar = (nav) => {
     const s = st();
     const hist = VP.db.lista('importacoesPlanilha').sort((a, b) => String(b.data).localeCompare(String(a.data)));
@@ -583,8 +593,20 @@
     if (s.previa) {
       const it = s.previa.itens;
       const n = (c) => it.filter((x) => x.classe === c).length;
-      const MAX = 300;
-      const filtrados = it.map((x, i) => [x, i]).filter(([x]) => !s.filtro || (s.filtro === 'analisados' ? !!x.analise : x.classe === s.filtro));
+      // Páginas e filtros (a tela mostra uma página por vez para não travar o navegador com dezenas de milhares de linhas)
+      const ccDe = (x) => { const un = x.valores?.unidadeId; return typeof un === 'string' && un.startsWith('__nova:') ? un.slice(7) : un ? (VP.db.pega('unidades', un)?.codigo || un) : '(sem centro de custo)'; };
+      const ccs = [...new Set(it.map(ccDe))].sort((a, b) => String(a).localeCompare(String(b), 'pt-BR', { numeric: true }));
+      const tipos = [...new Set(it.map((x) => x.tipoBem).filter(Boolean))];
+      const porPag = Number(s.porPagina) || 300;
+      const filtrados = it.map((x, i) => [x, i]).filter(([x]) => (!s.filtro || (s.filtro === 'analisados' ? !!x.analise : x.classe === s.filtro)) && (!s.filtroCC || ccDe(x) === s.filtroCC) && (!s.filtroTipo || x.tipoBem === s.filtroTipo));
+      const nPag = Math.max(1, Math.ceil(filtrados.length / porPag));
+      s.pagina = Math.min(Math.max(0, s.pagina || 0), nPag - 1);
+      const daPagina = filtrados.slice(s.pagina * porPag, (s.pagina + 1) * porPag);
+      P.itensDaPagina = () => daPagina.map(([x]) => x);
+      const marcPag = daPagina.filter(([x]) => x.marcado && (x.classe === 'novo' || x.classe === 'alterado')).length;
+      const paginador = nPag > 1 ? `<div class="linha-botoes paginador"><button type="button" class="botao pequeno" data-imp-pag="${s.pagina - 1}" ${s.pagina ? '' : 'disabled'}>‹ Anterior</button>
+          <label>Página <select data-imp-ir-pag>${Array.from({ length: nPag }, (_, k) => `<option value="${k}" ${k === s.pagina ? 'selected' : ''}>${k + 1}</option>`).join('')}</select> de ${u.inteiro(nPag)}</label>
+          <button type="button" class="botao pequeno" data-imp-pag="${s.pagina + 1}" ${s.pagina < nPag - 1 ? '' : 'disabled'}>Próxima ›</button></div>` : '';
       const nAnalisados = it.filter((x) => x.analise).length, nSugControle = it.filter((x) => x.analise?.sugestao === 'controle').length;
       const marcados = it.filter((x) => x.marcado && (x.classe === 'novo' || x.classe === 'alterado')).length;
       const novasUn = [...(s.novasUnidades || new Map()).entries()].sort((a, b) => a[0].localeCompare(b[0], 'pt-BR', { numeric: true }));
@@ -592,27 +614,32 @@
       const opcClasse = (g) => VP.db.lista('classificacoes').filter((c) => (VP.dadosDaClassificacao(c.id).tipoBem || 'movel') === g).map((c) => [c.id, VP.caminhoClassificacao(c)]).sort((a, b) => a[1].localeCompare(b[1], 'pt-BR'));
       corpo = `<section class="cartao" id="previa-imp"><h3>Prévia — ${esc(s.arquivo)}</h3>
         <p class="ajuda">Nada foi gravado ainda. Confira, desmarque o que não quiser e clique em <b>Importar o que está marcado</b>.${s.ignoradas ? ` ${u.inteiro(s.ignoradas)} linha(s) de título ou rodapé do relatório foram ignoradas.` : ''}</p>
-        <div class="resumo-linha">${VP.graficos.numero('Novos', u.inteiro(n('novo')))}${VP.graficos.numero('Alterados', u.inteiro(n('alterado')))}${VP.graficos.numero('Iguais', u.inteiro(n('igual')))}${VP.graficos.numero('Com erro', u.inteiro(n('erro')))}${novasUn.length ? VP.graficos.numero('Unidades novas', u.inteiro(novasUn.length), 'pelo código do centro de custo') : ''}</div>
+        <div class="resumo-linha">${VP.graficos.numero('Novos', u.inteiro(n('novo')))}${VP.graficos.numero('Alterados', u.inteiro(n('alterado')))}${VP.graficos.numero('Iguais', u.inteiro(n('igual')))}${VP.graficos.numero('Com erro', u.inteiro(n('erro')))}${n('gravado') ? VP.graficos.numero('Já gravados', u.inteiro(n('gravado')), 'nesta prévia') : ''}${novasUn.length ? VP.graficos.numero('Centros de custo não cadastrados', u.inteiro(novasUn.length), 'bens ficam sem centro de custo (pendência)') : ''}</div>
         ${[...(s.gruposSemClasse || [])].length ? `<div class="cartao secao" id="classe-padrao"><h4>Classificação dos bens que vieram sem classificação</h4>
           <p class="ajuda">A planilha não traz a classificação (ou veio vazia). Escolha uma para cada grupo. O padrão <b>"A classificar"</b> deprecia como "Demais bens" (tabela do livro de controle patrimonial) até você classificar os bens (depois, em lote, pela lista de bens).</p>
           <div class="grade-depara">${[...s.gruposSemClasse].map((g) => `<label>${esc(P.NOMES_GRUPO[g])} (${u.inteiro(it.filter((x) => x.classePadrao === g).length)}) <select data-imp-classe="${g}"><option value="${P.ACLASSIFICAR}">A classificar (importação) — deprecia como "Demais bens"</option>${opcClasse(g).map(([id, nm]) => `<option value="${esc(id)}" ${s.classesPadrao[g] === id ? 'selected' : ''}>${esc(nm)}</option>`).join('')}</select></label>`).join('')}</div></div>` : ''}
-        ${novasUn.length ? `<details class="cartao secao" id="novas-unidades"><summary><b>${u.inteiro(novasUn.length)} código(s) de centro de custo ainda não cadastrado(s)</b> — viram unidades novas com nome provisório "Centro de custo …" (corrija depois em Cadastros → Unidades), ou ligue a uma unidade que já existe</summary>
-          <div class="tabela-rolagem"><table class="tabela" data-sem-planilha><thead><tr><th>Código</th><th class="num">Bens</th><th>Ligar a</th></tr></thead><tbody>${novasUn.map(([cod, q]) => `<tr><td>${esc(cod)}</td><td class="num">${u.inteiro(q)}</td><td><select data-imp-liga="${esc(cod)}"><option value="">Criar unidade nova</option>${opcUn.map(([id, nm]) => `<option value="${esc(id)}" ${s.ligaUnidade[cod] === id ? 'selected' : ''}>${esc(nm)}</option>`).join('')}</select></td></tr>`).join('')}</tbody></table></div></details>` : ''}
+        ${novasUn.length ? `<details class="cartao secao" id="novas-unidades"><summary><b>${u.inteiro(novasUn.length)} código(s) de centro de custo ainda não cadastrado(s)</b> — os bens ficam <b>sem centro de custo</b>, guardando o código, com pendência grave até você ligar o código a uma unidade. Se já souber, ligue aqui a uma unidade que já existe</summary>
+          <div class="tabela-rolagem"><table class="tabela" data-sem-planilha><thead><tr><th>Código</th><th class="num">Bens</th><th>Ligar a</th></tr></thead><tbody>${novasUn.map(([cod, q]) => `<tr><td>${esc(cod)}</td><td class="num">${u.inteiro(q)}</td><td><select data-imp-liga="${esc(cod)}"><option value="">Deixar sem centro de custo (pendência)</option>${opcUn.map(([id, nm]) => `<option value="${esc(id)}" ${s.ligaUnidade[cod] === id ? 'selected' : ''}>${esc(nm)}</option>`).join('')}</select></td></tr>`).join('')}</tbody></table></div></details>` : ''}
         ${nAnalisados ? `<p class="aviso-inline" id="aviso-sug-controle-imp"><b>${u.inteiro(nAnalisados)} bem(ns) novo(s) sem plaqueta</b> custam até ${u.moeda(VP.config().limiteControle)}. Destes, <b>${u.inteiro(nSugControle)}</b> foram sugeridos como <b>item de controle</b> (sem plaqueta, fora do balancete). Confira em "Vai para" (filtro "Valor baixo: conferir destino") e mude se precisar.</p>` : ''}
         <div class="linha-botoes"><label>Mostrar <select data-imp-filtro><option value="">Todos</option>${Object.entries(CLASSE).map(([k, [, nm]]) => `<option value="${k}" ${s.filtro === k ? 'selected' : ''}>${nm}</option>`).join('')}${nAnalisados ? `<option value="analisados" ${s.filtro === 'analisados' ? 'selected' : ''}>Valor baixo: conferir destino</option>` : ''}</select></label>
+          <label>Centro de custo <select data-imp-filtro-cc><option value="">Todos</option>${ccs.map((c) => `<option value="${esc(c)}" ${s.filtroCC === c ? 'selected' : ''}>${esc(c)}</option>`).join('')}</select></label>
+          ${tipos.length > 1 ? `<label>Tipo <select data-imp-filtro-tipo><option value="">Todos</option>${tipos.map((t) => `<option value="${esc(t)}" ${s.filtroTipo === t ? 'selected' : ''}>${esc(L.tiposBem[t] || t)}</option>`).join('')}</select></label>` : ''}
+          <label>Linhas por página <select data-imp-por-pag>${[100, 300, 1000].map((n) => `<option value="${n}" ${porPag === n ? 'selected' : ''}>${n}</option>`).join('')}</select></label>
           <button type="button" class="botao pequeno" data-imp-marcar="1">Marcar todos os válidos</button><button type="button" class="botao pequeno" data-imp-marcar="0">Desmarcar todos</button>
           <button type="button" class="botao pequeno" data-imp-baixar-previa>Baixar prévia completa (Excel)</button>
           <span class="ajuda" id="imp-marcados">${u.inteiro(marcados)} marcado(s) para importar</span></div>
-        ${filtrados.length > MAX ? `<p class="ajuda">Mostrando as primeiras ${MAX} de ${u.inteiro(filtrados.length)} linhas deste filtro. As demais seguem marcadas como estão; veja todas em <b>Baixar prévia completa</b>.</p>` : ''}
+        <p class="ajuda">${u.inteiro(filtrados.length)} linha(s) neste filtro${nPag > 1 ? `, página ${s.pagina + 1} de ${u.inteiro(nPag)}` : ''}. <button type="button" class="botao pequeno" data-imp-marcar-pag="1">Marcar todos desta página</button> <button type="button" class="botao pequeno" data-imp-marcar-pag="0">Desmarcar desta página</button></p>
+        ${paginador}
         <div class="tabela-rolagem"><table class="tabela" id="tab-previa-imp" data-sem-planilha><thead><tr><th></th><th>Situação</th><th>Aba, linha</th><th>Plaqueta</th><th>Descrição</th><th>O que acontece</th></tr></thead><tbody>
-        ${filtrados.slice(0, MAX).map(([x, i]) => `<tr data-classe="${x.classe}"><td>${x.classe === 'novo' || x.classe === 'alterado' ? `<input type="checkbox" data-imp-item="${i}" ${x.marcado ? 'checked' : ''} aria-label="Importar esta linha">` : ''}</td>
+        ${daPagina.map(([x, i]) => `<tr data-classe="${x.classe}"><td>${x.classe === 'novo' || x.classe === 'alterado' ? `<input type="checkbox" data-imp-item="${i}" ${x.marcado ? 'checked' : ''} aria-label="Importar esta linha">` : ''}</td>
           <td><span class="selo-status ${CLASSE[x.classe][0]}">${CLASSE[x.classe][1]}</span></td><td>${esc(x.aba)}, ${x.linha}</td><td>${esc(x.plaqueta || (x.classe === 'novo' ? '(automática)' : ''))}</td><td>${esc(x.descricao || (x.bemId ? VP.db.pega('bens', x.bemId)?.descricao : '') || x.codigoControle || '')}</td>
           <td>${x.erros.length ? `<span class="erro-txt">${esc(x.erros.join('; '))}</span>` : x.classe === 'novo' ? `Será incluído${x.tipoBem && x.tipoBem !== 'movel' ? ` (${esc(L.tiposBem[x.tipoBem])})` : ''}${x.valores?._valorContabil != null && x.valores.valor == null ? ' com o valor contábil, como saldo inicial' : ''}` : x.classe === 'igual' ? 'Nada muda' : ''}
             ${x.mudancas.length ? `<ul class="lista-mudancas">${x.mudancas.map((m) => { const c = camposDoCj(x.cj).find((y) => y.k === m.k) || P.CAMPOS.find((y) => y.k === m.k); return `<li><b>${esc(m.t)}</b>: ${esc(mostrarValor(c, m.antes))} → ${esc(mostrarValor(c, m.depois))}</li>`; }).join('')}</ul>` : ''}
             ${x.avisos.length ? `<div class="aviso-txt">${esc(x.avisos.join('; '))}</div>` : ''}
             ${x.analise ? VP.classificador.seletor(Object.assign({}, x.analise, { sugestao: x.analise.sugestao }), `data-imp-destino="${i}"`).replace(/(<option value="(controle|patrimonio)") (selected)?/g, (m, a, k) => `${a} ${x.destino === k ? 'selected' : ''}`) : ''}</td></tr>`).join('')}
         </tbody></table></div>
-        <p class="linha-botoes"><button class="botao primario" data-imp-aplicar>Importar o que está marcado</button> <button class="botao" data-imp-descartar>Descartar</button></p></section>`;
+        ${paginador}
+        <p class="linha-botoes"><button class="botao primario" data-imp-aplicar-pag>Salvar os marcados desta página (${u.inteiro(marcPag)})</button> <button class="botao" data-imp-aplicar>Salvar todos os marcados (${u.inteiro(marcados)})</button> <button class="botao" data-imp-descartar>Descartar</button></p></section>`;
     } else if (s.abas) {
       corpo = `<section class="cartao" id="depara-imp"><h3>Colunas do arquivo — ${esc(s.arquivo)}</h3>
         <p class="ajuda">O sistema ligou cada coluna da planilha a uma informação do bem pelo título. Confira e corrija o que estiver errado; "— não importar —" ignora a coluna.</p>
@@ -659,7 +686,22 @@
         document.querySelectorAll('[data-imp-item]').forEach((el) => el.addEventListener('change', () => { s.previa.itens[el.dataset.impItem].marcado = el.checked; contaMarcados(); }));
         // marcar/desmarcar vale para o arquivo inteiro, não só para as linhas na tela
         document.querySelectorAll('[data-imp-marcar]').forEach((b) => b.addEventListener('click', () => { const v = b.dataset.impMarcar === '1'; s.previa.itens.forEach((x) => { if (x.classe === 'novo' || x.classe === 'alterado') x.marcado = v; }); document.querySelectorAll('[data-imp-item]').forEach((i) => { i.checked = v; }); contaMarcados(); }));
-        document.querySelector('[data-imp-filtro]')?.addEventListener('change', (e) => { s.filtro = e.target.value; re(); });
+        document.querySelector('[data-imp-filtro]')?.addEventListener('change', (e) => { s.filtro = e.target.value; s.pagina = 0; re(); });
+        document.querySelectorAll('[data-imp-pag]').forEach((b) => b.addEventListener('click', () => { s.pagina = Number(b.dataset.impPag); re(); }));
+        document.querySelectorAll('[data-imp-ir-pag]').forEach((el) => el.addEventListener('change', () => { s.pagina = Number(el.value); re(); }));
+        document.querySelector('[data-imp-filtro-cc]')?.addEventListener('change', (e) => { s.filtroCC = e.target.value; s.pagina = 0; re(); });
+        document.querySelector('[data-imp-filtro-tipo]')?.addEventListener('change', (e) => { s.filtroTipo = e.target.value; s.pagina = 0; re(); });
+        document.querySelector('[data-imp-por-pag]')?.addEventListener('change', (e) => { s.porPagina = Number(e.target.value); s.pagina = 0; re(); });
+        document.querySelectorAll('[data-imp-marcar-pag]').forEach((b) => b.addEventListener('click', () => { const v = b.dataset.impMarcarPag === '1'; for (const x of P.itensDaPagina()) if (x.classe === 'novo' || x.classe === 'alterado') x.marcado = v; re(); }));
+        document.querySelector('[data-imp-aplicar-pag]')?.addEventListener('click', async (e) => {
+          const lista = P.itensDaPagina();
+          const n = lista.filter((x) => x.marcado && (x.classe === 'novo' || x.classe === 'alterado')).length;
+          if (!n) return ui.aviso('Nada marcado nesta página.', 'erro');
+          if (!await ui.confirmar(`Salvar só os ${u.inteiro(n)} marcado(s) desta página? As outras linhas continuam na prévia.`, { titulo: 'Salvar esta página', sim: 'Salvar' })) return;
+          e.target.disabled = true;
+          try { await P.aplicar(lista); } catch (err) { ui.aviso('Não foi possível gravar: ' + err.message, 'erro'); }
+          re();
+        });
         document.querySelectorAll('[data-imp-destino]').forEach((el) => el.addEventListener('change', () => { s.previa.itens[el.dataset.impDestino].destino = el.value; }));
         document.querySelectorAll('[data-imp-classe]').forEach((el) => { el.value = s.classesPadrao[el.dataset.impClasse] || P.ACLASSIFICAR; el.addEventListener('change', () => { s.classesPadrao[el.dataset.impClasse] = el.value; }); });
         document.querySelectorAll('[data-imp-liga]').forEach((el) => el.addEventListener('change', () => { if (el.value) s.ligaUnidade[el.dataset.impLiga] = el.value; else delete s.ligaUnidade[el.dataset.impLiga]; }));
@@ -670,7 +712,7 @@
         document.querySelector('[data-imp-aplicar]')?.addEventListener('click', async (e) => {
           const n = s.previa.itens.filter((x) => x.marcado && (x.classe === 'novo' || x.classe === 'alterado')).length;
           if (!n) return ui.aviso('Nada marcado para importar.', 'erro');
-          if (!await ui.confirmar(`Importar ${u.inteiro(n)} linha(s) marcada(s)?`, { titulo: 'Importar', sim: 'Importar' })) return;
+          if (!await ui.confirmar(`Salvar todos os ${u.inteiro(n)} marcado(s), de todas as páginas?`, { titulo: 'Importar', sim: 'Importar' })) return;
           e.target.disabled = true;
           try { await P.aplicar(); } catch (err) { ui.aviso('Não foi possível gravar: ' + err.message, 'erro'); }
           re();

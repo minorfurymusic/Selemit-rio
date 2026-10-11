@@ -131,6 +131,7 @@
         if (cfg.obrigaContas && !dc.contaId) return 'A classificação escolhida não tem conta contábil.';
         const bens = await VP.criarBens({ descricao: item.descricao, complemento: item.descricao, produtoId: item.produtoId, classificacaoId: v.classificacaoId, unidadeId: v.unidadeId, responsavelId: v.responsavelId, dataAquisicao: item.empenho.emissao, dataIncorporacao: v.dataIncorporacao, valor: item.valorUnitario, quantidade: q, fornecedorId: item.fornecedorId, entidadeId: item.entidadeId, situacaoAquisicao: 'Compra', nf: v.nf, origem: { empenho: `${item.empenho.ano}/${item.empenho.numero}`, item: item.descricao, quantidade: item.quantidade, valorUnitario: item.valorUnitario, ordemCompra: `${item.ordemCompra.numero}/${item.ordemCompra.ano}` }, origemTexto: `empenho ${item.empenho.numero}/${item.empenho.ano}` });
         item.incorporados = (item.incorporados || 0) + q;
+        if (VP.termos) await VP.termos.abrir(bens, 'incorporação');
         await VP.db.gravar('itensIncorporar', item);
         ui.resultado({ titulo: 'Bens incorporados', sucesso: bens.map((b) => `${b.codigo} · plaqueta ${b.plaqueta} · ${b.descricao}`), extra: `<p><a class="botao" href="#relatorio/etiquetas" onclick="VP.estado.etiquetasIds=${esc(JSON.stringify(bens.map((b) => b.id)))}">Imprimir etiquetas destes bens</a></p>` });
         depois();
@@ -428,7 +429,7 @@
         b.responsavelId = VP.db.pega('unidades', l.unidadeId)?.responsavelId || b.responsavelId;
       }
       if (l.estado) b.estado = l.estado;
-      if (l.plaquetaLida && l.plaquetaLida !== b.plaqueta) { b.plaquetaAnterior = b.plaqueta; b.plaqueta = l.plaquetaLida; }
+      if (l.plaquetaLida && l.plaquetaLida !== b.plaqueta) { VP.registrarPlaquetaAnterior(b, { plaqueta: b.plaqueta, motivo: `Plaqueta trocada no ${inv.nome}`, observacao: `Nova plaqueta: ${l.plaquetaLida}` }); b.plaqueta = l.plaquetaLida; }
       eventos.push(VP.novoEvento(b.id, 'inventario', { descricao: `Conferido no ${inv.nome}`, extra: { inventarioId: inv.id, estado: l.estado } }));
       bens.push(b);
     }

@@ -262,6 +262,21 @@ Explicado no `manual.md` (2.5, 2.6, 2.7, 4, 4.1, 7 e 8) e no `DOSSIE.md` (seçã
 - [ ] Obter os PDFs das normas citadas (IN SEA 3/2020, NTPC 004/2021 SEF/SC, anexos da Portaria STN 448/2002) para conferir [A conferir]. A rede deste ambiente bloqueia os sites do governo; o usuário pode baixar e enviar.
 - [ ] Revisar a lista inicial "Vida útil dos itens" com a regra do município (é sugestão do sistema, não norma).
 
+## Pedido de 08/10/2026 (3) — centros de custo, páginas, plaquetas, cadastros duplicados, termos
+
+- [x] Centro de custo **não cadastrado** na importação: bem entra **sem centro de custo** (código guardado), **pendência grave**, tela **Centros de custo pendentes** para ligar cada código a uma unidade (com confirmação; histórico) ou cadastrar a unidade. Nenhuma unidade provisória.
+  - Relatorio_1 cobre 62 dos 159 códigos; **faltam os nomes de cerca de 96 códigos** (pendência do usuário).
+- [x] Prévia da importação com **páginas** (100/300/1.000), filtros por situação, centro de custo e tipo; **Salvar os marcados desta página** e **Salvar todos os marcados**.
+- [x] **Defeito corrigido:** a plaqueta automática podia repetir uma plaqueta importada (provado: 2 bens com a plaqueta 1106). Agora é a maior já usada + 1, pulando as existentes, as do arquivo e as antigas. Plaqueta digitada já usada é recusada.
+- [x] **Defeito corrigido:** buscar um número achava só o código interno; agora acha código, plaqueta ou plaqueta antiga.
+- [x] **Plaquetas anteriores**: registro com data, motivo e observação (botão "+"), **trocar plaqueta**; inventário que lê plaqueta nova também registra; importação recusa plaqueta antiga de outro bem.
+- [x] **Unir cadastros** do mesmo bem: conferência dado a dado, motivo obrigatório, o outro é desativado (baixa "Cadastro duplicado (mesmo bem)"), histórico nos dois, **desfazer união**. **[A conferir com a contabilidade]**: a baixa do duplicado tira o valor contábil dele.
+- [x] **Recebimento** (ficha, lote, campo na nota fiscal) e **termo de responsabilidade com prazo** (15 dias, Configurações): aberto ao indicar responsável (novo bem, nota, incorporação, transferência aceita, troca na ficha); pendência; vencido = pendência grave; menu **Termos** para imprimir e anexar o assinado.
+- [x] Regressão do Patrimônio do zero (08/10/2026), depois de todas as mudanças: 26 suítes, **0 falhas** — gestão 34, campo 43, planilhas 25, itens de controle 15, relatório do sistema atual 23, páginas da importação 10, matrícula 11, novo bem 16, depreciação 5, anexos 16, listas 7, imóveis 23, manutenção 22, frota 22, mapas 16, plaquetas 16, escala e classificador 29, centros de custo 11, baixa em lote 16, plaquetas anteriores e unir 13, termos 10, fumaça `ERROS: []`; com servidor: patrimônio 15, campo 3, planilhas 9, login 13 — `TUDO PASSOU`.
+- [ ] **Futuro — envio do termo por e-mail** (o responsável recebe o termo preenchido e devolve assinado para um e-mail definido). Precisa de serviço de e-mail no servidor. Só no `DOSSIE.md` (A6.5) e no `manual.md` (10), não no código.
+- [ ] **Futuro — fim da sessão por inatividade.** Hoje (deduzido pela leitura do código) a sessão não expira por tempo parado, nem na demonstração nem com o servidor.
+- [ ] Pergunta ao usuário: "Inservíveis" como **tabela especial sem depreciação e com o valor contábil congelado**? Hoje (decisão de 08/10/2026) "Inservível" é situação do bem e continua depreciando.
+
 ## Histórico
 
 - 23/09/2026: dossiê v1.0 criado (Cowork).
