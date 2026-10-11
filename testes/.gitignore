@@ -5,3 +5,10 @@ saida*.txt
 regressao-saida*.txt
 *.log
 postgrest/
+# prints que os testes gravam nas pastas abaixo
+*.png
+*.jpg
+*.pdf
+*.xlsx
+*.zip
+*.csv
