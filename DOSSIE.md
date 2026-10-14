@@ -814,6 +814,7 @@ Exemplo do usuário: o bem é **recebido** por Fernando (foto do documento de re
 | Recebimento (quem, quando, documento, foto da assinatura) | No sistema (08/10/2026) |
 | Termo aberto ao indicar o responsável; prazo de 15 dias (ajustável); pendência até anexar o termo assinado; termo vencido = pendência grave | No sistema (08/10/2026); hoje o termo é impresso e entregue |
 | **Envio automático do termo preenchido por e-mail** ao responsável, com devolução assinada para um e-mail definido | **Futuro — não está no código.** Precisa de um serviço de e-mail ligado ao servidor (custo e configuração a decidir) |
+| **Objetivo (decisão do usuário, 14/10/2026) — gatilhos do termo:** quando o servidor cadastra o bem, a nota, a incorporação, a transferência ou a troca de responsável, o sistema **dispara o termo por e-mail para a pessoa certa** e **começa a contar o prazo**; controla os prazos; mostra avisos para o servidor **entrar em contato** (lembrete antes de vencer, vencido = pendência grave); opção de **enviar pelo aplicativo** e **pelo e-mail do agente administrativo** (o e-mail sai em nome dele/do setor) | **Objetivo — depende da prefeitura** (e-mail institucional, autorização para o sistema enviar, cadastro do e-mail de cada responsável). Não está no código |
 | Fim da sessão por inatividade (sair sozinho depois de X minutos parado) | **Futuro — não está no código** |
 
 ### A6.6 Compra → nota → bem: dotação, documentos e leitura da nota (pendências de 14/10/2026)
@@ -840,7 +841,10 @@ O que é preciso para fazer certo:
 - [ ] **Entrada dos dados:** digitar; colunas novas no modelo de planilha de compras; leitura do PDF da ordem de compra do IPM (mesmo jeito da matrícula). Integração direta com o SIAFIC só depois.
 - [ ] **Aviso pelo elemento:** elemento de consumo (3.3.90.30) com bem de plaqueta, ou permanente (4.4.90.52) marcado como item de controle → aviso para a pessoa decidir.
 - [ ] **Painéis, filtros e relatórios** por vínculo (fonte do recurso) e por ação; colunas na exportação.
-- [ ] **Perguntas para a contabilidade:** como ler o código do elemento de 19 dígitos (o que é o "3" do começo e os dígitos depois do 52) **[A conferir]**; lista de vínculos usada pelo município (padrão TCE/SC) **[A conferir]**; quais campos são obrigatórios.
+- [x] ~~Perguntas para a contabilidade~~ — *atualização 14/10/2026: pesquisado, não precisa perguntar antes de programar:*
+  - **Elemento de 19 dígitos** `3 4 4 90 52 42 0000000000`: depois do primeiro dígito vem a natureza da despesa padrão nacional — categoria 4 (capital), grupo 4 (investimentos), modalidade 90 (aplicação direta), elemento 52 (equipamentos e material permanente), subelemento 42 (mobiliário em geral) **[C — mesma natureza 4.4.90.52.42 "Mobiliário em geral" em vários órgãos públicos]**. O "3" do começo e os zeros do fim são do jeito que o IPM monta o código (desdobramentos do município) **[D]**. Para o aviso do sistema basta ler o miolo: `449052` = permanente; `339030` = consumo.
+  - **Vínculo** `260170000025`: é um código **interno do IPM em cada município**, ligado à fonte oficial de recurso **[D]**. A fonte oficial segue a Portaria STN 710/2021, que o TCE/SC adota desde 2023 no formato `X.YYY.ZZZZ` (grupo, especificação 500 a 899, marcador) **[C]**. **Decisão de projeto:** o sistema guarda o código e o nome **como vêm na ordem de compra**, sem tentar traduzir; a fonte oficial entra depois, se o município quiser.
+  - **Campos obrigatórios:** nenhuma norma obriga o sistema de patrimônio a ter esses campos; a escolha é nossa. **Proposta:** nenhum obrigatório (para não travar compras antigas), com pendência "compra sem elemento" e "compra sem vínculo"; o painel por fonte usa o vínculo.
 
 **2) Ordem de compra sem empenho**
 
@@ -852,7 +856,7 @@ A ordem de compra do exemplo tem "Nº do Empenho: /" em branco. Atenção: **emp
 
 - **AF (autorização de fornecimento):** número dado **por quem compra**, que autoriza o fornecedor a entregar; o fornecedor copia na nota para a prefeitura achar a compra **[D]**.
 - **Pedido:** número do pedido **no sistema do fornecedor** (controle interno dele) **[D]**.
-- [ ] Campo **AF** na compra e na nota, usado para ligar nota → compra automaticamente. Pedido do fornecedor só como informação.
+- [ ] Campo **AF** na compra e na nota, usado para ligar nota → compra automaticamente. Pedido do fornecedor só como informação. *(14/10/2026: ainda não feito; só registrado.)*
 
 **4) Ler a nota: XML e PDF (DANFE) — decisão do usuário: o sistema tem que ler os dois**
 
@@ -874,6 +878,17 @@ Avisos, nunca bloqueio; a pessoa confirma e fica no histórico:
 - [ ] Nota já registrada (mesma chave).
 - [ ] Valor unitário perto do limite do item de controle (ex.: R$ 306,80 com limite de R$ 300).
 - [ ] Nota sem AF/ordem de compra que bata com uma compra em Entradas.
+- [ ] *(14/10/2026)* Fornecedor (CNPJ) da nota diferente do fornecedor da compra.
+- [ ] *(14/10/2026)* Quantidade ou valor unitário da nota diferente da compra.
+- [ ] *(14/10/2026)* Nota emitida antes da ordem de compra.
+- [ ] *(14/10/2026)* Natureza da operação que não é venda (remessa, demonstração, comodato, conserto): não incorporar sem a pessoa confirmar.
+- [ ] *(14/10/2026)* Item em unidade fracionada (kg, metro, litro), que normalmente não vira bem com plaqueta.
+- [ ] *(14/10/2026)* Elemento de consumo (3.3.90.30) na compra e item indo para plaqueta, ou o contrário.
+- [ ] *(com a integração, item 4)* Nota cancelada na SEFAZ.
+
+**Canhoto (14/10/2026, informação do usuário):** a nota que chega por e-mail do fornecedor não tem o canhoto assinado, e na prática o canhoto muitas vezes não é assinado nem guardado. Por isso o **Recebimento** no sistema continua **opcional**: aceita foto do canhoto, mas também só "quem recebeu e quando".
+
+**Origem do XML (14/10/2026):** a integração por serviço (com certificado) vem depois; até lá o XML chega pelo fornecedor (e-mail de compras) ou pela contabilidade, e é importado no sistema.
 
 **6) Imposto nas compras da prefeitura (pergunta do usuário, 14/10/2026)**
 

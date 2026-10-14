@@ -296,7 +296,9 @@ Explicado no `manual.md` (2.5, 2.6, 2.7, 4, 4.1, 7 e 8) e no `DOSSIE.md` (seçã
 - [ ] Ler o PDF da nota (DANFE) além do XML; usar a chave de 44 dígitos (dígito, nota repetida, CNPJ do destinatário).
 - [ ] Avisos "A conferir com a contabilidade" na leitura da nota (lista em A6.6, item 5).
 - [ ] Baixar o XML pela chave: precisa de certificado digital de cada entidade (decisão e custo do usuário).
-- [ ] Próximo assunto pedido pelo usuário: termo de responsabilidade.
+- [x] Código do elemento, vínculo e campos obrigatórios: pesquisado em 14/10/2026 sem precisar da contabilidade (resultado no `DOSSIE.md` A6.6, item 1). Proposta: guardar código e nome como vêm na ordem de compra; nenhum campo obrigatório, com pendência.
+- [ ] Avisos da leitura da nota: lista ampliada em 14/10/2026 (A6.6, item 5).
+- [ ] **Objetivo (depende da prefeitura):** gatilhos do termo de responsabilidade — envio automático por e-mail à pessoa certa ao cadastrar/transferir/trocar responsável, contagem do prazo, avisos para o servidor entrar em contato, envio pelo aplicativo e pelo e-mail do agente administrativo (`DOSSIE.md` A6.5).
 
 ## Como continuar numa conversa nova (11/10/2026)
 
