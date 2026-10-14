@@ -287,6 +287,17 @@ Explicado no `manual.md` (2.5, 2.6, 2.7, 4, 4.1, 7 e 8) e no `DOSSIE.md` (seçã
 - [x] Envio autorizado pelo usuário em 14/10/2026, no ramo `claude/quirky-galileo-rmr246` (o ambiente tinha aberto em `ccr-078594ad-yypwn4`, que não tem o VitalPat). Prova: `testes/regressao.sh` em 14/10/2026: 27 suítes, 0 falhas (inclui `teste-menu.js: 11 passou, 0 falhou` e os 4 testes com servidor local).
 - [ ] `testes/LEIA-ME.md` não diz que `teste-importa-relatorio` e `teste-matricula` precisam dos arquivos fictícios gerados antes (`python3 gera-relatorio.py /tmp/relatorio-ficticio.csv` e `python3 gera-pdf.py /tmp/matricula-ficticia.pdf /tmp/matricula-imagem.pdf`). Sem eles, os dois dão 0 passou / 0 falhou. Corrigir só com autorização.
 
+## Pedido de 14/10/2026 (2) — ordem de compra e nota fiscal (detalhe no `DOSSIE.md` A6.6)
+
+- [x] Lidas uma ordem de compra e uma nota (DANFE) reais enviadas pelo usuário; arquivos **fora do repositório** (nomes e placa). Pendências registradas no `DOSSIE.md` v1.15, seção A6.6.
+- [ ] Dotação, órgão, unidade orçamentária, ação, elemento e vínculo (fonte do recurso) na compra e no bem; cadastros de ações e vínculos; painéis por fonte. Antes: perguntas para a contabilidade (código do elemento de 19 dígitos, lista de vínculos, campos obrigatórios).
+- [ ] Compra sem empenho aceita com pendência "empenho não informado".
+- [ ] Campo AF (autorização de fornecimento) para ligar nota → compra.
+- [ ] Ler o PDF da nota (DANFE) além do XML; usar a chave de 44 dígitos (dígito, nota repetida, CNPJ do destinatário).
+- [ ] Avisos "A conferir com a contabilidade" na leitura da nota (lista em A6.6, item 5).
+- [ ] Baixar o XML pela chave: precisa de certificado digital de cada entidade (decisão e custo do usuário).
+- [ ] Próximo assunto pedido pelo usuário: termo de responsabilidade.
+
 ## Como continuar numa conversa nova (11/10/2026)
 
 Os robôs de teste agora ficam no repositório, em `testes/` (só dados fictícios; ver `testes/LEIA-ME.md`). Prova: `testes/regressao.sh` rodado de dentro do repositório em 11/10/2026: 26 suítes, 0 falhas (inclui os 4 testes com servidor local). Texto para colar na conversa nova:

@@ -39,6 +39,7 @@ Documento interno — não distribuir a terceiros
 | 1.6 | 07/10/2026 | **Etapa 2 da Gestão do Cemitério construída:** vistorias (V1–V5), triagem de possível abandono pela seção B2 (o sistema só sugere; a pessoa decide; trava de segurança para "Abandono em apuração"), ordens de serviço e app de campo ampliado. Situação dos itens do B7 registrada logo abaixo da tabela do B7. |
 | 1.7 | 07/10/2026 | **Etapa 3 da Gestão do Cemitério construída:** concessões, sepultamentos com agenda e funerárias, exumações com travas (prazo mínimo, abandono declarado, 2 testemunhas), ossário e painel de vagas. Prazos ajustáveis por município; D1 automático. Situação dos itens 7 e 8 do B7 registrada abaixo da tabela do B7. |
 | 1.8 | 07/10/2026 | **Etapa 4 da Gestão do Cemitério construída (fluxo B2-D):** processo administrativo com notificação por e-mail e WhatsApp (carta com AR opcional, pendência jurídica), aviso no túmulo, edital em lote, prazos, defesa e termo de compromisso, decisão da autoridade e dossiê. Decisão do usuário: coluna "Data" da lista de chãos = data do título de aforamento. |
+| 1.15 | 14/10/2026 | **Compra → nota → bem (nova seção A6.6), a partir de uma ordem de compra e de uma nota fiscal reais enviadas pelo usuário (fora do repositório, por terem nomes):** pendências para guardar **dotação, ação, elemento e vínculo (fonte do recurso)** na compra e no bem; ordem de compra **sem empenho** aceita com pendência; campos **AF** (autorização de fornecimento) e pedido do fornecedor; o sistema deve ler **o PDF da nota (DANFE) e o XML**; o que a **chave de 44 dígitos** dá sem integração e o que exige certificado digital; **avisos "A conferir com a contabilidade"** na leitura da nota; imposto nas compras da prefeitura. Nada disso está no código ainda. |
 | 1.14 | 08/10/2026 | **Decisões do usuário:** código de centro de custo não cadastrado deixa o bem **sem centro de custo, com pendência grave** (sem unidade provisória); prévia da importação **com páginas e "salvar esta página"**; **plaquetas anteriores** em registro com data e motivo; **unir cadastros** do mesmo bem (conferência dado a dado, desativa o outro); **recebimento** e **termo de responsabilidade com prazo de 15 dias** (pendência até anexar o termo assinado). **Futuro (não está no código):** envio automático do termo por **e-mail** (seção A6.5) e **fim da sessão por inatividade**. Corrigidos: plaqueta automática podia repetir plaqueta importada; busca por número achava só o código. |
 | 1.13 | 08/10/2026 | **Regras do livro de controle patrimonial** (documento enviado pelo usuário) resumidas na **nova seção A6**, com as lacunas do sistema. Decisões do usuário: **"A classificar" deprecia como "Demais bens"** (nada fica sem depreciar); **escala de estado de 8 níveis** (Novo, Ótimo, Muito bom, Bom, Regular, Ruim, Péssimo, Imprestável), com "Inservível" passando a ser **situação** do bem; **item de controle só quando valor até R$ 300 E vida útil até 24 meses** (regra local, ajustável); **nomes dos centros de custo** importados só com código e nome; **baixa em lote** (leilão) com ata; **classificador** que sugere item de controle × plaqueta e aprende com as decisões. A pesquisa de norma de SC pela internet falhou (sites bloqueados neste ambiente): nada foi confirmado em fonte oficial. |
 | 1.12 | 08/10/2026 | **Importação do sistema atual** (relatório "Consulta de Bem", 35 mil bens): leitura do formato do relatório; centro de custo = unidade; valor contábil como saldo inicial (decisão do usuário: bem migrado ou transferido entra já depreciado); "A classificar" sem depreciação até classificar. |
@@ -814,6 +815,70 @@ Exemplo do usuário: o bem é **recebido** por Fernando (foto do documento de re
 | Termo aberto ao indicar o responsável; prazo de 15 dias (ajustável); pendência até anexar o termo assinado; termo vencido = pendência grave | No sistema (08/10/2026); hoje o termo é impresso e entregue |
 | **Envio automático do termo preenchido por e-mail** ao responsável, com devolução assinada para um e-mail definido | **Futuro — não está no código.** Precisa de um serviço de e-mail ligado ao servidor (custo e configuração a decidir) |
 | Fim da sessão por inatividade (sair sozinho depois de X minutos parado) | **Futuro — não está no código** |
+
+### A6.6 Compra → nota → bem: dotação, documentos e leitura da nota (pendências de 14/10/2026)
+
+Origem: o usuário enviou uma **ordem de compra** (Fundo Municipal de Saúde, sistema IPM, compra pelo consórcio CINCatarina) e uma **nota fiscal em PDF (DANFE)** de outro fornecedor. Os arquivos ficam **fora do repositório** (têm nomes de pessoas e placa). Abaixo só a estrutura. **Nada desta seção está no código ainda.**
+
+**1) Dotação, ação, elemento e vínculo (decisão do usuário: "precisamos resolver, deixar correto")**
+
+Campos que a ordem de compra traz e o sistema hoje **não guarda**:
+
+| Campo da ordem de compra | Exemplo (código público de orçamento) | Para que serve no VitalPat |
+|---|---|---|
+| Dotação | 393 (código reduzido) | Ligar a compra ao orçamento do ano |
+| Órgão | 87 — Fundo Municipal de Saúde | Já existe como **Entidade** |
+| Unidade (orçamentária) | 2 — Secretaria Municipal de Saúde | Não confundir com unidade/centro de custo onde o bem fica |
+| Ação | 2135 — Equipe Multiprofissional Atenção Básica | Painel "por programa/ação" |
+| Elemento | 3449052420000000000 — Mobiliário em geral | Confirma que é bem permanente (4.4.90.52) e não consumo (3.3.90.30) |
+| Vínculo | 260170000025 — Equipe Multiampliada Atenção Básica — Estruturação | **Fonte do recurso**: painel "por fundo/recurso" (FI-01) e prestação de contas de convênios |
+
+O que é preciso para fazer certo:
+
+- [ ] **Campos** na compra (Entradas) e no bem: exercício, dotação, órgão, unidade orçamentária, ação, elemento, vínculo. O bem guarda uma cópia (origem), que passa para o histórico se mudar. Uma compra pode ter **mais de uma dotação**? **[A conferir com o usuário]**
+- [ ] **Cadastros simples** de ações e vínculos (código + nome), importáveis por planilha como os centros de custo, para os nomes aparecerem nos painéis.
+- [ ] **Entrada dos dados:** digitar; colunas novas no modelo de planilha de compras; leitura do PDF da ordem de compra do IPM (mesmo jeito da matrícula). Integração direta com o SIAFIC só depois.
+- [ ] **Aviso pelo elemento:** elemento de consumo (3.3.90.30) com bem de plaqueta, ou permanente (4.4.90.52) marcado como item de controle → aviso para a pessoa decidir.
+- [ ] **Painéis, filtros e relatórios** por vínculo (fonte do recurso) e por ação; colunas na exportação.
+- [ ] **Perguntas para a contabilidade:** como ler o código do elemento de 19 dígitos (o que é o "3" do começo e os dígitos depois do 52) **[A conferir]**; lista de vínculos usada pelo município (padrão TCE/SC) **[A conferir]**; quais campos são obrigatórios.
+
+**2) Ordem de compra sem empenho**
+
+A ordem de compra do exemplo tem "Nº do Empenho: /" em branco. Atenção: **empenho não é pagamento**. A ordem é empenho (reserva do dinheiro) → liquidação (confere a entrega) → pagamento (Lei 4.320/1964, arts. 58 a 65; art. 60 proíbe despesa sem prévio empenho) **[C]**. O campo em branco pode ser só porque o IPM não imprime o número nessa ordem, ou porque a compra do consórcio segue outro fluxo **[A conferir com o setor de compras]**.
+
+- [ ] Compra **aceita sem empenho**, com pendência "empenho não informado" até ser preenchido (hoje o sistema exige o empenho).
+
+**3) AF e pedido**
+
+- **AF (autorização de fornecimento):** número dado **por quem compra**, que autoriza o fornecedor a entregar; o fornecedor copia na nota para a prefeitura achar a compra **[D]**.
+- **Pedido:** número do pedido **no sistema do fornecedor** (controle interno dele) **[D]**.
+- [ ] Campo **AF** na compra e na nota, usado para ligar nota → compra automaticamente. Pedido do fornecedor só como informação.
+
+**4) Ler a nota: XML e PDF (DANFE) — decisão do usuário: o sistema tem que ler os dois**
+
+- Hoje lê só o XML da NF-e (modelo 55).
+- [ ] Ler também o **PDF (DANFE)** com texto, como a matrícula; DANFE escaneado (imagem) precisa de OCR (mesma pendência da matrícula).
+- **Chave de acesso (44 dígitos):** sozinha, sem internet, já dá UF, ano/mês, CNPJ do emitente, modelo, série, número e o dígito verificador. Exemplo conferido em 14/10/2026: `43 2508 93920361000137 55 001 000020362 1 09851534 2` = RS, 08/2025, CNPJ 93.920.361/0001-37, modelo 55, série 1, nota 20.362, dígito 2 (conta feita e bate).
+- [ ] Usar a chave para: conferir o dígito (nota digitada errada), não deixar **a mesma nota entrar duas vezes**, conferir se o destinatário é o CNPJ da entidade.
+- **Puxar a nota completa pela chave:** o XML **é** a nota (o DANFE é só a impressão dele), então traz tudo o que o PDF mostra, já organizado, e mais detalhes de imposto e cobrança. A consulta pública no site da Receita tem verificação contra robôs e **não serve para o sistema**. O caminho oficial é o serviço de distribuição de documentos da SEFAZ (NFeDistribuicaoDFe), que exige o **certificado digital (e-CNPJ) de cada entidade compradora** (prefeitura e cada fundo) — já previsto em A2.7 **[D — conferir regras atuais na documentação da NF-e]**.
+
+**5) Avisos "A conferir com a contabilidade" na leitura da nota (decisão do usuário: o sistema deve apontar)**
+
+Avisos, nunca bloqueio; a pessoa confirma e fica no histórico:
+
+- [ ] Soma dos itens ≠ total da nota.
+- [ ] Desconto, IPI, frete, seguro ou outras despesas na nota (como entram no valor de cada bem).
+- [ ] Diferencial de alíquota (DIFAL) nas informações complementares, fora do total.
+- [ ] Retenção de imposto de renda informada na nota (o município retém e fica com o valor; não muda o valor do bem).
+- [ ] Destinatário com CNPJ diferente da entidade escolhida.
+- [ ] Nota já registrada (mesma chave).
+- [ ] Valor unitário perto do limite do item de controle (ex.: R$ 306,80 com limite de R$ 300).
+- [ ] Nota sem AF/ordem de compra que bata com uma compra em Entradas.
+
+**6) Imposto nas compras da prefeitura (pergunta do usuário, 14/10/2026)**
+
+- A prefeitura **paga** ICMS e IPI embutidos no preço e **não recebe de volta**: a imunidade entre governos (CF, art. 150, VI, "a") vale para imposto cobrado do próprio ente (patrimônio, renda, serviços), não para o imposto que vem dentro do preço do fornecedor (STF, Tema 342) **[C — conferir com a contabilidade]**. Por isso o valor do bem é o valor pago, com esses impostos (custo de aquisição, NBC TSP 07) **[D]**.
+- **Imposto de renda retido:** a prefeitura desconta do fornecedor e **fica com o valor** (CF, art. 158, I; STF, Tema 1130) **[C]**. É receita do município; não muda o valor do bem.
 
 # PARTE B — PRODUTO 2: GESTÃO DE CEMITÉRIO
 
