@@ -548,14 +548,16 @@
     const tipo = L.tiposBem[tipoParam] ? tipoParam : 'movel';
     const cfg = VP.config();
     const nomeTipo = { movel: 'bem móvel', imovel: 'bem imóvel', veiculo: 'veículo (patrimônio)', intangivel: 'bem intangível', infraestrutura: 'bem de infraestrutura' }[tipo];
+    // Lista vazia: diz onde cadastrar (os dados vêm da prefeitura; ver Painel → pendências)
+    const faltaCadastro = (tabela, nome, aba) => (VP.db.lista(tabela).length ? '' : `Nenhum ${nome} cadastrado. Cadastre em Cadastros → ${aba} (dados a receber da prefeitura).`);
     const campos = [
-      { chave: 'unidadeId', rotulo: 'Unidade', tipo: 'select', opcoes: opc('unidades'), obrigatorio: cfg.obrigaUnidade, largura: 'meia' },
-      { chave: 'responsavelId', rotulo: 'Responsável (vem da unidade)', tipo: 'select', opcoes: opc('responsaveis'), largura: 'meia' },
+      { chave: 'unidadeId', rotulo: 'Unidade', tipo: 'select', opcoes: opc('unidades'), obrigatorio: cfg.obrigaUnidade, largura: 'meia', ajuda: faltaCadastro('unidades', 'local (unidade)', 'Unidades') },
+      { chave: 'responsavelId', rotulo: 'Responsável (vem da unidade)', tipo: 'select', opcoes: opc('responsaveis'), largura: 'meia', ajuda: faltaCadastro('responsaveis', 'responsável', 'Responsáveis') },
       { chave: 'dataAquisicao', rotulo: 'Data de aquisição', tipo: 'data', obrigatorio: true, largura: 'meia', padrao: VP.Plataforma.hoje() },
       { chave: 'valor', rotulo: 'Valor de aquisição (R$)', tipo: 'moeda', obrigatorio: true, largura: 'meia' },
       { chave: 'quantidade', rotulo: 'Quantidade (gera um bem para cada)', tipo: 'numero', padrao: 1, largura: 'meia' },
       { chave: 'situacaoAquisicao', rotulo: 'Como entrou', tipo: 'select', opcoes: L.situacoesAquisicao.map((x) => [x, x]), padrao: 'Compra', vazio: false, largura: 'meia' },
-      { chave: 'fornecedorId', rotulo: 'Fornecedor', tipo: 'select', opcoes: opc('fornecedores'), largura: 'meia' },
+      { chave: 'fornecedorId', rotulo: 'Fornecedor', tipo: 'select', opcoes: opc('fornecedores'), largura: 'meia', ajuda: faltaCadastro('fornecedores', 'fornecedor', 'Fornecedores') },
       { chave: 'estado', rotulo: 'Estado', tipo: 'select', opcoes: Object.entries(L.estados).reverse(), padrao: 8, vazio: false, largura: 'meia' }
     ];
     if (cfg.codigoManual) campos.splice(0, 0, { chave: 'codigo', rotulo: 'Código do bem', tipo: 'numero', obrigatorio: true });

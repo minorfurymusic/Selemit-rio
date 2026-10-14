@@ -17,6 +17,7 @@ Como usar o sistema, passo a passo. Este manual vai crescer: cada função nova 
 9. [Plaquetas: anteriores, troca e cadastros duplicados](#9-plaquetas-anteriores-troca-e-cadastros-duplicados)
 10. [Recebimento e termo de responsabilidade com prazo](#10-recebimento-e-termo-de-responsabilidade-com-prazo)
 11. [Menu lateral: grupos e menu escondido](#11-menu-lateral-grupos-e-menu-escondido)
+12. [Cadastros vazios: dados a receber da prefeitura](#12-cadastros-vazios-dados-a-receber-da-prefeitura)
 
 ---
 
@@ -466,4 +467,17 @@ Cada item tem um ícone próprio.
 O sistema lembra a escolha **neste navegador**: ao abrir de novo, o menu volta do jeito que você deixou.
 
 **No celular e no tablet em pé**, nada muda: o menu abre pelo botão **☰**, sempre com os nomes.
+
+---
+
+## 12. Cadastros vazios: dados a receber da prefeitura
+
+*Novo em 14/10/2026.* Num sistema novo da cidade, os cadastros começam vazios. Enquanto faltar um cadastro básico, o **Painel** mostra na central de pendências **"Cadastro vazio: … — dados a receber da prefeitura"**. Clique para abrir o cadastro.
+
+- **Urgente:** Entidades e fundos, Unidades e Classificações (sem eles não dá para cadastrar bens direito).
+- **Atenção:** Contas contábeis, Responsáveis e Fornecedores.
+
+No **Novo bem**, embaixo de Unidade, Responsável e Fornecedor aparece o aviso de onde cadastrar quando a lista está vazia. O campo **Classificação** completa e filtra enquanto você digita, mas só depois que as classificações estiverem cadastradas.
+
+A pendência some sozinha quando o cadastro recebe o primeiro registro. A lista completa do que pedir à prefeitura está no arquivo `dados-da-prefeitura.md`.
 

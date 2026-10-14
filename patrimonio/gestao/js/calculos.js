@@ -213,6 +213,17 @@
     const p = [];
     const add = (chave, nivel, titulo, qtd, link, detalhe = '') => { if (qtd > 0) p.push({ chave, nivel, titulo, qtd, link, detalhe }); };
 
+    // Cadastros básicos vazios: dados que a prefeitura precisa enviar (lista completa em dados-da-prefeitura.md)
+    for (const [tabela, nome, nivel, filtro] of [
+      ['entidades', 'Entidades e fundos (CNPJ da prefeitura e de cada fundo)', 'critico'],
+      ['unidades', 'Unidades (centros de custo e locais)', 'critico'],
+      ['classificacoes', 'Classificações com vida útil e valor residual', 'critico', (c) => !c.aClassificar],
+      ['contas', 'Contas contábeis', 'atencao'],
+      ['responsaveis', 'Responsáveis pelos bens', 'atencao'],
+      ['fornecedores', 'Fornecedores', 'atencao']]) {
+      const l = VP.db.lista(tabela);
+      if (!(filtro ? l.filter(filtro) : l).length) add('cadastro-' + tabela, nivel, `Cadastro vazio: ${nome} — dados a receber da prefeitura`, 1, '#cadastros/' + tabela, 'Peça à prefeitura (planilha ou relatório do sistema atual) e cadastre ou importe.');
+    }
     const aClassificar = new Set(VP.db.lista('classificacoes').filter((c) => c.aClassificar).map((c) => c.id));
     if (aClassificar.size) add('a-classificar', 'atencao', 'Bens importados a classificar (depreciando como "Demais bens" até classificar)', bens.filter((b) => aClassificar.has(b.classificacaoId)).length, '#bens', 'Na lista de bens, filtre pela classificação "A classificar" e use a edição em lote.');
     const limiteSeguro = u.somaDias(hoje, cfg.avisoSeguroDias);

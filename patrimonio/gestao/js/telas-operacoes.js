@@ -47,7 +47,7 @@
         </div>
         <div class="grade-painel">
           <section class="cartao"><h3>Central de pendências</h3>
-            ${pend.length ? `<ul class="pendencias">${pend.map((p) => `<li class="p-${p.nivel}"><a href="${esc(p.link)}"><span class="p-icone" aria-hidden="true">${icone[p.nivel]}</span><span class="p-nivel">${nivelTxt[p.nivel]}</span><span class="p-texto">${esc(p.titulo)}</span><b class="p-qtd">${p.qtd > 1 || p.chave !== 'fechamento' ? u.inteiro(p.qtd) : ''}</b></a></li>`).join('')}</ul>` : '<p class="tudo-certo">✓ Nenhuma pendência.</p>'}
+            ${pend.length ? `<ul class="pendencias">${pend.map((p) => `<li class="p-${p.nivel}"><a href="${esc(p.link)}"><span class="p-icone" aria-hidden="true">${icone[p.nivel]}</span><span class="p-nivel">${nivelTxt[p.nivel]}</span><span class="p-texto">${esc(p.titulo)}</span><b class="p-qtd">${p.qtd > 1 || !(p.chave === 'fechamento' || p.chave.startsWith('cadastro-')) ? u.inteiro(p.qtd) : ''}</b></a></li>`).join('')}</ul>` : '<p class="tudo-certo">✓ Nenhuma pendência.</p>'}
           </section>
           <section class="cartao"><h3>Valor contábil por unidade</h3>${G.barrasH(porUnidade, { formato: u.moedaCurta, titulo: 'Valor por unidade' })}</section>
           <section class="cartao"><h3>Bens por estado de conservação</h3>${G.barrasH(porEstado, { titulo: 'Bens por estado', mostrarZeros: true })}</section>

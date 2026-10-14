@@ -300,6 +300,14 @@ Explicado no `manual.md` (2.5, 2.6, 2.7, 4, 4.1, 7 e 8) e no `DOSSIE.md` (seçã
 - [ ] Avisos da leitura da nota: lista ampliada em 14/10/2026 (A6.6, item 5).
 - [ ] **Objetivo (depende da prefeitura):** gatilhos do termo de responsabilidade — envio automático por e-mail à pessoa certa ao cadastrar/transferir/trocar responsável, contagem do prazo, avisos para o servidor entrar em contato, envio pelo aplicativo e pelo e-mail do agente administrativo (`DOSSIE.md` A6.5).
 
+## Pedido de 14/10/2026 (3) — cadastros vazios e dados da prefeitura
+
+- [x] Classificação: já completa e filtra ao digitar (lista do cadastro; conferido na demonstração: 16 classificações, "cad" → "Cadeiras"). Na versão publicada aparece vazia porque o servidor de teste não tem classificações cadastradas.
+- [x] Pendência no Painel para cada cadastro básico vazio ("dados a receber da prefeitura") e aviso embaixo de Unidade, Responsável e Fornecedor no Novo bem. Teste `testes/teste-cadastros-vazios.js`; manual seção 12.
+- [x] Lista do que a prefeitura precisa mandar: `dados-da-prefeitura.md` (Patrimônio e Cemitério).
+- [x] Prova: `testes/regressao.sh` em 14/10/2026: 28 suítes, 0 falhas (inclui `teste-cadastros-vazios.js: 9 passou, 0 falhou`).
+- [ ] Receber os dados da lista (depende da prefeitura).
+
 ## Como continuar numa conversa nova (11/10/2026)
 
 Os robôs de teste agora ficam no repositório, em `testes/` (só dados fictícios; ver `testes/LEIA-ME.md`). Prova: `testes/regressao.sh` rodado de dentro do repositório em 11/10/2026: 26 suítes, 0 falhas (inclui os 4 testes com servidor local). Texto para colar na conversa nova:
