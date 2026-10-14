@@ -277,6 +277,16 @@ Explicado no `manual.md` (2.5, 2.6, 2.7, 4, 4.1, 7 e 8) e no `DOSSIE.md` (seçã
 - [ ] **Futuro — fim da sessão por inatividade.** Hoje (deduzido pela leitura do código) a sessão não expira por tempo parado, nem na demonstração nem com o servidor.
 - [ ] Pergunta ao usuário: "Inservíveis" como **tabela especial sem depreciação e com o valor contábil congelado**? Hoje (decisão de 08/10/2026) "Inservível" é situação do bem e continua depreciando.
 
+## Pedido de 14/10/2026 — menu lateral do Patrimônio
+
+- [x] Menu em **5 grupos sempre abertos** (Visão geral, Bens, Movimentações, Controle, Sistema), com Relatórios em Visão geral (decisão do usuário, 14/10/2026). Só no Patrimônio.
+- [x] **Ícones desenhados** para os 19 itens (traço simples, cor do texto, claro e escuro), no lugar dos símbolos de letra.
+- [x] **Esconder menu**: só os ícones, linha entre os grupos, nome ao parar o mouse, pendências no ícone do Painel; lembrado neste navegador. Celular sem mudança (☰, sempre com nomes).
+- [x] Teste novo `testes/teste-menu.js` na regressão; manual seção 11.
+- [ ] Cemitério: mesmo menu? (pergunta ao usuário, sem resposta em 14/10/2026).
+- [x] Envio autorizado pelo usuário em 14/10/2026, no ramo `claude/quirky-galileo-rmr246` (o ambiente tinha aberto em `ccr-078594ad-yypwn4`, que não tem o VitalPat). Prova: `testes/regressao.sh` em 14/10/2026: 27 suítes, 0 falhas (inclui `teste-menu.js: 11 passou, 0 falhou` e os 4 testes com servidor local).
+- [ ] `testes/LEIA-ME.md` não diz que `teste-importa-relatorio` e `teste-matricula` precisam dos arquivos fictícios gerados antes (`python3 gera-relatorio.py /tmp/relatorio-ficticio.csv` e `python3 gera-pdf.py /tmp/matricula-ficticia.pdf /tmp/matricula-imagem.pdf`). Sem eles, os dois dão 0 passou / 0 falhou. Corrigir só com autorização.
+
 ## Como continuar numa conversa nova (11/10/2026)
 
 Os robôs de teste agora ficam no repositório, em `testes/` (só dados fictícios; ver `testes/LEIA-ME.md`). Prova: `testes/regressao.sh` rodado de dentro do repositório em 11/10/2026: 26 suítes, 0 falhas (inclui os 4 testes com servidor local). Texto para colar na conversa nova:

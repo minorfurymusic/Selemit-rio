@@ -2,7 +2,7 @@
 
 Como usar o sistema, passo a passo. Este manual vai crescer: cada função nova ganha uma seção aqui.
 
-**Versão do manual:** 08/10/2026. Por enquanto cobre o **VitalPat Patrimônio**: exportar, importar, anexos, itens de controle e leitura da matrícula.
+**Versão do manual:** 14/10/2026. Por enquanto cobre o **VitalPat Patrimônio**: exportar, importar, anexos, itens de controle e leitura da matrícula.
 
 ## Índice
 
@@ -16,6 +16,7 @@ Como usar o sistema, passo a passo. Este manual vai crescer: cada função nova 
 8. [Baixa em lote (leilão)](#8-baixa-em-lote-leilão)
 9. [Plaquetas: anteriores, troca e cadastros duplicados](#9-plaquetas-anteriores-troca-e-cadastros-duplicados)
 10. [Recebimento e termo de responsabilidade com prazo](#10-recebimento-e-termo-de-responsabilidade-com-prazo)
+11. [Menu lateral: grupos e menu escondido](#11-menu-lateral-grupos-e-menu-escondido)
 
 ---
 
@@ -445,4 +446,24 @@ Venda, doação e permuta exigem **avaliação prévia e justificativa** (Lei 14
   - Menu **Termos**: **Imprimir** o termo e, quando voltar assinado, **Anexar assinado** (foto ou PDF). A pendência fecha, e o termo assinado fica na ficha de cada bem.
   - Se o bem muda de responsável antes da assinatura, o termo anterior fica "cancelado" (no histórico) e abre um novo para o novo responsável.
 - **Envio por e-mail (futuro):** o termo já preenchido será enviado automaticamente por e-mail ao responsável, que devolve assinado para um e-mail definido. **Ainda não está no sistema**: depende de um serviço de e-mail ligado ao servidor (decisão de 08/10/2026). Hoje o termo é impresso e entregue em mãos.
+
+---
+
+## 11. Menu lateral: grupos e menu escondido
+
+*Novo em 14/10/2026.* O menu da esquerda está separado em 5 grupos, cada um com seu título:
+
+- **Visão geral:** Painel e Relatórios.
+- **Bens:** Bens móveis, Bens imóveis, Frota e Itens de controle.
+- **Movimentações:** Entradas, Transferências, Baixa em lote e Termos.
+- **Controle:** Inventário, Manutenção e Financeiro.
+- **Sistema:** Histórico, Cadastros, Configurações, Exportar e importar, Pessoas (só para o administrador, com servidor) e Lixeira.
+
+Cada item tem um ícone próprio.
+
+**Esconder o menu:** no pé do menu, clique em **Esconder menu**. Ficam só os ícones, com uma linha separando os grupos, e a tela ganha espaço. Pare o mouse sobre um ícone para ver o nome. O número de pendências continua no ícone do Painel. Para voltar, clique em **›** (Mostrar menu), no pé do menu.
+
+O sistema lembra a escolha **neste navegador**: ao abrir de novo, o menu volta do jeito que você deixou.
+
+**No celular e no tablet em pé**, nada muda: o menu abre pelo botão **☰**, sempre com os nomes.
 

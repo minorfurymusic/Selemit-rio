@@ -33,6 +33,7 @@ Cada linha mostra `=== teste: N passou, M falhou`. Tudo certo = `0 falhou` em to
 | teste-baixa-lote | baixa em lote (leilão) com ata |
 | teste-plaquetas-unir | plaquetas anteriores, trocar plaqueta, unir cadastros |
 | teste-termos | recebimento e termo de responsabilidade com prazo |
+| teste-menu | menu lateral em grupos, ícones, esconder/mostrar (lembrado), celular |
 | fumaca | abre todas as telas procurando erro |
 | teste-pat-servidor, teste-campo-pat-servidor, teste-login-servidor | mesmas regras com o servidor local |
 | robo-botoes.js `patrimonio` | clica em todos os botões de todas as telas (rodar à parte) |

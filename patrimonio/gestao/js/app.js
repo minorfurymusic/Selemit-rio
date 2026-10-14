@@ -4,11 +4,37 @@
   const VP = window.VP;
   const esc = VP.u.esc;
 
-  const MENU = [
-    ['painel', 'Painel', '◧'], ['bens/moveis', 'Bens móveis', '▦'], ['bens/imoveis', 'Bens imóveis', '⌂'], ['frota', 'Frota', '⛟'], ['controle', 'Itens de controle', '◫'], ['entradas', 'Entradas', '⇩'], ['transferencias', 'Transferências', '⇄'], ['baixa-lote', 'Baixa em lote', '⊟'], ['termos', 'Termos', '✍'],
-    ['inventario', 'Inventário', '☑'], ['manutencao', 'Manutenção', '⚒'], ['financeiro/fechamento', 'Financeiro', '＄'], ['relatorios', 'Relatórios', '▤'],
-    ['historico', 'Histórico', '◷'], ['cadastros/unidades', 'Cadastros', '☰'], ['configuracoes', 'Configurações', '⚙'], ['planilhas', 'Exportar e importar', '⇅'], ['lixeira', 'Lixeira', '🗑']
+  // Menu em grupos (sempre abertos). Ícones desenhados para o VitalPat: traço simples, cor do texto.
+  const GRUPOS = [
+    ['Visão geral', [['painel', 'Painel', 'painel'], ['relatorios', 'Relatórios', 'relatorios']]],
+    ['Bens', [['bens/moveis', 'Bens móveis', 'moveis'], ['bens/imoveis', 'Bens imóveis', 'imoveis'], ['frota', 'Frota', 'frota'], ['controle', 'Itens de controle', 'controle']]],
+    ['Movimentações', [['entradas', 'Entradas', 'entradas'], ['transferencias', 'Transferências', 'transferencias'], ['baixa-lote', 'Baixa em lote', 'baixa'], ['termos', 'Termos', 'termos']]],
+    ['Controle', [['inventario', 'Inventário', 'inventario'], ['manutencao', 'Manutenção', 'manutencao'], ['financeiro/fechamento', 'Financeiro', 'financeiro']]],
+    ['Sistema', [['historico', 'Histórico', 'historico'], ['cadastros/unidades', 'Cadastros', 'cadastros'], ['configuracoes', 'Configurações', 'configuracoes'], ['planilhas', 'Exportar e importar', 'planilhas'], ['lixeira', 'Lixeira', 'lixeira']]]
   ];
+  const ICONES = {
+    painel: '<rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/>',
+    relatorios: '<path d="M3 21h18"/><rect x="4.5" y="12" width="3.5" height="9" rx="1"/><rect x="10.25" y="5" width="3.5" height="16" rx="1"/><rect x="16" y="9" width="3.5" height="12" rx="1"/>',
+    moveis: '<path d="M21 7.5 12 3 3 7.5v9L12 21l9-4.5z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/>',
+    imoveis: '<path d="M3 21h18M5 21V4h9v17M14 9h5v12"/><path d="M8 8h3M8 12h3M8 16h3"/>',
+    frota: '<path d="M5 17H3.5v-4.5L5.5 7h13l2 5.5V17H19"/><path d="M3.5 12.5h17M9.5 17h5"/><circle cx="7.5" cy="17" r="2"/><circle cx="16.5" cy="17" r="2"/>',
+    controle: '<path d="M3 4h8l10 10-7 7L4 11z"/><circle cx="7.5" cy="8.5" r="1.5"/>',
+    entradas: '<path d="M12 3v11M7.5 9.5 12 14l4.5-4.5"/><path d="M4 15v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4"/>',
+    transferencias: '<path d="M4 8h15M15 4l4 4-4 4"/><path d="M20 16H5M9 12l-4 4 4 4"/>',
+    baixa: '<path d="M9.2 6.4 12.4 3.2l6.4 6.4-3.2 3.2z"/><path d="M12.4 9.6 4.5 17.5"/><path d="M12 21H3"/>',
+    termos: '<path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8z"/><path d="M14 3v5h5M8 11h6M8 14h8"/><path d="M8 18c1-1.5 2-1.5 2.3 0 .3 1.2 1.2 1 2.2-.3"/>',
+    inventario: '<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 2.5h6V6H9z"/><path d="m9 13 2 2 4-4"/>',
+    manutencao: '<path d="M19.8 8.3A4.5 4.5 0 0 1 13.2 12.7L6.2 19.7A1.32 1.32 0 0 1 4.3 17.8L11.3 10.8A4.5 4.5 0 0 1 15.7 4.2L16.2 7.8z"/>',
+    financeiro: '<rect x="2.5" y="6" width="19" height="12" rx="2"/><circle cx="12" cy="12" r="2.8"/><path d="M6 9.5v5M18 9.5v5"/>',
+    historico: '<path d="M4 12a8 8 0 1 0 2.5-5.8"/><path d="M4 4v4.5h4.5"/><path d="M12 8v4.5l3 2"/>',
+    cadastros: '<path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.8" cy="6" r="1.2"/><circle cx="4.8" cy="12" r="1.2"/><circle cx="4.8" cy="18" r="1.2"/>',
+    configuracoes: '<circle cx="12" cy="12" r="2.6"/><circle cx="12" cy="12" r="6"/><path stroke-width="3" stroke-linecap="butt" d="M18 12h2.8M16.24 16.24l2 2M12 18v2.8M7.76 16.24l-2 2M6 12H3.2M7.76 7.76l-2-2M12 6V3.2M16.24 7.76l2-2"/>',
+    planilhas: '<path d="M8 20V5M4 9l4-4 4 4"/><path d="M16 4v15M12 15l4 4 4-4"/>',
+    pessoas: '<circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.4 2.7-6 6-6s6 2.6 6 6"/><circle cx="17" cy="9" r="2.4"/><path d="M16.5 14c2.7 0 4.5 2.1 4.5 5"/>',
+    lixeira: '<path d="M4 7h16M9 7V4h6v3"/><path d="m6 7 1 13h10l1-13"/><path d="M10 11v6M14 11v6"/>',
+    esconder: '<path d="M15 6l-6 6 6 6"/>'
+  };
+  const icone = (nome) => `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ICONES[nome]}</svg>`;
   const rotaMenu = { relatorio: 'relatorios', unidade: 'cadastros/unidades', imoveis: 'bens/imoveis' };
   // Qual aba do menu acende: a ficha do bem e o "novo bem" acendem a aba do tipo do bem
   const abaDoTipo = (tipo) => (tipo === 'veiculo' ? 'frota' : ['imovel', 'infraestrutura'].includes(tipo) ? 'bens/imoveis' : 'bens/moveis');
@@ -49,12 +75,29 @@
 
   const montarLayout = () => {
     const sv = VP.servidor;
-    if (sv.ativo && sv.perfil?.papel === 'admin') MENU.splice(MENU.length - 1, 0, ['pessoas', 'Pessoas', '☺']);
+    if (sv.ativo && sv.perfil?.papel === 'admin') { const sistema = GRUPOS[GRUPOS.length - 1][1]; sistema.splice(sistema.length - 1, 0, ['pessoas', 'Pessoas', 'pessoas']); }
     // Faixa que diz se é demonstração ou o sistema de verdade
     const faixa = document.querySelector('.rodape-demo');
     if (sv.ativo) faixa.textContent = `Conectado ao servidor${sv.municipio ? ' · ' + sv.municipio : ''} · ${sv.perfil.nome || sv.perfil.email}`;
     document.getElementById('modo-sistema').textContent = sv.ativo ? (sv.municipio || 'Conectado') : 'Demonstração';
-    document.getElementById('menu').innerHTML = MENU.map(([rota, nome, ic]) => `<a href="#${rota}" data-rota="${rota}"><span class="ic" aria-hidden="true">${ic}</span><span>${nome}</span>${rota === 'painel' ? '<b id="selo-pendencias" class="selo-menu" hidden></b>' : ''}</a>`).join('');
+    document.getElementById('menu').innerHTML = GRUPOS.map(([titulo, itens]) => `<div class="grupo-menu"><p class="titulo-grupo">${titulo}</p>${itens.map(([rota, nome, ic]) => `<a href="#${rota}" data-rota="${rota}" data-nome="${nome}"><span class="ic" aria-hidden="true">${icone(ic)}</span><span class="nome">${nome}</span>${rota === 'painel' ? '<b id="selo-pendencias" class="selo-menu" hidden></b>' : ''}</a>`).join('')}</div>`).join('')
+      + `<button id="esconder-menu" class="esconder-menu" type="button"><span class="ic" aria-hidden="true">${icone('esconder')}</span><span class="nome">Esconder menu</span></button>`;
+    // Menu escondido = só os ícones (o nome aparece ao parar o mouse). Guardado neste navegador.
+    const aplicarMenu = (escondido) => {
+      document.body.classList.toggle('menu-recolhido', escondido);
+      document.querySelectorAll('#menu a').forEach((a) => { if (escondido) a.title = a.dataset.nome; else a.removeAttribute('title'); });
+      const b = document.getElementById('esconder-menu');
+      b.title = escondido ? 'Mostrar menu' : '';
+      b.setAttribute('aria-label', escondido ? 'Mostrar menu' : 'Esconder menu');
+      b.querySelector('.nome').textContent = escondido ? 'Mostrar menu' : 'Esconder menu';
+    };
+    const lerMenu = () => { try { return localStorage.getItem('vitalpat-menu') === 'escondido'; } catch (_) { return false; } };
+    aplicarMenu(lerMenu());
+    document.getElementById('esconder-menu').addEventListener('click', () => {
+      const escondido = !document.body.classList.contains('menu-recolhido');
+      try { localStorage.setItem('vitalpat-menu', escondido ? 'escondido' : 'aberto'); } catch (_) { /* vale só nesta visita */ }
+      aplicarMenu(escondido);
+    });
     document.getElementById('busca-global').addEventListener('keydown', (e) => {
       if (e.key !== 'Enter') return;
       const t = e.target.value.trim();
