@@ -219,8 +219,7 @@
       ['unidades', 'Unidades (centros de custo e locais)', 'critico'],
       ['classificacoes', 'Classificações com vida útil e valor residual', 'critico', (c) => !c.aClassificar],
       ['contas', 'Contas contábeis', 'atencao'],
-      ['responsaveis', 'Responsáveis pelos bens', 'atencao'],
-      ['fornecedores', 'Fornecedores', 'atencao']]) {
+      ['responsaveis', 'Responsáveis pelos bens', 'atencao']]) { // fornecedores: cadastrados sozinhos pela compra ou pela nota (14/10/2026)
       const l = VP.db.lista(tabela);
       if (!(filtro ? l.filter(filtro) : l).length) add('cadastro-' + tabela, nivel, `Cadastro vazio: ${nome} — dados a receber da prefeitura`, 1, '#cadastros/' + tabela, 'Peça à prefeitura (planilha ou relatório do sistema atual) e cadastre ou importe.');
     }

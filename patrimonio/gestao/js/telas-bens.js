@@ -555,9 +555,12 @@
       { chave: 'responsavelId', rotulo: 'Responsável (vem da unidade)', tipo: 'select', opcoes: opc('responsaveis'), largura: 'meia', ajuda: faltaCadastro('responsaveis', 'responsável', 'Responsáveis') },
       { chave: 'dataAquisicao', rotulo: 'Data de aquisição', tipo: 'data', obrigatorio: true, largura: 'meia', padrao: VP.Plataforma.hoje() },
       { chave: 'valor', rotulo: 'Valor de aquisição (R$)', tipo: 'moeda', obrigatorio: true, largura: 'meia' },
+      // Valor residual sempre informado, em % ou R$ (decisão do usuário, 14/10/2026): vem da classificação e pode ser ajustado
+      { chave: 'residualTipo', rotulo: 'Valor residual em', tipo: 'select', opcoes: [['percentual', 'Percentual (%)'], ['valor', 'Dinheiro (R$)']], vazio: false, padrao: 'percentual', largura: 'meia' },
+      { chave: 'residual', rotulo: 'Valor residual', tipo: 'moeda', largura: 'meia', ajuda: 'Vem da classificação. O valor do bem nunca fica abaixo dele.' },
       { chave: 'quantidade', rotulo: 'Quantidade (gera um bem para cada)', tipo: 'numero', padrao: 1, largura: 'meia' },
       { chave: 'situacaoAquisicao', rotulo: 'Como entrou', tipo: 'select', opcoes: L.situacoesAquisicao.map((x) => [x, x]), padrao: 'Compra', vazio: false, largura: 'meia' },
-      { chave: 'fornecedorId', rotulo: 'Fornecedor', tipo: 'select', opcoes: opc('fornecedores'), largura: 'meia', ajuda: faltaCadastro('fornecedores', 'fornecedor', 'Fornecedores') },
+      { chave: 'fornecedorId', rotulo: 'Fornecedor', tipo: 'select', opcoes: opc('fornecedores'), largura: 'meia', ajuda: VP.db.lista('fornecedores').length ? '' : 'Nenhum fornecedor ainda. Ele é cadastrado sozinho pela compra (Entradas) ou pela nota fiscal.' },
       { chave: 'estado', rotulo: 'Estado', tipo: 'select', opcoes: Object.entries(L.estados).reverse(), padrao: 8, vazio: false, largura: 'meia' }
     ];
     if (cfg.codigoManual) campos.splice(0, 0, { chave: 'codigo', rotulo: 'Código do bem', tipo: 'numero', obrigatorio: true });
@@ -622,6 +625,8 @@
           const texto = el('classificacaoTexto').value.trim();
           const dc = texto ? dadosPrevistos(texto, document.querySelector('#achado-classe [data-mae]')?.value, tipo) : null;
           const qtd = Math.max(1, Math.floor(v.quantidade || 1));
+          const campoRes = el('residual');
+          if (campoRes && !campoRes.dataset.mexido) { campoRes.value = dc && !dc.naoDeprecia && dc.residualPct != null ? String(dc.residualPct).replace('.', ',') : ''; el('residualTipo').value = 'percentual'; }
           const lim = VP.config().limiteControle;
           // Classificador: item barato E de pouca durabilidade pode ser item de controle. Só sugere; a pessoa decide.
           const an = VP.controle && VP.classificador && tipo === 'movel' && v.valor > 0 && v.valor <= lim ? VP.classificador.analisar({ descricao: el('descricao').value, valor: v.valor, classificacaoId: texto ? acharClassificacao(texto, tipo)?.id : '', tipo }) : null;
@@ -634,6 +639,7 @@
         };
         el('descricao').addEventListener('input', mostrarNome);
         el('classificacaoTexto').addEventListener('input', () => { mostrarClasse(); previa(); });
+        ['residual', 'residualTipo'].forEach((k) => el(k).addEventListener('input', () => { el('residual').dataset.mexido = '1'; }));
         f.addEventListener('change', (e) => {
           if (e.target.name === 'unidadeId') { const un = VP.db.pega('unidades', e.target.value); if (un?.responsavelId) el('responsavelId').value = un.responsavelId; }
           previa();
@@ -650,6 +656,11 @@
           const faltando = lidos.faltando.concat(!v.descricao ? ['Nome do bem'] : [], !textoCl ? ['Classificação'] : []);
           if (faltando.length) { erro.textContent = 'Preencha: ' + faltando.join(', '); return; }
           if (cfg.codigoManual && VP.db.lista('bens', true).some((x) => x.codigo === v.codigo)) { erro.textContent = 'Já existe bem com este código.'; return; }
+          const dcRes = dadosPrevistos(textoCl, document.querySelector('#achado-classe [data-mae]')?.value || '', tipo);
+          if (!dcRes.naoDeprecia) {
+            if (v.residual == null) { erro.textContent = 'Informe o Valor residual (em % ou R$). O valor do bem nunca fica abaixo dele.'; return; }
+            if (v.residual < 0 || (v.residualTipo === 'percentual' && v.residual >= 100) || (v.residualTipo === 'valor' && v.residual >= v.valor)) { erro.textContent = v.residualTipo === 'valor' ? 'O valor residual (R$) deve ser menor que o valor de aquisição.' : 'O valor residual (%) deve ser de 0 a 99.'; return; }
+          }
           const paiId = document.querySelector('#achado-classe [data-mae]')?.value || '';
           // Confere a conta ANTES de criar qualquer cadastro (não deixa classificação solta)
           if (cfg.obrigaContas && !dadosPrevistos(textoCl, paiId, tipo).contaId) { erro.textContent = 'Esta classificação não tem conta contábil. Escolha em "Fica dentro de" uma classe com conta, ou ajuste em Cadastros → Classificações.'; return; }
@@ -812,7 +823,7 @@
         origem: Object.assign({ quantidade: v.quantidade || 1, valorUnitario: v.valor }, v.origem || {}), nf: v.nf || {},
         detalhes: Object.assign({ tombamento: cfg.tombamentoAutomatico ? String(codigo) : '', dataTombamento: cfg.tombamentoAutomatico ? VP.Plataforma.hoje() : '', textoJuridico: {} }, v.detalhes || {}, i > 0 ? { serie: '' } : {}),
         endereco: null, medidas: [], veiculo: v.tipo === 'veiculo' || dc.tipoBem === 'veiculo' || grupo?.tipoBem === 'veiculo' ? {} : null, seguro: null, garantia: null, fotos: [], anexos: [], criticidade: 2,
-        depreciacao: { automatica: !dc.naoDeprecia, metodo: 'linear', inicio: u.somaMeses(v.dataIncorporacao || VP.Plataforma.hoje(), 1) + '-01', vidaUtilMeses: dc.vidaUtilMeses || 0, residualTipo: 'percentual', residual: dc.residualPct ?? 0, producaoTotal: 0, contaDebito: 'C_VPD', contaCredito: dc.contaDepreciacaoId || '' }
+        depreciacao: { automatica: !dc.naoDeprecia, metodo: 'linear', inicio: u.somaMeses(v.dataIncorporacao || VP.Plataforma.hoje(), 1) + '-01', vidaUtilMeses: dc.vidaUtilMeses || 0, residualTipo: v.residualTipo || 'percentual', residual: v.residual ?? dc.residualPct ?? 0, producaoTotal: 0, contaDebito: 'C_VPD', contaCredito: dc.contaDepreciacaoId || '' }
       };
       bens.push(b);
       eventos.push(VP.novoEvento(b.id, 'incorporacao', { data: b.dataIncorporacao, valor: v.valor, descricao: `Incorporação — ${b.situacaoAquisicao}${v.origemTexto ? ' · ' + v.origemTexto : ''}`, extra: { contaDebito: b.contaId } }));

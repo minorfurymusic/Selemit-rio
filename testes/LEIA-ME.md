@@ -35,8 +35,15 @@ Cada linha mostra `=== teste: N passou, M falhou`. Tudo certo = `0 falhou` em to
 | teste-termos | recebimento e termo de responsabilidade com prazo |
 | teste-menu | menu lateral em grupos, ícones, esconder/mostrar (lembrado), celular |
 | teste-cadastros-vazios | cadastro básico vazio: pendência no Painel e aviso no Novo bem |
+| teste-residual-compras | valor residual sempre pedido (R$ ou %), valor nunca abaixo do residual; compra com fornecedor novo cadastrado sozinho e entidade certa |
+| teste-dados-teste-servidor | com servidor e sistema vazio: importa `patrimonio/modelos-importacao/dados-de-teste.xlsx` (1 de cada coisa), não duplica ao importar de novo, exporta e importa de volta, desfaz |
 | fumaca | abre todas as telas procurando erro |
 | teste-pat-servidor, teste-campo-pat-servidor, teste-login-servidor | mesmas regras com o servidor local |
 | robo-botoes.js `patrimonio` | clica em todos os botões de todas as telas (rodar à parte) |
 
 Os testes do Cemitério (`teste-cemiterio`, `teste-cem-*`, `teste-etapa2..4*`, `teste-mapas-cem`, `fumaca-cem`) rodam do mesmo jeito: `testes/regressao.sh teste-cem-gestao.js ...`.
+
+## Planilha de dados de teste
+
+`patrimonio/modelos-importacao/dados-de-teste.xlsx`: 1 de cada coisa (cadastros, compra, bem móvel, veículo, imóvel, item de controle), só dados fictícios com o nome "TESTE". Para gerar de novo (por exemplo, depois de mudar colunas): `testes/copia.sh && node testes/gera-dados-teste.js`.
+

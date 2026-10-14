@@ -308,6 +308,21 @@ Explicado no `manual.md` (2.5, 2.6, 2.7, 4, 4.1, 7 e 8) e no `DOSSIE.md` (seçã
 - [x] Prova: `testes/regressao.sh` em 14/10/2026: 28 suítes, 0 falhas (inclui `teste-cadastros-vazios.js: 9 passou, 0 falhou`).
 - [ ] Receber os dados da lista (depende da prefeitura).
 
+## Pedido de 14/10/2026 (4) — fornecedor automático, cadastros por planilha, dados de teste e valor residual
+
+- [x] Fornecedor cadastrado sozinho pela compra (Registrar compra com campo que completa e filtra; CSV de compras; aba Compras). Saiu da pendência do Painel e da lista da prefeitura.
+- [x] Corrigido: importação de compras por CSV gravava sempre a entidade "E1" (só existe na demonstração). Agora: coluna entidade (nome ou CNPJ) ou a única cadastrada.
+- [x] Compra sem empenho aceita (ordem de compra antes do empenho).
+- [x] Importar e exportar **todos os cadastros** por planilha (uma aba para cada), com prévia, sem duplicar, ligando bens a cadastros novos da mesma planilha, e desfazer. Unidades continuam só código + nome (decisão de 08/10/2026).
+- [x] Planilha de teste `patrimonio/modelos-importacao/dados-de-teste.xlsx` (1 de cada coisa, fictício) e gerador `testes/gera-dados-teste.js`.
+- [x] Valor residual sempre pedido (R$ ou %) no Novo bem e na classificação; valor nunca abaixo do residual nem negativo (conferido em 30 anos de depreciação).
+- [x] Testes novos: `teste-residual-compras.js` e `teste-dados-teste-servidor.js` (servidor local, sistema vazio).
+- [x] Prova: `testes/regressao.sh` em 14/10/2026: 30 suítes, 0 falhas (inclui `teste-residual-compras.js: 12 passou, 0 falhou` e `teste-dados-teste-servidor.js: 14 passou, 0 falhou`).
+- [ ] Unidade por planilha com responsável, tipo e endereço? Hoje só código e nome (decisão de 08/10/2026 de não ler nomes de servidores). Pergunta ao usuário.
+- [ ] Item de controle importado de novo entra duplicado (item novo não pode levar código na planilha) — regra anterior; avaliar.
+- [ ] Pendência "compra sem empenho" no Painel (hoje só aviso na prévia).
+- [ ] Pergunta ainda em aberto: "Inservível" congela o valor ou continua depreciando?
+
 ## Como continuar numa conversa nova (11/10/2026)
 
 Os robôs de teste agora ficam no repositório, em `testes/` (só dados fictícios; ver `testes/LEIA-ME.md`). Prova: `testes/regressao.sh` rodado de dentro do repositório em 11/10/2026: 26 suítes, 0 falhas (inclui os 4 testes com servidor local). Texto para colar na conversa nova:

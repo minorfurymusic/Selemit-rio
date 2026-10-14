@@ -41,6 +41,7 @@ A referência de público-alvo é a Prefeitura de Rio do Sul/SC.
 - (08/10/2026) **Item de controle só se vida útil até 24 meses E valor até R$ 300** (regra de Rio do Sul; os dois limites ajustáveis). O sistema **sugere** (classificador com lista de vida útil e decisões guardadas) e a pessoa sempre decide.
 - (08/10/2026) Centro de custo **não cadastrado** na importação: bem **sem centro de custo + pendência grave** (nunca unidade provisória); ligação código → unidade só por pessoa, com confirmação. Plaqueta **nunca reaproveitada**; plaquetas anteriores em registro com data e motivo; **unir cadastros** do mesmo bem com conferência dado a dado. Termo de responsabilidade com **prazo de 15 dias** e pendência; **envio por e-mail e fim da sessão por inatividade ficam para o futuro** (não codificar sem pedido).
 - (08/10/2026) **Baixa em lote** (leilão) com ata obrigatória; bem baixado nunca é apagado. **Nomes dos centros de custo**: importar só código + nome; nunca ler nem guardar nomes ou matrículas de servidores.
+- (14/10/2026) **Fornecedor é cadastrado sozinho** pela ordem de compra ou nota fiscal quando não existe (não é dado a pedir à prefeitura). **Todos os cadastros entram e saem por planilha** (uma aba para cada); planilha de teste com 1 de cada coisa em `patrimonio/modelos-importacao/dados-de-teste.xlsx`. **Valor residual sempre pedido (R$ ou %)**; o valor do bem nunca fica abaixo do residual nem negativo. Lista do que a prefeitura precisa mandar: `dados-da-prefeitura.md`.
 
 ## Bloqueador legal (ler antes de qualquer coisa comercial)
 

@@ -82,7 +82,9 @@
       const tipo = c.tipo === 'data' ? 'date' : 'text';
       const modo = c.tipo === 'numero' || c.tipo === 'moeda' ? 'inputmode="decimal"' : '';
       const valor = c.tipo === 'moeda' && v !== '' && v != null ? String(v).replace('.', ',') : v;
-      ctl = `<input type="${tipo}" id="${id}" name="${esc(c.chave)}" value="${esc(valor)}" ${modo} ${c.placeholder ? `placeholder="${esc(c.placeholder)}"` : ''}>`;
+      // sugestoes: lista para completar e filtrar enquanto digita (aceita texto novo)
+      const lista = c.sugestoes ? `<datalist id="${id}-lista">${c.sugestoes.map((x) => `<option value="${esc(x)}">`).join('')}</datalist>` : '';
+      ctl = `<input type="${tipo}" id="${id}" name="${esc(c.chave)}" value="${esc(valor)}" ${modo} ${c.placeholder ? `placeholder="${esc(c.placeholder)}"` : ''} ${c.sugestoes ? `list="${id}-lista" autocomplete="off"` : ''}>${lista}`;
     }
     return `<div class="campo ${c.largura || ''} ${c.tipo === 'bool' ? 'campo-chave' : ''}"><label for="${id}">${esc(c.rotulo)}${obrig}</label>${ctl}${c.ajuda ? `<small class="ajuda">${esc(c.ajuda)}</small>` : ''}</div>`;
   }).join('')}</div>`;

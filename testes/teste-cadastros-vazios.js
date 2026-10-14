@@ -26,7 +26,7 @@ const ok = (c, m) => { console.log((c ? 'PASSOU ' : 'FALHOU ') + m); if (!c) fal
   // esconde as listas só nesta página (não grava nada no navegador)
   await J(() => { const orig = VP.db.lista.bind(VP.db); const vazias = ['entidades', 'unidades', 'classificacoes', 'contas', 'responsaveis', 'fornecedores']; VP.db.lista = (t, ...r) => (vazias.includes(t) ? [] : orig(t, ...r)); });
   const pend = await J(() => VP.pendencias().filter((x) => x.chave.startsWith('cadastro-')).map((x) => [x.chave, x.nivel, x.link]));
-  ok(pend.length === 6, `6 pendências de cadastro vazio: ${pend.map((x) => x[0]).join(', ')}`);
+  ok(pend.length === 5, `5 pendências (fornecedores não: vêm da compra) de cadastro vazio: ${pend.map((x) => x[0]).join(', ')}`);
   ok(JSON.stringify(pend.filter((x) => x[1] === 'critico').map((x) => x[0]).sort()) === JSON.stringify(['cadastro-classificacoes', 'cadastro-entidades', 'cadastro-unidades']), 'entidades, unidades e classificações = urgente');
   ok(pend.every((x) => x[2] === '#cadastros/' + x[0].slice(9)), 'cada pendência leva à aba do cadastro');
   await ir('painel');
@@ -37,7 +37,8 @@ const ok = (c, m) => { console.log((c ? 'PASSOU ' : 'FALHOU ') + m); if (!c) fal
 
   await ir('novo-bem/movel');
   const avisos = await J(() => [...document.querySelectorAll('#form-novo .campo')].filter((c) => /dados a receber da prefeitura/.test(c.textContent)).map((c) => c.querySelector('label').textContent.replace('*', '').trim()));
-  ok(JSON.stringify(avisos) === JSON.stringify(['Unidade', 'Responsável (vem da unidade)', 'Fornecedor']), 'Novo bem: aviso embaixo de Unidade, Responsável e Fornecedor: ' + avisos.join(', '));
+  ok(JSON.stringify(avisos) === JSON.stringify(['Unidade', 'Responsável (vem da unidade)']), 'Novo bem: aviso embaixo de Unidade e Responsável: ' + avisos.join(', '));
+  ok((await p.textContent('#form-novo')).includes('Ele é cadastrado sozinho pela compra'), 'Novo bem: Fornecedor avisa que vem da compra ou da nota');
   await p.screenshot({ path: `${O}/2-novo-bem.png` });
 
   ok(erros.length === 0, 'sem erros na página: ' + JSON.stringify(erros));

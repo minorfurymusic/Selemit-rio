@@ -20,7 +20,7 @@
     veiculo: { nome: 'Veículos', tipos: ['veiculo'], tipoPadrao: 'veiculo' },
     imovel: { nome: 'Imóveis', tipos: ['imovel', 'infraestrutura'], tipoPadrao: 'imovel' }
   };
-  P.conjuntoDaAba = (nome) => { const n = u.normalizar(nome); return /centros? de custo|^unidades$/.test(n) ? 'unidades' : /veic/.test(n) ? 'veiculo' : /imov|terreno|predio/.test(n) ? 'imovel' : /controle/.test(n) ? 'controle' : /movel|moveis|bens/.test(n) ? 'movel' : null; };
+  P.conjuntoDaAba = (nome) => { const cad = VP.importaCadastros?.cjDaAba(nome); if (cad) return cad; const n = u.normalizar(nome); return /centros? de custo|^unidades$/.test(n) ? 'unidades' : /veic/.test(n) ? 'veiculo' : /imov|terreno|predio/.test(n) ? 'imovel' : /controle/.test(n) ? 'controle' : /movel|moveis|bens/.test(n) ? 'movel' : null; };
 
   // ------------------------------------------------------------------ referências (unidade, classificação…) por nome ou código
   const norm = (t) => u.normalizar(t).replace(/\s+/g, ' ');
@@ -142,8 +142,10 @@
         const ck = c.ref + '|' + norm(s);
         if (P.cacheRef && P.cacheRef.has(ck)) return P.cacheRef.get(ck);
         const x = REFS[c.ref].achar(s);
+        // cadastro novo que vem na mesma planilha (aba de cadastros ou de unidades): liga ao gravar
+        const novoNaPlanilha = !x && VP.importaCadastros ? VP.importaCadastros.achar(c.ref, s, P.pendCad) : null;
         // centro de custo (unidade) por código que ainda não existe: vira unidade nova, criada na importação
-        const r = x ? { v: x.id } : c.ref === 'unidades' && /^\d[\d.\-/]*$/.test(s) ? { v: '__nova:' + s, novaUnidade: s } : null;
+        const r = x ? { v: x.id } : novoNaPlanilha ? { v: novoNaPlanilha } : c.ref === 'unidades' && /^\d[\d.\-/]*$/.test(s) ? { v: '__nova:' + s, novaUnidade: s } : null;
         if (r) { P.cacheRef?.set(ck, r); return r; }
         return { erro: `${REFS[c.ref].titulo.toLowerCase()} "${s}" não existe no cadastro (veja a aba Listas do modelo)` };
       }
@@ -230,7 +232,8 @@
   // ================================================================== IMPORTAR: ler arquivo, De/Para, prévia
   const st = () => (VP.estado.impBens = VP.estado.impBens || { abas: null, previa: null });
   const limpa = (s) => norm(s).replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
-  const camposImp = (cj) => (cj === 'controle' && VP.controle ? VP.controle.CAMPOS : cj === 'unidades' && VP.importaUnidades ? VP.importaUnidades.CAMPOS : P.camposDe(cj));
+  const ehCad = (cj) => !!VP.importaCadastros?.ehCadastro(cj);
+  const camposImp = (cj) => (ehCad(cj) ? VP.importaCadastros.campos(cj) : cj === 'controle' && VP.controle ? VP.controle.CAMPOS : cj === 'unidades' && VP.importaUnidades ? VP.importaUnidades.CAMPOS : P.camposDe(cj));
   // Liga cada coluna do arquivo a um campo: primeiro pelo título exato, depois pelos apelidos (ex.: "Código" do sistema antigo = plaqueta).
   // Cada campo é usado uma vez só: se o arquivo tem "Plaqueta", a coluna "Código" não vira plaqueta.
   const sugerirMapa = (cab, cj) => {
@@ -281,8 +284,18 @@
     const porAnterior = new Map(); for (const b of VP.db.lista('bens', true)) for (const a of VP.plaquetasAnteriores(b)) porAnterior.set(String(a.plaqueta).trim(), b);
     P.cacheRef = new Map();
     s.novasUnidades = new Map(); s.ignoradas = 0; s.gruposSemClasse = new Set();
+    // cadastros e unidades da mesma planilha vêm antes: os bens podem usar um cadastro novo dela
+    const pend = P.pendCad = {};
+    if (VP.importaCadastros) { VP.importaCadastros.limparPendentes(); itens.push(...VP.importaCadastros.previa(s.abas.filter((x) => x.usar && ehCad(x.cj)), pend)); }
+    if (VP.importaUnidades) {
+      pend.unidades = new Map(); let n = 0;
+      for (const a of s.abas.filter((x) => x.usar && x.cj === 'unidades')) for (const it of VP.importaUnidades.previa(a)) {
+        if (it.classe === 'novo') { it.tempId = `__cad:unidades:${++n}`; pend.unidades.set(u.normalizar(it.valores.codigo).trim(), it.tempId); pend.unidades.set(norm(it.valores.nome), it.tempId); }
+        itens.push(it);
+      }
+    }
     const campo = (k) => P.CAMPOS.find((x) => x.k === k);
-    for (const a of s.abas.filter((x) => x.usar && x.cj !== 'controle' && x.cj !== 'unidades')) {
+    for (const a of s.abas.filter((x) => x.usar && x.cj !== 'controle' && x.cj !== 'unidades' && !ehCad(x.cj))) {
       a.linhas.forEach((lin, i) => {
         const nLinha = i + 2 + (a.titulos || 0);
         const it = { aba: a.nome, cj: a.cj, linha: nLinha, valores: {}, erros: [], avisos: [], mudancas: [] };
@@ -352,13 +365,13 @@
     s.classesPadrao = s.classesPadrao || {};
     for (const g of s.gruposSemClasse) if (!s.classesPadrao[g]) s.classesPadrao[g] = P.ACLASSIFICAR;
     if (VP.controle) for (const a of s.abas.filter((x) => x.usar && x.cj === 'controle')) itens.push(...VP.controle.previaImportacao(a));
-    if (VP.importaUnidades) for (const a of s.abas.filter((x) => x.usar && x.cj === 'unidades')) itens.push(...VP.importaUnidades.previa(a));
     s.previa = { itens, criadoEm: VP.Plataforma.agoraISO() };
+    s.mapaCad = new Map();
     return s.previa;
   };
 
   // ================================================================== IMPORTAR: aplicar e desfazer
-  const mostrarValor = (c, v) => (v == null || v === '' ? '—' : c?.tipo === 'ref' ? REFS[c.ref].mostrar(VP.db.pega(c.ref, v) || { nome: v }) : c?.tipo === 'data' ? u.data(v) : c?.tipo === 'status' ? L.status[v] || v : c?.tipo === 'estado' ? L.estados[v] || v : c?.tipo === 'moeda' ? u.moeda(v) : c?.tipo === 'bool' ? (v ? 'Sim' : 'Não') : String(v));
+  const mostrarValor = (c, v) => (v == null || v === '' ? '—' : c?.tipo === 'ref' ? (REFS[c.ref] ? REFS[c.ref].mostrar(VP.db.pega(c.ref, v) || { nome: v }) : VP.db.pega(c.ref, v)?.nome || VP.db.pega(c.ref, v)?.codigo || v) : c?.tipo === 'data' ? u.data(v) : c?.tipo === 'status' ? L.status[v] || v : c?.tipo === 'estado' ? L.estados[v] || v : c?.tipo === 'moeda' ? u.moeda(v) : c?.tipo === 'bool' ? (v ? 'Sim' : 'Não') : String(v));
   // barra de progresso para arquivos grandes (milhares de bens)
   P.progresso = (texto) => {
     let el = document.getElementById('progresso-imp');
@@ -371,9 +384,35 @@
   // soLista: só estes itens (ex.: os marcados da página na tela). A prévia continua com o resto.
   P.aplicar = async (soLista = null) => {
     const s = st();
-    const marcados = (soLista || s.previa.itens).filter((x) => x.marcado && (x.classe === 'novo' || x.classe === 'alterado'));
+    let marcados = (soLista || s.previa.itens).filter((x) => x.marcado && (x.classe === 'novo' || x.classe === 'alterado'));
+    // salvando só uma página: leva junto os cadastros novos (de outras páginas) que os bens desta página usam
+    const mapaCad = s.mapaCad = s.mapaCad || new Map();
+    if (soLista) {
+      const usados = new Set(marcados.flatMap((x) => Object.values(x.valores || {}).concat((x.mudancas || []).map((m) => m.depois))).filter((v) => typeof v === 'string' && v.startsWith('__cad:') && !mapaCad.has(v)));
+      const juntos = s.previa.itens.filter((x) => x.tempId && usados.has(x.tempId) && x.classe === 'novo' && !marcados.includes(x));
+      for (const x of juntos) x.marcado = true;
+      marcados = juntos.concat(marcados);
+    }
     const reg = { id: u.id(), data: VP.Plataforma.agoraISO(), arquivo: s.arquivo, usuario: VP.sessao?.usuario || 'demonstração', novos: [], alterados: [], controleNovos: [], controleAlterados: [], unidadesCriadas: [], classesCriadas: [], qtd: 0 };
     const pacotes = [], sucesso = [], falhas = [];
+    // 0) unidades (código e nome) e cadastros novos da planilha: gravados antes, para os bens apontarem para eles
+    const extra = { bensControle: [] };
+    if (VP.importaUnidades) {
+      const its = marcados.filter((x) => x.cj === 'unidades');
+      VP.importaUnidades.aplicar(its, reg, extra, sucesso, falhas);
+      for (const it of its) if (it.tempId && it.criadoId) mapaCad.set(it.tempId, it.criadoId);
+    }
+    if (VP.importaCadastros) {
+      const grava = VP.importaCadastros.aplicar(marcados.filter((x) => ehCad(x.cj)), reg, mapaCad, sucesso, falhas);
+      if (extra.unidades?.length) { grava.unidades = extra.unidades; extra.unidades = []; }
+      if (Object.keys(grava).length) await VP.db.gravarVarias(grava);
+    }
+    // referências dos bens a cadastros novos: id de verdade (vazio se a linha do cadastro foi desmarcada)
+    const R = VP.importaCadastros ? (v) => VP.importaCadastros.resolver(v, mapaCad) : (v) => v;
+    for (const it of marcados.filter((x) => x.cj !== 'unidades' && !ehCad(x.cj))) {
+      for (const k of Object.keys(it.valores || {})) it.valores[k] = R(it.valores[k]);
+      for (const m of it.mudancas || []) m.depois = R(m.depois);
+    }
     const prep = { unidades: [], classificacoes: [] };
     // 1) unidades novas (centros de custo pelo código) e classificação padrão
     const idUnidade = new Map();
@@ -407,7 +446,7 @@
     // Linhas que a pessoa mandou para Itens de controle (sem plaqueta, fora do balancete)
     const extraC = [], sucC = [];
     let nC = VP.controle ? Number(VP.controle.proximoCodigo().replace(/\D/g, '')) : 0;
-    for (const it of marcados.filter((x) => x.cj !== 'controle' && x.cj !== 'unidades' && x.analise && x.destino === 'controle')) {
+    for (const it of marcados.filter((x) => x.cj !== 'controle' && x.cj !== 'unidades' && !ehCad(x.cj) && x.analise && x.destino === 'controle')) {
       const v = it.valores;
       const unidadeId = typeof v.unidadeId === 'string' && v.unidadeId.startsWith('__nova:') ? idUnidade.get(v.unidadeId.slice(7)) : v.unidadeId;
       const x = VP.controle.montar({ centroCustoPendente: semCentro(v),  descricao: v.descricao, quantidade: 1, valorUnitario: v.valor ?? v._valorContabil, unidadeId, localizacao: v.localizacao, responsavelId: v.responsavelId, dataEntrada: v.dataAquisicao, estado: v.estado, vidaUtilAnos: it.analise.vidaUtilMeses ? Math.round(it.analise.vidaUtilMeses / 12 * 10) / 10 : null, nf: v['nf.numero'] ? { numero: v['nf.numero'] } : {} }, 'C-' + String(nC++).padStart(6, '0'), `Incluído pela importação de planilha (${s.arquivo}), aba ${it.aba}, linha ${it.linha}`);
@@ -415,13 +454,14 @@
       sucC.push(`Item de controle novo: ${x.codigo} · ${x.descricao}`);
     }
     const decisoes = marcados.filter((x) => x.analise).map((x) => ({ descricao: x.descricao, escolha: x.destino, valor: x.valores.valor ?? x.valores._valorContabil, sugerido: x.analise.sugestao }));
-    for (const it of marcados.filter((x) => x.cj !== 'controle' && x.cj !== 'unidades' && !(x.analise && x.destino === 'controle'))) {
+    for (const it of marcados.filter((x) => x.cj !== 'controle' && x.cj !== 'unidades' && !ehCad(x.cj) && !(x.analise && x.destino === 'controle'))) {
       try {
         if (it.classe === 'novo') {
           const v = it.valores;
           const contabil = v.valor == null && v._valorContabil != null;
           const unidadeId = typeof v.unidadeId === 'string' && v.unidadeId.startsWith('__nova:') ? idUnidade.get(v.unidadeId.slice(7)) : v.unidadeId;
           const classificacaoId = v.classificacaoId || idClasse[it.classePadrao];
+          if (!classificacaoId) throw new Error('A classificação nova desta planilha foi desmarcada; marque-a também');
           const complemento = [v.complemento || v.descricao, v['detalhes.caracteristicas']].filter(Boolean).join(' — ');
           const { bens: bb, eventos: ee } = VP.montarBens({ plaqueta: it.plaqueta || '', _plaquetaConferida: !!it.plaqueta, tipo: it.tipoBem, descricao: v.descricao, complemento, classificacaoId, unidadeId, responsavelId: v.responsavelId, localizacao: v.localizacao, dataAquisicao: v.dataAquisicao, dataIncorporacao: hoje(), valor: contabil ? v._valorContabil : v.valor, estado: v.estado || 7, situacaoAquisicao: contabil ? 'Saldo inicial' : v.situacaoAquisicao || 'Compra', fornecedorId: v.fornecedorId, quantidade: 1, origemTexto: contabil ? 'importação de outro sistema (valor contábil, já depreciado)' : 'importação por planilha' }, codigo, ctxPl);
           const b = bb[0];
@@ -448,9 +488,8 @@
         }
       } catch (e) { falhas.push({ item: `${it.aba}, linha ${it.linha}`, motivo: e.message }); }
     }
-    const extra = { bensControle: extraC };
+    extra.bensControle = extraC;
     if (VP.controle) VP.controle.aplicarImportacao(marcados.filter((x) => x.cj === 'controle'), reg, extra, sucesso, falhas);
-    if (VP.importaUnidades) VP.importaUnidades.aplicar(marcados.filter((x) => x.cj === 'unidades'), reg, extra, sucesso, falhas);
     // 3) grava em lotes, com progresso; se um lote falhar, para e mostra o que foi e o que não foi gravado
     let gravados = 0;
     try {
@@ -474,7 +513,7 @@
     P.progresso(null);
     for (const it of s.previa.itens.filter((x) => x.classe === 'erro')) falhas.push({ item: `${it.aba}, linha ${it.linha}${it.descricao ? ' · ' + it.descricao : ''}`, motivo: it.erros.join('; ') });
     reg.qtd = sucesso.length;
-    if (sucesso.length || reg.unidadesCriadas.length) await VP.db.gravarVarias({ importacoesPlanilha: [reg] });
+    if (sucesso.length || reg.unidadesCriadas.length || (reg.cadastrosNovos || []).length) await VP.db.gravarVarias({ importacoesPlanilha: [reg] });
     // gravou só uma parte: a prévia continua, com o que foi gravado marcado como "Já gravado"
     const restam = soLista ? s.previa.itens.filter((x) => (x.classe === 'novo' || x.classe === 'alterado') && !marcados.includes(x)).length : 0;
     if (soLista && restam) { for (const x of marcados) { x.classe = 'gravado'; x.marcado = false; } }
@@ -513,6 +552,7 @@
     if (unids.length) { for (const x of unids) { x.excluido = true; x.excluidoEm = VP.Plataforma.agoraISO(); } grava.unidades = unids; sucesso.push(`${unids.length} unidade(s) criada(s) pela importação foram para a Lixeira`); }
     if (VP.controle) VP.controle.desfazerImportacao(reg, grava, sucesso, falhas);
     if (VP.importaUnidades) VP.importaUnidades.desfazer(reg, grava, sucesso, falhas);
+    if (VP.importaCadastros) VP.importaCadastros.desfazer(reg, grava, sucesso, falhas);
     reg.desfeitoEm = VP.Plataforma.agoraISO();
     grava.importacoesPlanilha = [reg];
     await VP.db.gravarVarias(grava);
@@ -559,12 +599,16 @@
           <div class="linha-botoes"><label>Salvar esta escolha como modelo (opcional) <input data-exp-nome-modelo placeholder="Ex.: Para o sistema da contabilidade"></label></div>
           <p><button class="botao primario" data-exportar ${qtd ? '' : 'disabled'}>Baixar Excel</button></p>
         </section>
+        ${VP.importaCadastros ? `<section class="cartao" id="exp-cadastros"><h3>Cadastros (uma aba para cada)</h3>
+          <p class="ajuda">Entidades, unidades, contas, responsáveis, fornecedores, motivos, comissões, seguradoras, tipos de garantia, classificações, produtos e compras. As colunas são as mesmas da importação: dá para corrigir no Excel e importar de volta, ou usar como modelo para os dados da prefeitura.</p>
+          <p><button class="botao primario" data-exp-cadastros>Baixar cadastros (Excel)</button></p></section>` : ''}
         <section class="cartao"><h3>Outras listas</h3><p class="ajuda">Cada lista abaixo tem o botão <b>Baixar planilha</b> na própria tela (Excel, CSV ou JSON, com escolha das colunas). Se marcar linhas na lista, só elas saem.</p>
           <div class="grade-links">${P.OUTRAS.map(([g, l]) => `<div><h4>${esc(g)}</h4><ul class="lista-simples">${l.map(([h, n]) => `<li><a href="${h}">${esc(n)}</a></li>`).join('')}</ul></div>`).join('')}</div>
         </section>`,
       ligar() {
         const re = () => VP.app.render();
         document.querySelector('[data-modelo-imp]').addEventListener('click', P.baixarModelo);
+        document.querySelector('[data-exp-cadastros]')?.addEventListener('click', () => { const n = VP.importaCadastros.exportar(); ui.aviso(`Planilha de cadastros baixada (${u.inteiro(n)} registro(s)).`); });
         document.querySelectorAll('[data-exp]').forEach((el) => el.addEventListener('change', () => { f[el.dataset.exp] = el.type === 'checkbox' ? el.checked : el.value; re(); }));
         const caixas = () => [...document.querySelectorAll('#exp-colunas input')];
         document.querySelector('[data-exp-todas]').addEventListener('click', () => caixas().forEach((i) => { i.checked = true; }));
@@ -588,7 +632,7 @@
     const s = st();
     const hist = VP.db.lista('importacoesPlanilha').sort((a, b) => String(b.data).localeCompare(String(a.data)));
     const camposDoCj = camposImp;
-    const cjs = Object.assign({}, Object.fromEntries(Object.entries(P.CONJUNTOS).map(([k, x]) => [k, x.nome])), VP.controle ? { controle: 'Itens de controle' } : {}, VP.importaUnidades ? { unidades: VP.importaUnidades.NOME + ' (só código e nome)' } : {});
+    const cjs = Object.assign({}, Object.fromEntries(Object.entries(P.CONJUNTOS).map(([k, x]) => [k, x.nome])), VP.controle ? { controle: 'Itens de controle' } : {}, VP.importaUnidades ? { unidades: VP.importaUnidades.NOME + ' (só código e nome)' } : {}, VP.importaCadastros ? VP.importaCadastros.opcoesImportar() : {});
     let corpo = '';
     if (s.previa) {
       const it = s.previa.itens;
@@ -632,7 +676,7 @@
         ${paginador}
         <div class="tabela-rolagem"><table class="tabela" id="tab-previa-imp" data-sem-planilha><thead><tr><th></th><th>Situação</th><th>Aba, linha</th><th>Plaqueta</th><th>Descrição</th><th>O que acontece</th></tr></thead><tbody>
         ${daPagina.map(([x, i]) => `<tr data-classe="${x.classe}"><td>${x.classe === 'novo' || x.classe === 'alterado' ? `<input type="checkbox" data-imp-item="${i}" ${x.marcado ? 'checked' : ''} aria-label="Importar esta linha">` : ''}</td>
-          <td><span class="selo-status ${CLASSE[x.classe][0]}">${CLASSE[x.classe][1]}</span></td><td>${esc(x.aba)}, ${x.linha}</td><td>${esc(x.plaqueta || (x.classe === 'novo' ? '(automática)' : ''))}</td><td>${esc(x.descricao || (x.bemId ? VP.db.pega('bens', x.bemId)?.descricao : '') || x.codigoControle || '')}</td>
+          <td><span class="selo-status ${CLASSE[x.classe][0]}">${CLASSE[x.classe][1]}</span></td><td>${esc(x.aba)}, ${x.linha}</td><td>${esc(x.plaqueta || (x.classe === 'novo' && !x.tabela && x.cj !== 'unidades' ? '(automática)' : ''))}</td><td>${esc(x.descricao || (x.bemId ? VP.db.pega('bens', x.bemId)?.descricao : '') || x.codigoControle || '')}</td>
           <td>${x.erros.length ? `<span class="erro-txt">${esc(x.erros.join('; '))}</span>` : x.classe === 'novo' ? `Será incluído${x.tipoBem && x.tipoBem !== 'movel' ? ` (${esc(L.tiposBem[x.tipoBem])})` : ''}${x.valores?._valorContabil != null && x.valores.valor == null ? ' com o valor contábil, como saldo inicial' : ''}` : x.classe === 'igual' ? 'Nada muda' : ''}
             ${x.mudancas.length ? `<ul class="lista-mudancas">${x.mudancas.map((m) => { const c = camposDoCj(x.cj).find((y) => y.k === m.k) || P.CAMPOS.find((y) => y.k === m.k); return `<li><b>${esc(m.t)}</b>: ${esc(mostrarValor(c, m.antes))} → ${esc(mostrarValor(c, m.depois))}</li>`; }).join('')}</ul>` : ''}
             ${x.avisos.length ? `<div class="aviso-txt">${esc(x.avisos.join('; '))}</div>` : ''}

@@ -73,6 +73,9 @@
         const doc = Object.assign(x || {}, v);
         if (c.antesDeSalvar) c.antesDeSalvar(doc);
         if (qual === 'unidades' && VP.db.lista('unidades').some((o) => o.codigo === doc.codigo && o.id !== doc.id)) return 'Já existe unidade com este código.';
+        // Valor residual sempre informado (decisão do usuário, 14/10/2026): quem tem vida útil precisa do residual, próprio ou do grupo
+        if (qual === 'classificacoes' && !doc.naoDeprecia && doc.vidaUtilMeses && (doc.residualPct == null || doc.residualPct === '') && VP.dadosDaClassificacao(doc.paiId).residualPct == null) return 'Informe o Valor residual (%): toda classificação que deprecia precisa dele.';
+        if (qual === 'classificacoes' && doc.residualPct != null && doc.residualPct !== '' && (doc.residualPct < 0 || doc.residualPct >= 100)) return 'O valor residual (%) deve ser de 0 a 99.';
         await VP.db.gravar(qual, doc);
         ui.aviso('Salvo.');
         VP.app.render();

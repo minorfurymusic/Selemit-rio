@@ -18,6 +18,9 @@ Como usar o sistema, passo a passo. Este manual vai crescer: cada função nova 
 10. [Recebimento e termo de responsabilidade com prazo](#10-recebimento-e-termo-de-responsabilidade-com-prazo)
 11. [Menu lateral: grupos e menu escondido](#11-menu-lateral-grupos-e-menu-escondido)
 12. [Cadastros vazios: dados a receber da prefeitura](#12-cadastros-vazios-dados-a-receber-da-prefeitura)
+13. [Cadastros por planilha e planilha de teste](#13-cadastros-por-planilha-e-planilha-de-teste)
+14. [Compras: fornecedor cadastrado sozinho](#14-compras-fornecedor-cadastrado-sozinho)
+15. [Valor residual (depreciação)](#15-valor-residual-depreciação)
 
 ---
 
@@ -475,9 +478,62 @@ O sistema lembra a escolha **neste navegador**: ao abrir de novo, o menu volta d
 *Novo em 14/10/2026.* Num sistema novo da cidade, os cadastros começam vazios. Enquanto faltar um cadastro básico, o **Painel** mostra na central de pendências **"Cadastro vazio: … — dados a receber da prefeitura"**. Clique para abrir o cadastro.
 
 - **Urgente:** Entidades e fundos, Unidades e Classificações (sem eles não dá para cadastrar bens direito).
-- **Atenção:** Contas contábeis, Responsáveis e Fornecedores.
+- **Atenção:** Contas contábeis e Responsáveis. *(Atualização 14/10/2026: Fornecedores saiu desta lista, porque é cadastrado sozinho pela compra ou pela nota fiscal — seção 14.)*
 
 No **Novo bem**, embaixo de Unidade, Responsável e Fornecedor aparece o aviso de onde cadastrar quando a lista está vazia. O campo **Classificação** completa e filtra enquanto você digita, mas só depois que as classificações estiverem cadastradas.
 
 A pendência some sozinha quando o cadastro recebe o primeiro registro. A lista completa do que pedir à prefeitura está no arquivo `dados-da-prefeitura.md`.
+
+---
+
+## 13. Cadastros por planilha e planilha de teste
+
+*Novo em 14/10/2026.* Todos os cadastros entram e saem por planilha do Excel, uma aba para cada: **Unidades, Entidades, Contas contábeis, Responsáveis, Fornecedores, Motivos, Comissões, Seguradoras, Tipos de garantia, Classificações, Produtos e Compras**.
+
+**Exportar:** menu **Exportar e importar** → aba **Exportar** → quadro **Cadastros** → **Baixar cadastros (Excel)**. As colunas são as mesmas da importação. Serve para conferir, corrigir no Excel e importar de volta, ou como modelo para os dados da prefeitura.
+
+**Importar:** menu **Exportar e importar** → aba **Importar** → escolha o arquivo. O sistema reconhece cada aba pelo nome. Depois é igual aos bens (seção 2):
+
+1. Confira as colunas.
+2. Veja a prévia (Novo, Alterado, Igual, Erro).
+3. Salve o que está marcado.
+4. Se precisar, use **Desfazer** na lista de importações feitas.
+
+- O que já existe, com o mesmo nome, código ou CNPJ, **não é duplicado**: aparece como "Igual", ou como "Alterado" mostrando o que muda.
+- A mesma planilha pode ter cadastros e bens juntos. Um bem pode usar uma unidade, classificação, responsável ou fornecedor que é novo na própria planilha: o sistema grava os cadastros primeiro.
+- Classificação: a coluna "Fica dentro de" é o grupo (ex.: "Bens móveis"). Quem tem vida útil precisa do valor residual (seção 15).
+- Compras: entidade vazia vale a única cadastrada; fornecedor que não existe é cadastrado sozinho (seção 14); empenho pode ficar vazio.
+- Unidades: só **código e nome** (decisão de 08/10/2026: o sistema não lê nomes de servidores dessa planilha). Responsável, tipo e endereço da unidade são preenchidos na tela.
+- **Desfazer:** os cadastros novos vão para a Lixeira. Se algum já estiver em uso por um bem, ele continua no cadastro.
+
+**Planilha de teste (1 de cada coisa):** arquivo `patrimonio/modelos-importacao/dados-de-teste.xlsx`, no repositório. Só dados fictícios, com nomes começando por "TESTE". Tem:
+
+- 2 unidades, 1 entidade, 2 contas, 1 responsável, 1 fornecedor, 1 motivo, 1 comissão, 1 seguradora e 1 tipo de garantia;
+- 4 classificações e 1 produto;
+- 1 compra, com um fornecedor novo que é cadastrado sozinho;
+- 1 bem móvel, 1 veículo, 1 imóvel e 1 item de controle.
+
+Num sistema vazio, importe esse arquivo e todos os cadastros do Painel ficam preenchidos. Pode importar de novo sem duplicar nada, a não ser o item de controle, porque item novo não leva código.
+
+---
+
+## 14. Compras: fornecedor cadastrado sozinho
+
+*Novo em 14/10/2026.* O fornecedor vem da ordem de compra ou da nota fiscal. Quando ele ainda não existe, o sistema cadastra sozinho:
+
+- **Registrar compra** (menu Entradas): o campo **Fornecedor** completa e filtra enquanto você digita. Se o nome for novo, informe o CNPJ ao lado: o fornecedor é cadastrado com a compra.
+- **Importar compras por planilha CSV** (Entradas) ou pela aba **Compras** da planilha de cadastros: fornecedor novo é cadastrado (com o CNPJ, se vier).
+- **Nota fiscal (XML):** já fazia isso antes.
+- **Empenho** pode ficar vazio (ordem de compra ainda sem empenho).
+- **Entidade:** vem da coluna "entidade" (nome ou CNPJ). Se ficar vazia e só houver uma entidade, vale ela. *(Correção: antes a importação por CSV gravava sempre a entidade da demonstração.)*
+
+---
+
+## 15. Valor residual (depreciação)
+
+*Novo em 14/10/2026.* O **valor residual** é o quanto o bem ainda vale no fim da vida útil. **O valor do bem nunca fica abaixo dele e nunca fica negativo**: a depreciação para quando chega no residual.
+
+- **Novo bem:** o campo **Valor residual** vem preenchido pela classificação (em %). Dá para trocar para **Dinheiro (R$)** e digitar o valor. É obrigatório, a não ser que a classificação "não deprecia" (ex.: terreno). Em %, vai de 0 a 99. Em R$, tem que ser menor que o valor de aquisição.
+- **Classificações:** quem tem vida útil precisa do valor residual (%). Classe e subclasse podem herdar o do grupo.
+- **Ficha do bem → Depreciação:** já permitia mudar o residual (em % ou R$), com justificativa, valendo daqui para frente.
 

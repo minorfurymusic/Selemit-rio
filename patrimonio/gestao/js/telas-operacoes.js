@@ -141,9 +141,10 @@
   const camposItem = () => [
     { chave: 'entidadeId', rotulo: 'Entidade', tipo: 'select', opcoes: opc('entidades'), obrigatorio: true },
     { chave: 'produtoId', rotulo: 'Produto', tipo: 'select', opcoes: opc('produtos'), obrigatorio: true },
-    { chave: 'fornecedorId', rotulo: 'Fornecedor', tipo: 'select', opcoes: opc('fornecedores'), obrigatorio: true },
-    { chave: 'oc', rotulo: 'Ordem de compra (número/ano)', largura: 'meia' }, { chave: 'empenho', rotulo: 'Empenho (número/ano)', obrigatorio: true, largura: 'meia' },
-    { chave: 'emissao', rotulo: 'Emissão do empenho', tipo: 'data', obrigatorio: true, largura: 'meia' }, { chave: 'liquidado', rotulo: 'Empenho liquidado', tipo: 'bool', largura: 'meia' },
+    { chave: 'fornecedorNome', rotulo: 'Fornecedor', obrigatorio: true, largura: 'meia', sugestoes: VP.db.lista('fornecedores').map((f) => f.nome).sort((a, b) => a.localeCompare(b, 'pt-BR')), placeholder: 'Digite para procurar', ajuda: 'Se não existir, é cadastrado com esta compra.' },
+    { chave: 'fornecedorDoc', rotulo: 'CNPJ do fornecedor (se for novo)', largura: 'meia' },
+    { chave: 'oc', rotulo: 'Ordem de compra (número/ano)', largura: 'meia' }, { chave: 'empenho', rotulo: 'Empenho (número/ano)', largura: 'meia', ajuda: 'Pode ficar vazio na ordem de compra; informe depois.' },
+    { chave: 'emissao', rotulo: 'Emissão do empenho', tipo: 'data', largura: 'meia' }, { chave: 'liquidado', rotulo: 'Empenho liquidado', tipo: 'bool', largura: 'meia' },
     { chave: 'quantidade', rotulo: 'Quantidade', tipo: 'numero', obrigatorio: true, largura: 'meia' }, { chave: 'valorUnitario', rotulo: 'Valor unitário', tipo: 'moeda', obrigatorio: true, largura: 'meia' }];
   const montarItem = (v) => {
     const [on, oa] = String(v.oc || '').split('/');
@@ -151,20 +152,47 @@
     const p = VP.db.pega('produtos', v.produtoId);
     return { entidadeId: v.entidadeId, produtoId: v.produtoId, descricao: p?.nome || v.descricao || '', fornecedorId: v.fornecedorId, ordemCompra: { numero: on || '', ano: oa || '' }, empenho: { numero: en || '', ano: ea || String(v.emissao || '').slice(0, 4), sub: 1, emissao: v.emissao }, quantidade: Math.floor(v.quantidade), valorUnitario: v.valorUnitario, incorporados: 0, ativo: true, liquidado: !!v.liquidado, unidadeMedida: 'UN' };
   };
+  // Fornecedor da compra: acha pelo CNPJ ou nome; se não existir, cadastra (regra do usuário, 14/10/2026)
+  const fornecedorDaCompra = async (nome, doc, novos) => {
+    const d = String(doc || '').replace(/\D/g, ''), n = u.normalizar(nome).trim();
+    const todos = VP.db.lista('fornecedores').concat(novos || []);
+    let f = (d.length >= 11 && todos.find((x) => String(x.documento || '').replace(/\D/g, '') === d)) || todos.find((x) => u.normalizar(x.nome).trim() === n);
+    if (f) return { f, novo: false };
+    f = { id: u.id(), nome: String(nome).trim(), documento: String(doc || '').trim(), contato: '', criadoPelaCompra: true };
+    if (novos) novos.push(f); else await VP.db.gravar('fornecedores', f);
+    return { f, novo: true };
+  };
+  // Entidade da compra: pelo nome ou CNPJ; vazio = a única cadastrada
+  const entidadeDaCompra = (txt) => {
+    const ents = VP.db.lista('entidades');
+    const t = String(txt || '').trim();
+    if (!t) return ents.length === 1 ? { id: ents[0].id } : { erro: ents.length ? 'Informe a entidade (há mais de uma cadastrada)' : 'Nenhuma entidade cadastrada (Cadastros → Entidades)' };
+    const d = t.replace(/\D/g, '');
+    const e = (d.length >= 11 && ents.find((x) => String(x.documento || '').replace(/\D/g, '') === d)) || ents.find((x) => u.normalizar(x.nome) === u.normalizar(t));
+    return e ? { id: e.id } : { erro: `Entidade não encontrada: ${t}` };
+  };
   const novoItem = (depois) => ui.formulario({
     titulo: 'Registrar compra (item a incorporar)', largura: 'media', campos: camposItem(),
-    salvar: async (v) => { await VP.db.gravar('itensIncorporar', montarItem(v)); ui.aviso('Item registrado.'); depois(); }
+    salvar: async (v) => {
+      const { f, novo } = await fornecedorDaCompra(v.fornecedorNome, v.fornecedorDoc);
+      await VP.db.gravar('itensIncorporar', montarItem(Object.assign(v, { fornecedorId: f.id })));
+      ui.aviso(novo ? `Item registrado. Fornecedor novo cadastrado: ${f.nome}.` : 'Item registrado.'); depois();
+    }
   });
   const importarItens = (depois) => ui.modal({
     titulo: 'Importar itens comprados (planilha)', largura: 'media',
-    corpo: `<p class="ajuda">Planilha CSV com as colunas: <b>empenho;emissao;fornecedor;produto;quantidade;valor_unitario;liquidado</b> (fornecedor e produto pelo nome, como estão nos Cadastros). <button type="button" class="botao pequeno" data-modelo>Baixar modelo</button></p>
+    corpo: `<p class="ajuda">Planilha CSV com as colunas: <b>entidade;ordem_compra;empenho;emissao;fornecedor;cnpj_fornecedor;produto;quantidade;valor_unitario;liquidado</b>. Produto pelo nome, como está nos Cadastros. Fornecedor que não existe é cadastrado. Entidade vazia = a única cadastrada. Para importar tudo de uma vez (cadastros e compras), use <a href="#planilhas/importar">Exportar e importar</a>. <button type="button" class="botao pequeno" data-modelo>Baixar modelo</button></p>
       <input type="file" accept=".csv,text/csv" data-arquivo>
       <div data-previa></div>`,
     botoes: [{ texto: 'Cancelar' }, { texto: 'Importar', classe: 'primario', acao: async (d) => {
       const linhas = d._linhas || [];
       const ok = linhas.filter((l) => !l.erro);
+      // fornecedores que não existem: cadastrados agora (um por nome/CNPJ)
+      const novos = [];
+      for (const l of ok) l.item.fornecedorId = (await fornecedorDaCompra(l.fornecedor, l.cnpj, novos)).f.id;
+      if (novos.length) await VP.db.gravar('fornecedores', novos);
       await VP.db.gravar('itensIncorporar', ok.map((l) => l.item));
-      ui.resultado({ titulo: 'Importação de itens', sucesso: ok.map((l) => `${l.item.descricao} × ${l.item.quantidade}`), falhas: linhas.filter((l) => l.erro).map((l) => ({ item: `Linha ${l.n}`, motivo: l.erro })) });
+      ui.resultado({ titulo: 'Importação de itens', sucesso: ok.map((l) => `${l.item.descricao} × ${l.item.quantidade}`).concat(novos.map((f) => `Fornecedor novo cadastrado: ${f.nome}`)), falhas: linhas.filter((l) => l.erro).map((l) => ({ item: `Linha ${l.n}`, motivo: l.erro })) });
       depois();
     } }]
   }).el.addEventListener('change', async (e) => {
@@ -176,18 +204,20 @@
     const idx = (n) => cols.indexOf(n);
     d._linhas = rs.map((r, k) => {
       const c = r.split(';');
-      const forn = VP.db.lista('fornecedores').find((f) => u.normalizar(f.nome) === u.normalizar(c[idx('fornecedor')]));
+      const col = (n) => (idx(n) >= 0 ? String(c[idx(n)] ?? '').trim() : '');
       const prod = VP.db.lista('produtos').find((p) => u.normalizar(p.nome) === u.normalizar(c[idx('produto')]));
-      const emissao = (c[idx('emissao')] || '').split('/').reverse().join('-');
-      if (!forn) return { n: k + 2, erro: `Fornecedor não encontrado: ${c[idx('fornecedor')]}` };
+      const emissao = col('emissao').split('/').reverse().join('-');
+      const ent = entidadeDaCompra(col('entidade'));
+      if (ent.erro) return { n: k + 2, erro: ent.erro };
+      if (!col('fornecedor')) return { n: k + 2, erro: 'Fornecedor vazio' };
       if (!prod) return { n: k + 2, erro: `Produto não encontrado: ${c[idx('produto')]}` };
       if (!u.num(c[idx('quantidade')]) || !u.num(c[idx('valor_unitario')])) return { n: k + 2, erro: 'Quantidade ou valor inválido' };
-      return { n: k + 2, item: montarItem({ entidadeId: 'E1', produtoId: prod.id, fornecedorId: forn.id, empenho: c[idx('empenho')], emissao, quantidade: u.num(c[idx('quantidade')]), valorUnitario: u.num(c[idx('valor_unitario')]), liquidado: /^s/i.test(c[idx('liquidado')] || '') }) };
+      return { n: k + 2, fornecedor: col('fornecedor'), cnpj: col('cnpj_fornecedor'), item: montarItem({ entidadeId: ent.id, produtoId: prod.id, fornecedorId: '', oc: col('ordem_compra'), empenho: col('empenho'), emissao, quantidade: u.num(c[idx('quantidade')]), valorUnitario: u.num(c[idx('valor_unitario')]), liquidado: /^s/i.test(c[idx('liquidado')] || '') }) };
     });
     d.querySelector('[data-previa]').innerHTML = `<p><b>Prévia:</b> ${d._linhas.filter((l) => !l.erro).length} linha(s) certa(s), ${d._linhas.filter((l) => l.erro).length} com erro.</p>`;
   });
   document.addEventListener('click', (e) => {
-    if (e.target.matches('[data-modelo]')) ui.baixarCSV('modelo-itens', ['empenho', 'emissao', 'fornecedor', 'produto', 'quantidade', 'valor_unitario', 'liquidado'], [['850/2026', '01/10/2026', 'Comercial Exemplo Ltda', 'Cadeira giratória', 4, 489.9, 'sim']]);
+    if (e.target.matches('[data-modelo]')) ui.baixarCSV('modelo-itens', ['entidade', 'ordem_compra', 'empenho', 'emissao', 'fornecedor', 'cnpj_fornecedor', 'produto', 'quantidade', 'valor_unitario', 'liquidado'], [['', '2231/2026', '850/2026', '01/10/2026', 'Comercial Exemplo Ltda', '00.000.000/0001-91', 'Cadeira giratória', 4, 489.9, 'sim']]);
   });
 
   // ======================================================== TRANSFERÊNCIAS

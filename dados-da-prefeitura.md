@@ -4,6 +4,8 @@ Lista do que o VitalPat precisa receber da prefeitura para funcionar com dados r
 
 **Importante:** estes dados têm nomes, CPFs e outros dados pessoais. Eles entram **só no sistema** (servidor da cidade), **nunca no GitHub**. Combinar com a prefeitura um meio seguro de envio.
 
+**Formato:** o mais fácil é preencher a planilha que o próprio sistema gera (Exportar e importar → Exportar → **Baixar cadastros (Excel)**), uma aba para cada cadastro, e importar de volta. Exemplo preenchido: `patrimonio/modelos-importacao/dados-de-teste.xlsx`.
+
 No sistema, enquanto um cadastro básico estiver vazio, o **Painel** mostra a pendência "Cadastro vazio: … — dados a receber da prefeitura", e o **Novo bem** avisa embaixo da lista vazia.
 
 ## Patrimônio — cadastros básicos (sem eles não dá para cadastrar bens)
@@ -15,7 +17,7 @@ No sistema, enquanto um cadastro básico estiver vazio, o **Painel** mostra a pe
 | [ ] | **Tabela de classificação** com vida útil e valor residual de cada classe (tabela oficial do município) | planilha ou decreto/portaria | Depreciação; o campo Classificação completa e filtra ao digitar | Painel (urgente) |
 | [ ] | **Contas contábeis** (patrimônio e depreciação acumulada) ligadas a cada classe | planilha do plano de contas | Arquivo para a contabilidade | Painel |
 | [ ] | **Responsáveis**: nome, matrícula, cargo, e-mail (e CPF, se o termo exigir) | planilha | Termo de responsabilidade; envio por e-mail no futuro | Painel + Novo bem |
-| [ ] | **Fornecedores**: razão social e CNPJ | planilha ou relatório do sistema de compras | Nota fiscal e compra | Painel + Novo bem |
+| — | ~~**Fornecedores**~~ — *atualização 14/10/2026: não precisa mandar; o fornecedor é cadastrado sozinho pela ordem de compra ou pela nota fiscal* | — | — | — |
 
 ## Patrimônio — bens e documentos
 

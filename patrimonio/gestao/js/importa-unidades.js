@@ -62,7 +62,7 @@
       try {
         if (it.classe === 'novo') {
           const x = { id: u.id(), codigo: it.valores.codigo, nome: it.valores.nome, tipo: '', cidade: '', bairro: '', logradouro: '', responsavelId: '', criadaPorImportacao: true, historicoNomes: [] };
-          extra.unidades.push(x); reg.unidadesNovasCC.push(x.id);
+          extra.unidades.push(x); reg.unidadesNovasCC.push(x.id); it.criadoId = x.id;
           sucesso.push(`Unidade nova: ${x.codigo} · ${x.nome}`);
         } else if (it.classe === 'alterado') {
           const x = VP.db.pega('unidades', it.unidadeId);
