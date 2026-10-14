@@ -326,8 +326,10 @@ Explicado no `manual.md` (2.5, 2.6, 2.7, 4, 4.1, 7 e 8) e no `DOSSIE.md` (seçã
 ## Pedido de 14/10/2026 (5) — imóveis: planilha, 1.500 matrículas e mapa com o Gemini
 
 - [x] Plano em 3 rodadas (descobrir, extrair, mecanismo) em `patrimonio/imoveis-gemini/PLANO.md`; estrutura das pastas do Drive conferida só pela lista.
-- [ ] Etapa 0: amostra combinada (5 linhas da planilha, 1 TXT por pasta, 5 itens do KML) e tamanho total para o Gemini.
-- [ ] Prompts 1, 2 e 3.
+- [x] Etapa 0 (14/10/2026): amostra lida; 712 TXT ≈ 600 mil tokens (cabe no Gemini de uma vez); KML com 231 marcadores; conferência no mapa bloqueada pela rede deste ambiente (3 serviços testados).
+- [x] Prompt 1 (`patrimonio/imoveis-gemini/prompt-1-descobrir.md`, sem links; versão com links entregue ao usuário).
+- [ ] Rodar o prompt 1 no Gemini (usuário) e trazer o resultado.
+- [ ] Prompts 2 e 3.
 
 ## Como continuar numa conversa nova (11/10/2026)
 

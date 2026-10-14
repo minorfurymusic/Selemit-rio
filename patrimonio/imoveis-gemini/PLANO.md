@@ -62,6 +62,30 @@ Tudo testado só com dados fictícios.
 - **Tamanho:** se não couber numa vez só, cada lote recebe o catálogo de padrões acumulado e devolve atualizado, com contagem. Assim nenhum padrão se perde entre lotes.
 - **Leitura de TXT pelo Drive** (deduzido pela lista de formatos do conector, a conferir na etapa 0): o conector lê planilha, PDF e Word; TXT será testado pelo download.
 
+## Resultado da etapa 0 (14/10/2026)
+
+Confirmado por leitura real:
+
+- **amostra**: 5 linhas de "Relação IPM - Atualizando" e de "Baixadas"; 1 TXT de cada uma das 11 pastas da `DOC` (sem `Imagens`); 5 itens do KML;
+- **leitura de TXT pelo Drive funciona**: a suspeita do plano estava errada;
+- **tamanho**: 712 TXT com "Matricula" no nome, 2,1 MB, cerca de 600 mil tokens. **Cabe numa vez só** no Gemini (1 milhão), junto com a planilha e o KML. A planilha "Cartório" fala em 716 matrículas únicas;
+- **KML**: 231 marcadores (230 pontos, 1 polígono). O nome é a matrícula **ou** o cadastro imobiliário. Em 3 pontos conferidos, a coordenada bateu com a da planilha (menos de 2 m).
+
+Não deu para fazer:
+
+- **conferir o endereço no mapa**: a rede deste ambiente recusa os serviços de mapa. Testado em 3 serviços independentes (OpenStreetMap, Photon, ArcGIS), todos recusados.
+
+Achados que entram no prompt 1:
+
+- OCR com erros;
+- **o titular da abertura muitas vezes não é o atual** (doação a fundação, desafetação e doação a pessoa física, encargo com reversão);
+- confrontações em 3 formatos, inclusive coordenadas UTM SIRGAS 2000;
+- a mesma matrícula em várias linhas e arquivos;
+- áreas com dois valores numa célula.
+
+Prompt 1: `prompt-1-descobrir.md`. **Os links do Drive ficam fora do repositório** (público); a versão com links fica com o usuário.
+
 ## Histórico
 
 - 14/10/2026: plano criado; estrutura das pastas conferida pela lista (sem abrir conteúdo).
+- 14/10/2026: etapa 0 feita; prompt 1 escrito.
