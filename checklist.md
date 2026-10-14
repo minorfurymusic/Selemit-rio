@@ -323,6 +323,12 @@ Explicado no `manual.md` (2.5, 2.6, 2.7, 4, 4.1, 7 e 8) e no `DOSSIE.md` (seçã
 - [ ] Pendência "compra sem empenho" no Painel (hoje só aviso na prévia).
 - [ ] Pergunta ainda em aberto: "Inservível" congela o valor ou continua depreciando?
 
+## Pedido de 14/10/2026 (5) — imóveis: planilha, 1.500 matrículas e mapa com o Gemini
+
+- [x] Plano em 3 rodadas (descobrir, extrair, mecanismo) em `patrimonio/imoveis-gemini/PLANO.md`; estrutura das pastas do Drive conferida só pela lista.
+- [ ] Etapa 0: amostra combinada (5 linhas da planilha, 1 TXT por pasta, 5 itens do KML) e tamanho total para o Gemini.
+- [ ] Prompts 1, 2 e 3.
+
 ## Como continuar numa conversa nova (11/10/2026)
 
 Os robôs de teste agora ficam no repositório, em `testes/` (só dados fictícios; ver `testes/LEIA-ME.md`). Prova: `testes/regressao.sh` rodado de dentro do repositório em 11/10/2026: 26 suítes, 0 falhas (inclui os 4 testes com servidor local). Texto para colar na conversa nova:
